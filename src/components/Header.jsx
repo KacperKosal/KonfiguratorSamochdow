@@ -2,15 +2,15 @@ import React from 'react';
 
 const Header = () => {
   return (
-    <header className="bg-white shadow-md">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <div className="text-2xl font-bold text-blue-700">AutoKonfigurator</div>
+    <header className="header">
+      <div className="header-container">
+        <div className="header-logo">AutoKonfigurator</div>
         <nav>
-          <ul className="flex space-x-6">
-            <li className="hover:text-blue-700 cursor-pointer">Modele</li>
-            <li className="hover:text-blue-700 cursor-pointer">Salony</li>
-            <li className="hover:text-blue-700 cursor-pointer">Finansowanie</li>
-            <li className="hover:text-blue-700 cursor-pointer">Kontakt</li>
+          <ul className="nav-list">
+            <li className="nav-item">Modele</li>
+            <li className="nav-item">Salony</li>
+            <li className="nav-item">Finansowanie</li>
+            <li className="nav-item">Kontakt</li>
           </ul>
         </nav>
       </div>

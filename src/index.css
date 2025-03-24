@@ -1,2 +1,345 @@
-@import "tailwindcss";
+/* Przygotowane minimalne style – możesz je dowolnie modyfikować/rozbudować */
 
+/* RESET / BAZA */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+/* Layout aplikacji */
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  flex: 1;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 24px;
+}
+
+.configurator-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 1024px) {
+  .configurator-wrapper {
+    flex-direction: row;
+  }
+}
+
+.left-panel,
+.right-panel {
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+}
+
+.left-panel {
+  flex: 2;
+}
+
+.right-panel {
+  flex: 1;
+  height: fit-content;
+  position: sticky;
+  top: 16px;
+}
+
+/* Header */
+.header {
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #1d4ed8; /* niebieski odcień */
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.nav-item:hover {
+  color: #1d4ed8;
+}
+
+/* Footer */
+.footer {
+  background-color: #333;
+  color: #fff;
+  padding: 32px 16px;
+  margin-top: 32px;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+.footer-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.footer-text {
+  color: #ccc;
+  line-height: 1.4;
+}
+
+.footer-bottom {
+  border-top: 1px solid #444;
+  margin-top: 16px;
+  padding-top: 16px;
+  text-align: center;
+  color: #ccc;
+}
+
+/* Viewer (CarViewer) */
+.viewer-container {
+  position: relative;
+  background-color: #ddd;
+  height: 400px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewer-image {
+  max-height: 300px;
+}
+
+.rotate-info {
+  position: absolute;
+  bottom: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.rotate-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: #fff;
+  border-radius: 9999px;
+  padding: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  cursor: pointer;
+  border: none;
+}
+
+.rotate-button:hover {
+  background-color: #eee;
+}
+
+.rotate-left {
+  left: 16px;
+}
+
+.rotate-right {
+  right: 16px;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.toolbar-button {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background-color: #1d4ed8;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.toolbar-button:hover {
+  background-color: #1e40af;
+}
+
+/* Zakładki (ConfigTabs) */
+.tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 16px;
+}
+
+.tab-button {
+  padding: 8px 16px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-weight: 500;
+  color: #666;
+}
+
+.tab-button:hover {
+  color: #000;
+}
+
+.tab-button.active {
+  border-bottom: 2px solid #1d4ed8;
+  color: #1d4ed8;
+}
+
+/* Opcje konfiguracji (ConfigOptions) */
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.config-item {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 12px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.config-item:hover {
+  border-color: #666;
+}
+
+.config-item.selected {
+  border-color: #1d4ed8;
+  background-color: #e0e7ff;
+}
+
+.color-box {
+  width: 100%;
+  height: 48px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.wheel-image {
+  max-width: 100px;
+  max-height: 100px;
+  margin: 0 auto;
+}
+
+/* Placeholder do stanu 'accessories' */
+.text-center {
+  text-align: center;
+  color: #666;
+  padding: 32px 0;
+}
+
+/* Podsumowanie (SummaryPanel) */
+.summary-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.summary-section {
+  margin-bottom: 24px;
+}
+
+.summary-section h3 {
+  font-weight: 500;
+  color: #444;
+}
+
+.summary-section p {
+  margin: 4px 0;
+}
+
+.total-price {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.total-price span {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-button {
+  padding: 12px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+}
+
+.action-button.save {
+  background-color: #1d4ed8;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.action-button.save:hover {
+  background-color: #1e40af;
+}
+
+.action-button.test-drive {
+  background-color: #10b981;
+  color: #fff;
+}
+
+.action-button.test-drive:hover {
+  background-color: #059669;
+}
+
+.action-button.availability {
+  background-color: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+}
+
+.action-button.availability:hover {
+  background-color: #f0f0f0;
+}
