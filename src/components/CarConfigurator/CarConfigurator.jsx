@@ -54,7 +54,7 @@ const CarConfigurator = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-
+      <Header />
       <main className="main-container">
         <h1 className="title">Konfigurator modelu X-Drive GT</h1>
         <div className="configurator-wrapper">
@@ -103,7 +103,7 @@ const CarConfigurator = () => {
           </div>
         </div>
       </main>
-
+      <Footer />
     </div>
   );
 };

@@ -8,9 +8,11 @@ const Header = () => {
         <nav>
           <ul className="nav-list">
             <li className="nav-item">Modele</li>
+            <li className="nav-item">Konfigurator</li>
             <li className="nav-item">Salony</li>
             <li className="nav-item">Finansowanie</li>
             <li className="nav-item">Kontakt</li>
+            <li className="nav-item">Logowanie</li>
           </ul>
         </nav>
       </div>
