@@ -1,0 +1,160 @@
+/* Container i ogólny układ */
+.loginContainer {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-color: #f7fafc; /* bg-gray-100 */
+  }
+  
+  
+  /* Główna zawartość */
+  .main {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  
+  /* Formularz */
+  .formContainer {
+    width: 100%;
+    max-width: 400px;
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+  
+  /* Baner formularza */
+  .banner {
+    background: linear-gradient(to right, #2c5282, #3182ce);
+    color: #fff;
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+  .bannerTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  .bannerSubtitle {
+    font-size: 1rem;
+  }
+  
+  /* Formularz logowania */
+  .form {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4a5568; /* text-gray-700 */
+  }
+  .inputWrapper {
+    position: relative;
+  }
+  .input {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.375rem;
+    background-color: #fff;
+    color: #1a202c;
+    transition: border-color 0.3s;
+  }
+  .input:focus {
+    border-color: #2b6cb0;
+    box-shadow: 0 0 0 2px rgba(43, 108, 176, 0.2);
+  }
+  .errorInput {
+    border-color: #e53e3e;
+  }
+  .inputIcon {
+    position: absolute;
+    top: 50%;
+    left: 0.75rem;
+    transform: translateY(-50%);
+    color: #a0aec0;
+  }
+  .passwordToggle {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #a0aec0;
+  }
+  
+  /* Tekst błędu */
+  .errorText {
+    color: #e53e3e;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  /* Zapamiętaj mnie */
+  .rememberMe {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .checkbox {
+    height: 1rem;
+    width: 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.25rem;
+  }
+  
+  /* Przycisk logowania */
+  .submitButton {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #2b6cb0;
+    color: #fff;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    border: none;
+    cursor: pointer;
+  }
+  .submitButton:hover {
+    background-color: #2c5282;
+  }
+  .disabledButton {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  /* Rejestracja */
+  .registerSection {
+    background-color: #f7fafc;
+    padding: 1rem;
+    text-align: center;
+    border-top: 1px solid #e2e8f0;
+  }
+  .registerText {
+    font-size: 0.875rem;
+    color: #4a5568;
+  }
+  .registerLink {
+    color: #2b6cb0;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .registerLink:hover {
+    text-decoration: underline;
+  }
+  
