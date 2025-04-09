@@ -1,0 +1,92 @@
+.summaryTitle {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+.summarySection {
+  margin-bottom: 24px;
+}
+
+.summarySection h3 {
+  font-weight: 500;
+  color: var(--color-text-tertiary);
+}
+
+.summarySection p {
+  margin: 4px 0;
+}
+
+.summaryPrice {
+  color: var(--color-text-secondary);
+}
+
+.totalPrice {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.totalPrice span {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.priceDivider {
+  border-top: 1px solid var(--color-border);
+  padding-top: 16px;
+  margin-bottom: 16px;
+}
+
+.vatInfo {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin-bottom: 16px;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actionButton {
+  padding: 12px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+}
+
+.actionButton.save {
+  background-color: var(--color-primary);
+  color: var(--color-text-light);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.actionButton.save:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.actionButton.testDrive {
+  background-color: var(--color-success);
+  color: var(--color-text-light);
+}
+
+.actionButton.testDrive:hover {
+  background-color: var(--color-success-hover);
+}
+
+.actionButton.availability {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.actionButton.availability:hover {
+  background-color: var(--color-bg-secondary);
+} 

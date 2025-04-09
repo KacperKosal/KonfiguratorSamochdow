@@ -1,20 +1,18 @@
 import React, { useState } from 'react';
-import Header from '../Header';
-import Footer from '../Footer';
-import CarViewer from './CarViewer';
-import ConfigTabs from './ConfigTabs';
-import ConfigOptions from './ConfigOptions';
-import SummaryPanel from './SummaryPanel';
+import { useParams } from 'react-router-dom';
+import CarViewer from '../components/CarConfigurator/CarViewer/CarViewer';
+import ConfigTabs from '../components/CarConfigurator/ConfigTabs/ConfigTabs';
+import ConfigOptions from '../components/CarConfigurator/ConfigOptions/ConfigOptions';
+import SummaryPanel from '../components/CarConfigurator/SummaryPanel/SummaryPanel';
 
-const CarConfigurator = () => {
-  // Stany konfiguracji
+const CarConfiguratorView = () => {
+  const { modelId } = useParams();
   const [activeTab, setActiveTab] = useState('exterior');
   const [carColor, setCarColor] = useState('red');
   const [wheelType, setWheelType] = useState('standard');
   const [interiorColor, setInteriorColor] = useState('black');
   const [currentRotation, setCurrentRotation] = useState(0);
 
-  // Dostępne opcje
   const exteriorColors = [
     { name: 'Czerwony Metalik', value: 'red', price: 0 },
     { name: 'Srebrny Metalik', value: 'silver', price: 2000 },
@@ -53,12 +51,10 @@ const CarConfigurator = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <Header />
+    <div className="car-configurator-page">
       <main className="main-container">
-        <h1 className="title">Konfigurator modelu X-Drive GT</h1>
+        <h1 className="title">Konfigurator modelu {modelId}</h1>
         <div className="configurator-wrapper">
-          {/* Lewa kolumna: Wizualizacja i opcje konfiguracji */}
           <div className="left-panel">
             <CarViewer
               currentRotation={currentRotation}
@@ -66,7 +62,6 @@ const CarConfigurator = () => {
               rotateRight={rotateRight}
             />
 
-            {/* Przyciski wizualizacji */}
             <div className="toolbar">
               <button className="toolbar-button">Obróć model</button>
               <button className="toolbar-button">Zrzut ekranu</button>
@@ -89,7 +84,6 @@ const CarConfigurator = () => {
             />
           </div>
 
-          {/* Prawa kolumna: Podsumowanie konfiguracji */}
           <div className="right-panel">
             <SummaryPanel
               exteriorColors={exteriorColors}
@@ -103,9 +97,8 @@ const CarConfigurator = () => {
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 };
 
-export default CarConfigurator;
+export default CarConfiguratorView; 

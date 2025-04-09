@@ -1,29 +1,30 @@
 import React from 'react';
+import styles from './ConfigTabs.module.css';
 
 const ConfigTabs = ({ activeTab, setActiveTab }) => {
   return (
-    <div className="tabs">
+    <div className={styles.tabs}>
       <button
         onClick={() => setActiveTab('exterior')}
-        className={`tab-button ${activeTab === 'exterior' ? 'active' : ''}`}
+        className={`${styles.tabButton} ${activeTab === 'exterior' ? styles.active : ''}`}
       >
         Nadwozie
       </button>
       <button
         onClick={() => setActiveTab('wheels')}
-        className={`tab-button ${activeTab === 'wheels' ? 'active' : ''}`}
+        className={`${styles.tabButton} ${activeTab === 'wheels' ? styles.active : ''}`}
       >
         Felgi
       </button>
       <button
         onClick={() => setActiveTab('interior')}
-        className={`tab-button ${activeTab === 'interior' ? 'active' : ''}`}
+        className={`${styles.tabButton} ${activeTab === 'interior' ? styles.active : ''}`}
       >
         Wnętrze
       </button>
       <button
         onClick={() => setActiveTab('accessories')}
-        className={`tab-button ${activeTab === 'accessories' ? 'active' : ''}`}
+        className={`${styles.tabButton} ${activeTab === 'accessories' ? styles.active : ''}`}
       >
         Akcesoria
       </button>

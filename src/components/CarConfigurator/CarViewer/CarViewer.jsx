@@ -1,21 +1,22 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import styles from './CarViewer.module.css';
 
 const CarViewer = ({ currentRotation, rotateLeft, rotateRight }) => {
   return (
-    <div className="viewer-container">
+    <div className={styles.viewerContainer}>
       <img
         src="/api/placeholder/600/400"
         alt="Model samochodu"
-        className="viewer-image"
+        className={styles.viewerImage}
       />
-      <div className="rotate-info">Rotacja: {currentRotation}°</div>
+      <div className={styles.rotateInfo}>Rotacja: {currentRotation}°</div>
 
-      <button onClick={rotateLeft} className="rotate-button rotate-left">
+      <button onClick={rotateLeft} className={`${styles.rotateButton} ${styles.rotateLeft}`}>
         <ChevronLeft size={24} />
       </button>
 
-      <button onClick={rotateRight} className="rotate-button rotate-right">
+      <button onClick={rotateRight} className={`${styles.rotateButton} ${styles.rotateRight}`}>
         <ChevronRight size={24} />
       </button>
     </div>

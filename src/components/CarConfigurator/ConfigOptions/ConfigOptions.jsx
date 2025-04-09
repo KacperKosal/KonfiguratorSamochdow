@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './ConfigOptions.module.css';
 
 const ConfigOptions = ({
   activeTab,
@@ -15,19 +16,19 @@ const ConfigOptions = ({
   // Nadwozie
   if (activeTab === 'exterior') {
     return (
-      <div className="config-grid">
+      <div className={styles.configGrid}>
         {exteriorColors.map((color) => (
           <div
             key={color.value}
             onClick={() => setCarColor(color.value)}
-            className={`config-item ${carColor === color.value ? 'selected' : ''}`}
+            className={`${styles.configItem} ${carColor === color.value ? styles.selected : ''}`}
           >
             <div
-              className="color-box"
+              className={styles.colorBox}
               style={{ backgroundColor: color.value }}
             />
             <div>{color.name}</div>
-            <div style={{ fontSize: '14px', color: '#666' }}>
+            <div className={styles.priceText}>
               +{color.price.toLocaleString()} zł
             </div>
           </div>
@@ -39,22 +40,22 @@ const ConfigOptions = ({
   // Felgi
   if (activeTab === 'wheels') {
     return (
-      <div className="config-grid">
+      <div className={styles.configGrid}>
         {wheelTypes.map((wheel) => (
           <div
             key={wheel.value}
             onClick={() => setWheelType(wheel.value)}
-            className={`config-item ${wheelType === wheel.value ? 'selected' : ''}`}
+            className={`${styles.configItem} ${wheelType === wheel.value ? styles.selected : ''}`}
           >
             <div>
               <img
-                src="/api/placeholder/100/100"
+                src={wheel.image}
                 alt={wheel.name}
-                className="wheel-image"
+                className={styles.wheelImage}
               />
             </div>
             <div>{wheel.name}</div>
-            <div style={{ fontSize: '14px', color: '#666' }}>
+            <div className={styles.priceText}>
               +{wheel.price.toLocaleString()} zł
             </div>
           </div>
@@ -66,20 +67,20 @@ const ConfigOptions = ({
   // Wnętrze
   if (activeTab === 'interior') {
     return (
-      <div className="config-grid">
-        {interiorColors.map((interior) => (
+      <div className={styles.configGrid}>
+        {interiorColors.map((color) => (
           <div
-            key={interior.value}
-            onClick={() => setInteriorColor(interior.value)}
-            className={`config-item ${interiorColor === interior.value ? 'selected' : ''}`}
+            key={color.value}
+            onClick={() => setInteriorColor(color.value)}
+            className={`${styles.configItem} ${interiorColor === color.value ? styles.selected : ''}`}
           >
             <div
-              className="color-box"
-              style={{ backgroundColor: interior.value }}
+              className={styles.colorBox}
+              style={{ backgroundColor: color.value }}
             />
-            <div>{interior.name}</div>
-            <div style={{ fontSize: '14px', color: '#666' }}>
-              +{interior.price.toLocaleString()} zł
+            <div>{color.name}</div>
+            <div className={styles.priceText}>
+              +{color.price.toLocaleString()} zł
             </div>
           </div>
         ))}
@@ -88,15 +89,11 @@ const ConfigOptions = ({
   }
 
   // Akcesoria
-  if (activeTab === 'accessories') {
-    return (
-      <div className="text-center">
-        Wkrótce dostępne nowe akcesoria...
-      </div>
-    );
-  }
-
-  return null;
+  return (
+    <div className={styles.textCenter}>
+      <p>Wkrótce dostępne akcesoria...</p>
+    </div>
+  );
 };
 
 export default ConfigOptions;

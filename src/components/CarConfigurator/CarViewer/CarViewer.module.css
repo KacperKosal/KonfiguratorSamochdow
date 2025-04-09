@@ -1,0 +1,45 @@
+.viewerContainer {
+  position: relative;
+  background-color: var(--color-bg-tertiary);
+  height: 400px;
+  margin-bottom: 16px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewerImage {
+  max-height: 300px;
+}
+
+.rotateInfo {
+  position: absolute;
+  bottom: 8px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.rotateButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: var(--color-bg-primary);
+  border-radius: 9999px;
+  padding: 8px;
+  box-shadow: 0 2px 5px var(--color-shadow);
+  cursor: pointer;
+  border: none;
+}
+
+.rotateButton:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.rotateLeft {
+  left: 16px;
+}
+
+.rotateRight {
+  right: 16px;
+} 
