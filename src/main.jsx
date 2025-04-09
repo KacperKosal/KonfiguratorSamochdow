@@ -7,6 +7,7 @@ import CarConfigurator from './Views/CarConfigurator/CarConfigurator.jsx'
 import Header from './components/Header/Header.jsx'
 import Footer from './components/Footer/Footer.jsx'
 import Login from './Views/Login/Login.jsx'
+import Register from './Views/Register/Register.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/home" element={<Home />} />
         <Route path="/car-configurator" element={<CarConfigurator />} />
         <Route path="/login" element={<Login/>} />
+        <Route path='/register' element={<Register />} />
       </Routes>
       <Footer />
     </BrowserRouter>

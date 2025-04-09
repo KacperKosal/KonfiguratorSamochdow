@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff,} from 'lucide-react';
 import styles from './Login.module.css';
+import { NavLink } from 'react-router-dom';
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -85,7 +85,6 @@ const LoginPage = () => {
             <div className={styles.formGroup}>
               <div className={styles.labelWrapper}>
                 <label htmlFor="password" className={styles.label}>Hasło</label>
-                <a href="#" className={styles.forgotPassword}>Nie pamiętasz hasła?</a>
               </div>
               <div className={styles.inputWrapper}>
                 <input
@@ -112,18 +111,6 @@ const LoginPage = () => {
               )}
             </div>
 
-            {/* Zapamiętaj mnie */}
-            <div className={styles.rememberMe}>
-              <input
-                id="remember-me"
-                type="checkbox"
-                checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
-                className={styles.checkbox}
-              />
-              <label htmlFor="remember-me" className={styles.label}>Zapamiętaj mnie</label>
-            </div>
-
             {/* Przycisk logowania */}
             <div>
               <button
@@ -140,7 +127,7 @@ const LoginPage = () => {
           <div className={styles.registerSection}>
             <p className={styles.registerText}>
               Nie masz jeszcze konta?{' '}
-              <a href="#" className={styles.registerLink}>Zarejestruj się</a>
+              <NavLink className={styles.registerLink} to="/register">Zarejestruj się</NavLink>
             </p>
           </div>
         </div>
