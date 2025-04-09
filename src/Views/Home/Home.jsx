@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import Header from '../Header';
-import Banner from '../ModelsBrowser/Banner';
-import SearchAndFilter from './SearchAndFilter';
-import CategoryTabs from './CategoryTabs';
-import ModelsGrid from './ModelsGrid';
-import CTA from './CTA';
-import Footer from '../Footer';
+import Banner from '../../components/ModelsBrowser/Banner/Banner';
+import SearchAndFilter from '../../components/ModelsBrowser/SearchAndFilter/SearchAndFilter';
+import CategoryTabs from '../../components/ModelsBrowser/CategoryTabs/CategoryTabs';
+import ModelsGrid from '../../components/ModelsBrowser/ModelsGrid/ModelsGrid';
+import styles from './Home.module.css';
 
-const ModelsBrowser = () => {
+export default function Home() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [sortOption, setSortOption] = useState('popularity');
   const [priceRange, setPriceRange] = useState([100000, 500000]);
@@ -66,48 +64,45 @@ const ModelsBrowser = () => {
   });
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <div className={styles.page}>
       <Banner />
-      <main className="container mx-auto px-4 py-8 flex-grow">
-        <SearchAndFilter 
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          sortOption={sortOption}
-          setSortOption={setSortOption}
-          filtersVisible={filtersVisible}
-          setFiltersVisible={setFiltersVisible}
-          priceRange={priceRange}
-          setPriceRange={setPriceRange}
-          formatPrice={formatPrice}
-        />
-        <CategoryTabs 
-          categories={categories} 
-          activeCategory={activeCategory} 
-          setActiveCategory={setActiveCategory} 
-        />
-        <ModelsGrid models={sortedModels} formatPrice={formatPrice} />
-        {sortedModels.length === 0 && (
-          <div className="bg-white rounded-lg shadow-lg p-12 text-center">
-            <h2 className="text-xl font-bold mb-4">Brak modeli spełniających kryteria</h2>
-            <p className="text-gray-600 mb-6">Spróbuj zmienić kryteria wyszukiwania lub filtry.</p>
-            <button 
-              onClick={() => {
-                setActiveCategory('all');
-                setPriceRange([100000, 500000]);
-                setSearchQuery('');
-              }}
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Resetuj filtry
-            </button>
-          </div>
-        )}
+      <main className={styles.main}>
+        <div className={styles.container}>
+          <SearchAndFilter 
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            sortOption={sortOption}
+            setSortOption={setSortOption}
+            filtersVisible={filtersVisible}
+            setFiltersVisible={setFiltersVisible}
+            priceRange={priceRange}
+            setPriceRange={setPriceRange}
+            formatPrice={formatPrice}
+          />
+          <CategoryTabs 
+            categories={categories} 
+            activeCategory={activeCategory} 
+            setActiveCategory={setActiveCategory} 
+          />
+          <ModelsGrid models={sortedModels} formatPrice={formatPrice} />
+          {sortedModels.length === 0 && (
+            <div className={styles.emptyState}>
+              <h2 className={styles.emptyStateTitle}>Brak modeli spełniających kryteria</h2>
+              <p className={styles.emptyStateDescription}>Spróbuj zmienić kryteria wyszukiwania lub filtry.</p>
+              <button 
+                onClick={() => {
+                  setActiveCategory('all');
+                  setPriceRange([100000, 500000]);
+                  setSearchQuery('');
+                }}
+                className={styles.resetButton}
+              >
+                Resetuj filtry
+              </button>
+            </div>
+          )}
+        </div>
       </main>
-      <CTA />
-      <Footer />
     </div>
   );
-};
-
-export default ModelsBrowser;
+}

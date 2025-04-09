@@ -1,0 +1,43 @@
+.configurator {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+  flex: 1;
+}
+
+.configuratorTitle {
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 24px;
+}
+
+.configuratorContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.configuratorLeftPanel {
+  flex: 2;
+  background-color: var(--color-bg-primary);
+  border-radius: 4px;
+  box-shadow: 0 2px 5px var(--color-shadow);
+  padding: 16px;
+}
+
+.configuratorRightPanel {
+  flex: 1;
+  height: fit-content;
+  position: sticky;
+  top: 16px;
+  background-color: var(--color-bg-primary);
+  border-radius: 4px;
+  box-shadow: 0 2px 5px var(--color-shadow);
+  padding: 16px;
+}
+
+@media (min-width: 1024px) {
+  .configuratorContent {
+    flex-direction: row;
+  }
+} 

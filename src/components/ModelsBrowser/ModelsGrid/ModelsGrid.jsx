@@ -1,9 +1,10 @@
 import React from 'react';
-import ModelCard from './ModelCard';
+import ModelCard from '../ModelCard/ModelCard';
+import styles from './ModelsGrid.module.css';
 
 const ModelsGrid = ({ models, formatPrice }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className={styles.container}>
       {models.map(model => (
         <ModelCard key={model.id} model={model} formatPrice={formatPrice} />
       ))}

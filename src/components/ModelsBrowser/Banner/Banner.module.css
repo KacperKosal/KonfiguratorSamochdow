@@ -1,0 +1,23 @@
+.banner {
+  background: linear-gradient(to right, #1e40af, #2563eb);
+  color: white;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.description {
+  font-size: 1.25rem;
+  max-width: 42rem;
+} 
