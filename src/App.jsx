@@ -1,10 +1,11 @@
 import React from 'react';
-import Home from './Views/Home';
+
+import CarConfigurator from './components/CarConfigurator/CarConfigurator'; // konfigurator samochodów
 
 const App = () => {
   return (
     <>
-      <Home/>
+      <CarConfigurator/> {/*(Widok konfiguratora)*/}
     </>
   );
 };
