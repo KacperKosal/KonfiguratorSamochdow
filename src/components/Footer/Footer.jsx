@@ -1,5 +1,6 @@
 import React from 'react';
 import styles from './Footer.module.css';
+import { NavLink } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -14,10 +15,10 @@ const Footer = () => {
         <div>
           <h3 className={styles.footerTitle}>Nawigacja</h3>
           <ul className={styles.footerText}>
-            <li className={styles.navItem}>Strona główna</li>
-            <li className={styles.navItem}>Modele</li>
-            <li className={styles.navItem}>Konfigurator</li>
-            <li className={styles.navItem}>Akcesoria</li>
+            <li className={styles.navItem}><NavLink to="/home">Modele</NavLink></li>
+            <li className={styles.navItem}><NavLink to="/car-configurator">Konfigurator</NavLink></li>
+            <li><NavLink className={styles.navItem} to="/login">Zaloguj się</NavLink></li>
+            <NavLink className={styles.navItem} to="/register">Zarejestruj się</NavLink>
           </ul>
         </div>
         <div>
@@ -47,7 +48,7 @@ const Footer = () => {
         </div>
       </div>
       <div className={styles.footerBottom}>
-        © 2024 AutoKonfigurator. Wszelkie prawa zastrzeżone.
+        © 2025 AutoKonfigurator. Wszelkie prawa zastrzeżone.
       </div>
     </footer>
   );
