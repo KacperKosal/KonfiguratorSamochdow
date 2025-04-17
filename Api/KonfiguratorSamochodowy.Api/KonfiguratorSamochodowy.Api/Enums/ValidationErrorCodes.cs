@@ -13,4 +13,9 @@ internal enum ValidationErrorCodes
     RegisterRequestPasswordLength = 8,
     RegisterRequestConfirmPasswordNotEqual = 9,
     RegisterRequestEmailAlreadyExists = 10,
+    LoginRequestEmailEmpty = 11,
+    LoginRequestEmailInvalid = 12,
+    LoginRequestInvalidPassword = 13,
+    LoginRequestInvalidEmail = 14,
+
 }
