@@ -18,6 +18,8 @@ builder.Services.AddScoped<IUserCreateService, UserCreateService>();
 builder.Services.AddScoped<ILoginUserService, LoginUserService>();
 builder.Services.AddScoped<IModelsService, ModelsService>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
+builder.Services.AddScoped<IRefreshJwtService, RefreshJwtService>();
+
 
 var app = builder.Build();
 
@@ -32,6 +34,7 @@ app.UseHttpsRedirection();
 LoginEndpoint.MapEndPoint(app);
 RegisterEndpoint.MapEndPoint(app);
 ModelsEndpoint.MapEndPoint(app);
+RefreshJwtEndpoint.MapEndPoint(app);
 
 app.MapSwagger();
 app.Run();
