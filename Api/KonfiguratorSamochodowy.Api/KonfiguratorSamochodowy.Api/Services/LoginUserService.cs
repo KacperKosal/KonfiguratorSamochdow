@@ -3,13 +3,14 @@ using KonfiguratorSamochodowy.Api.Enums;
 using KonfiguratorSamochodowy.Api.Exceptions;
 using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
 using KonfiguratorSamochodowy.Api.Requests;
+using KonfiguratorSamochodowy.Api.Result;
 using KonfiguratorSamochodowy.Api.Validators;
 
 namespace KonfiguratorSamochodowy.Api.Services;
 
-internal class LoginUserService(IUserRepository userRepository) : ILoginUserService
+internal class LoginUserService(IUserRepository userRepository, IJwtService jwtService, IConfiguration configuration) : ILoginUserService
 {
-    public async Task LoginUserAsync(LoginRequest request)
+    public async Task<LoginResult> LoginUserAsync(LoginRequest request)
     {
         var requestValidator = new LoginRequestValidator();
         var validationResult = requestValidator.Validate(request);
@@ -40,5 +41,19 @@ internal class LoginUserService(IUserRepository userRepository) : ILoginUserServ
         {
             throw new LoginRequestInvalidPassword(nameof(ValidationErrorCodes.LoginRequestInvalidPassword),"Nieprawidłowe hasło.");
         }
+
+        var token = jwtService.GenerateToken(user.Id);
+        var refreshToken = jwtService.GenerateRefreshToken();
+
+        user.RefreshToken = refreshToken;
+        user.RefreshTokenExpires = DateTime.UtcNow.AddSeconds(configuration.GetValue<int>("JwtInformations:RefreshTokenExpirationSeconds"));
+
+        await userRepository.UpdateAsync(user);
+
+        return new LoginResult
+        {
+            Token = token,
+            RefreshToken = refreshToken,
+        };
     }
 }

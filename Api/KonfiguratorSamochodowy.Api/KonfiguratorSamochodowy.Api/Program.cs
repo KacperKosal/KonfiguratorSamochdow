@@ -16,7 +16,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddRepositories(builder.Configuration);
 builder.Services.AddScoped<IUserCreateService, UserCreateService>();
 builder.Services.AddScoped<ILoginUserService, LoginUserService>();
-builder.Services.AddScoped<IModelsService, ModelsService>();        
+builder.Services.AddScoped<IModelsService, ModelsService>();
+builder.Services.AddSingleton<IJwtService, JwtService>();
 
 var app = builder.Build();
 

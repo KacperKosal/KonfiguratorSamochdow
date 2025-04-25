@@ -1,4 +1,5 @@
 ﻿using KonfiguratorSamochodowy.Api.Requests;
+using KonfiguratorSamochodowy.Api.Result;
 namespace KonfiguratorSamochodowy.Api.Common.Services;
 
 internal interface ILoginUserService
@@ -8,5 +9,5 @@ internal interface ILoginUserService
     /// </summary>
     /// <param name="request">Żądanie logowania użytkownika</param>
     /// <returns>Identyfikator zalogowanego użytkownika</returns>
-    Task LoginUserAsync(LoginRequest request);
+    Task<LoginResult> LoginUserAsync(LoginRequest request);
 }

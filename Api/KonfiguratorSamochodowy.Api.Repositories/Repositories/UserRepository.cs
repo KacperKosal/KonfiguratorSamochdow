@@ -65,14 +65,16 @@ internal sealed class UserRepository : IUserRepository
     public async Task UpdateAsync(User user)
     {
         const string sql = @"
-            UPDATE Uzytkownik 
-            SET ImieNazwisko = @ImieNazwisko,
-                Email = @Email,
-                Haslo = @Haslo,
-                Rola = @Rola,
-            WHERE ID = @ID";
-        
+    UPDATE Uzytkownik
+    SET ImieNazwisko        = @ImieNazwisko,
+        Email               = @Email,
+        Haslo               = @Haslo,
+        RefreshToken        = @RefreshToken,
+        RefreshTokenExpires = @RefreshTokenExpires,
+        Rola                = @Rola
+    WHERE ID = @ID";
         await _connection.ExecuteAsync(sql, user);
+
     }
 
     /// <summary>

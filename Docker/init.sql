@@ -10,6 +10,8 @@ CREATE TABLE Uzytkownik (
     ImieNazwisko VARCHAR(100),
     Email VARCHAR(100),
     Haslo VARCHAR(255),
+    RefreshToken VARCHAR(255),
+    RefreshTokenExpires TIMESTAMP,
     Rola VARCHAR(255)
 );
 

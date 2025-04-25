@@ -8,11 +8,23 @@ internal static class LoginEndpoint
 {
     internal static void MapEndPoint(IEndpointRouteBuilder builder)
     {
-        builder.MapPost("/login", async (LoginRequest request, ILoginUserService loginUserService) =>
+        builder.MapPost("/login", async (HttpContext context, LoginRequest request, ILoginUserService loginUserService, IConfiguration configuration) =>
         {
             try
             {
-                await loginUserService.LoginUserAsync(request);
+                var result = await loginUserService.LoginUserAsync(request);
+
+                int refreshTokenExpiration = configuration.GetValue<int>("JwtInformations:RefreshTokenExpirationSeconds");
+
+                context.Response.Cookies.Append("refreshToken", result.RefreshToken, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = false,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddSeconds(refreshTokenExpiration)
+                });
+
+                return Results.Ok(result.Token); 
             }
             catch (LoginRequestEmailEmpty e)
             {
@@ -26,7 +38,6 @@ internal static class LoginEndpoint
             {
                 return Results.BadRequest(JsonSerializer.Deserialize<object>(e.Message));
             }
-            return Results.Ok();
         }).WithTags("Autentykacja").WithName("Logowanie");
     }
 }
