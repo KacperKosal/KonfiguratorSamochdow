@@ -1,25 +1,95 @@
 using Dapper;
+using KonfiguratorSamochodowy.Api.Repositories.Enums;
 using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
 using KonfiguratorSamochodowy.Api.Repositories.Models;
+using KonfiguratorSamochodowy.Api.Repositories.Options;
 using System.Data;
+using System.Text;
 
 namespace KonfiguratorSamochodowy.Api.Repositories.Repositories;
 
 /// <summary>
 /// Implementacja repozytorium pojazdów
 /// </summary>
-internal sealed class VehicleRepository : IVehicleRepository
+internal sealed class VehicleRepository(IDbConnection connection, IVechicleFeaturesRepository vechicleFeaturesRepository, IEngineRepository engineRepository) : IVehicleRepository
 {
-    private readonly IDbConnection _connection;
-
     /// <summary>
-    /// Inicjalizuje nową instancję klasy VehicleRepository
+    /// Pobiera listę pojazdów na podstawie parametrów wyszukiwania
     /// </summary>
-    /// <param name="connection">Połączenie do bazy danych</param>
-    public VehicleRepository(IDbConnection connection)
+    /// <param name="sortingOptions">Parametry filtrowania i sortowania</param>
+    /// <returns>Lista pojazdów spełniających kryteria</returns>
+    public async Task<IEnumerable<Vehicle>> GetByFiltersAsync(SortingOptions sortingOptions)
     {
-        _connection = connection;
+        var sql = new StringBuilder();
+        var parameters = new DynamicParameters();
+
+        sql.Append("SELECT * FROM Pojazd WHERE 1 = 1");
+
+        // Filtrowanie po nazwie modelu (ILIKE — case-insensitive, PostgreSQL)
+        if (!string.IsNullOrWhiteSpace(sortingOptions.ModelName))
+        {
+            sql.Append(" AND Model ILIKE @ModelName");
+            parameters.Add("ModelName", $"%{sortingOptions.ModelName}%");
+        }
+
+        // Filtrowanie po przedziale cenowym
+        if (sortingOptions.MinPrice.HasValue)
+        {
+            sql.Append(" AND Cena >= @MinPrice");
+            parameters.Add("MinPrice", sortingOptions.MinPrice.Value);
+        }
+        if (sortingOptions.MaxPrice.HasValue)
+        {
+            sql.Append(" AND Cena <= @MaxPrice");
+            parameters.Add("MaxPrice", sortingOptions.MaxPrice.Value);
+        }
+
+        // Filtrowanie, czy ma napęd 4x4
+        if (sortingOptions.Has4x4.HasValue)
+        {
+            sql.Append(" AND Ma4x4 = @Has4x4");
+            parameters.Add("Has4x4", sortingOptions.Has4x4.Value);
+        }
+
+        // Filtrowanie, czy jest elektryczny
+        if (sortingOptions.IsElectrick.HasValue)
+        {
+            sql.Append(" AND JestElektryczny = @IsElectric");
+            parameters.Add("IsElectric", sortingOptions.IsElectrick.Value);
+        }
+
+        // Dodanie sortowania
+        if (sortingOptions.SortingOption.HasValue)
+        {
+            sql.Append(" ORDER BY ");
+            switch (sortingOptions.SortingOption.Value)
+            {
+                case SortingOption.PriceAsc:
+                    sql.Append("Cena ASC");
+                    break;
+                case SortingOption.PriceDesc:
+                    sql.Append("Cena DESC");
+                    break;
+                case SortingOption.Name:
+                    sql.Append("Model ASC");
+                    break;
+                default:
+                    sql.Append("ID"); // domyślnie po kluczu
+                    break;
+            }
+        }
+
+        var result = await connection.QueryAsync<Vehicle>(sql.ToString(), parameters);
+
+        foreach (var vehicle in result)
+        {
+            vehicle.Cechy = await vechicleFeaturesRepository.GetAllByVechicleIdAsync(vehicle.Id);
+            vehicle.Silniki = await engineRepository.GetAllByVechicleIdAsync(vehicle.Id);
+        }
+
+        return result;
     }
+
 
     /// <summary>
     /// Pobiera pojazd na podstawie identyfikatora
@@ -29,7 +99,7 @@ internal sealed class VehicleRepository : IVehicleRepository
     public async Task<Vehicle?> GetByIdAsync(int id)
     {
         const string sql = "SELECT * FROM Pojazd WHERE ID = @Id";
-        return await _connection.QueryFirstOrDefaultAsync<Vehicle>(sql, new { Id = id });
+        return await connection.QueryFirstOrDefaultAsync<Vehicle>(sql, new { Id = id });
     }
 
     /// <summary>
@@ -39,7 +109,7 @@ internal sealed class VehicleRepository : IVehicleRepository
     public async Task<IEnumerable<Vehicle>> GetAllAsync()
     {
         const string sql = "SELECT * FROM Pojazd";
-        return await _connection.QueryAsync<Vehicle>(sql);
+        return await connection.QueryAsync<Vehicle>(sql);
     }
 
     /// <summary>
@@ -54,7 +124,7 @@ internal sealed class VehicleRepository : IVehicleRepository
             VALUES (@Marka, @Model, @RokProdukcji, @VIN, @TypSilnika, @KolorNadwozia, @WyposazenieWnetrza, @Akcesoria)
             RETURNING ID";
         
-        return await _connection.ExecuteScalarAsync<int>(sql, vehicle);
+        return await connection.ExecuteScalarAsync<int>(sql, vehicle);
     }
 
     /// <summary>
@@ -75,7 +145,7 @@ internal sealed class VehicleRepository : IVehicleRepository
                 Akcesoria = @Akcesoria
             WHERE ID = @ID";
         
-        await _connection.ExecuteAsync(sql, vehicle);
+        await connection.ExecuteAsync(sql, vehicle);
     }
 
     /// <summary>
@@ -85,7 +155,7 @@ internal sealed class VehicleRepository : IVehicleRepository
     public async Task DeleteAsync(int id)
     {
         const string sql = "DELETE FROM Pojazd WHERE ID = @Id";
-        await _connection.ExecuteAsync(sql, new { Id = id });
+        await connection.ExecuteAsync(sql, new { Id = id });
     }
 
     /// <summary>
@@ -96,6 +166,11 @@ internal sealed class VehicleRepository : IVehicleRepository
     public async Task<bool> ExistsAsync(int id)
     {
         const string sql = "SELECT COUNT(1) FROM Pojazd WHERE ID = @Id";
-        return await _connection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+        return await connection.ExecuteScalarAsync<bool>(sql, new { Id = id });
+    }
+
+    public async Task<byte[]> GetImageByIdAsync(int id)
+    {
+        return await connection.QueryFirstOrDefaultAsync<byte[]>("SELECT Zdjecie FROM Pojazd WHERE ID = @Id", new { Id = id }) ?? [];
     }
 } 

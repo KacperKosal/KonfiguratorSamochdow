@@ -1,10 +1,8 @@
-using Swashbuckle.AspNetCore.Swagger;
 using Microsoft.OpenApi.Models;
 using KonfiguratorSamochodowy.Api.Repositories;
 using KonfiguratorSamochodowy.Api.Endpoints;
 using KonfiguratorSamochodowy.Api.Common.Services;
 using KonfiguratorSamochodowy.Api.Services;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +16,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddRepositories(builder.Configuration);
 builder.Services.AddScoped<IUserCreateService, UserCreateService>();
 builder.Services.AddScoped<ILoginUserService, LoginUserService>();
-
+builder.Services.AddScoped<IModelsService, ModelsService>();        
 
 var app = builder.Build();
 
@@ -29,10 +27,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 LoginEndpoint.MapEndPoint(app);
 RegisterEndpoint.MapEndPoint(app);
-
-
+ModelsEndpoint.MapEndPoint(app);
 
 app.MapSwagger();
 app.Run();

@@ -1,7 +1,6 @@
 ﻿using KonfiguratorSamochodowy.Api.Common.Services;
 using KonfiguratorSamochodowy.Api.Exceptions;
 using KonfiguratorSamochodowy.Api.Requests;
-using KonfiguratorSamochodowy.Api.Service;
 using System.Text.Json;
 namespace KonfiguratorSamochodowy.Api.Endpoints;
 

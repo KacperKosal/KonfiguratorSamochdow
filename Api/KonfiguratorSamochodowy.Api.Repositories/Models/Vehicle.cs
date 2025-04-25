@@ -10,30 +10,11 @@ public class Vehicle
     /// </summary>
     public int Id { get; set; }
 
-    /// <summary>
-    /// Marka pojazdu
-    /// </summary>
-    public string? Marka { get; set; }
 
     /// <summary>
     /// Model pojazdu
     /// </summary>
     public string? Model { get; set; }
-
-    /// <summary>
-    /// Rok produkcji pojazdu
-    /// </summary>
-    public int? RokProdukcji { get; set; }
-
-    /// <summary>
-    /// Numer VIN pojazdu
-    /// </summary>
-    public string? VIN { get; set; }
-
-    /// <summary>
-    /// Typ silnika pojazdu
-    /// </summary>
-    public string? TypSilnika { get; set; }
 
     /// <summary>
     /// Kolor nadwozia pojazdu
@@ -49,4 +30,14 @@ public class Vehicle
     /// Dodatkowe akcesoria pojazdu
     /// </summary>
     public string? Akcesoria { get; set; }
+
+    public int Cena { get; set; }
+
+    public string? Opis { get; set; } = null;
+
+    public byte[]? Zdjecie { get; set; } = null;
+
+    public IEnumerable<Engine>? Silniki { get; set; } = null;
+
+    public IEnumerable<VehicleFeatures>? Cechy { get; set; } = null;
 } 

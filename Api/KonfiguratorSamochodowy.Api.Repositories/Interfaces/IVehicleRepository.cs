@@ -1,12 +1,18 @@
 using KonfiguratorSamochodowy.Api.Repositories.Models;
+using KonfiguratorSamochodowy.Api.Repositories.Options;
 
 namespace KonfiguratorSamochodowy.Api.Repositories.Interfaces;
+
 
 /// <summary>
 /// Interfejs repozytorium pojazdów
 /// </summary>
 public interface IVehicleRepository
 {
+    Task<byte[]> GetImageByIdAsync(int id);
+
+    public Task<IEnumerable<Vehicle>> GetByFiltersAsync(SortingOptions sortingOptions);
+
     /// <summary>
     /// Pobiera pojazd na podstawie identyfikatora
     /// </summary>

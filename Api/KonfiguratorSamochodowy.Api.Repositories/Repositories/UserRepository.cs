@@ -51,8 +51,8 @@ internal sealed class UserRepository : IUserRepository
     public async Task<int> CreateAsync(User user)
     {
         const string sql = @"
-            INSERT INTO Uzytkownik (ImieNazwisko, Email, Haslo, Rola, Status2FA)
-            VALUES (@ImieNazwisko, @Email, @Haslo, @Rola, @Status2FA)
+            INSERT INTO Uzytkownik (ImieNazwisko, Email, Haslo, Rola)
+            VALUES (@ImieNazwisko, @Email, @Haslo, @Rola)
             RETURNING ID";
         
         return await _connection.ExecuteScalarAsync<int>(sql, user);
@@ -70,7 +70,6 @@ internal sealed class UserRepository : IUserRepository
                 Email = @Email,
                 Haslo = @Haslo,
                 Rola = @Rola,
-                Status2FA = @Status2FA
             WHERE ID = @ID";
         
         await _connection.ExecuteAsync(sql, user);

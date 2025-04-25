@@ -32,6 +32,8 @@ public static class RepositoriesInstaller
         services.AddTransient<IUserRepository, UserRepository>();
         services.AddTransient<IVehicleRepository, VehicleRepository>();
         services.AddTransient<IConfigurationRepository, ConfigurationRepository>();
+        services.AddTransient<IVechicleFeaturesRepository, VechicleFeaturesRepository>();
+        services.AddTransient<IEngineRepository, EngineRepository>();
 
         return services;
     }

@@ -29,9 +29,4 @@ public class User
     /// Rola użytkownika w systemie
     /// </summary>
     public string? Rola { get; set; }
-
-    /// <summary>
-    /// Status włączenia weryfikacji dwuetapowej (2FA)
-    /// </summary>
-    public bool Status2FA { get; set; }
 } 
