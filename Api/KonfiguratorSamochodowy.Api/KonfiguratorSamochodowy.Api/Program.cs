@@ -35,6 +35,7 @@ LoginEndpoint.MapEndPoint(app);
 RegisterEndpoint.MapEndPoint(app);
 ModelsEndpoint.MapEndPoint(app);
 RefreshJwtEndpoint.MapEndPoint(app);
+ValidateJwtEndpoint.MapEndPoint(app);
 
 app.MapSwagger();
 app.Run();
