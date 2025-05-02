@@ -13,7 +13,7 @@ const Header = () => {
             <li className={styles.navItem}><NavLink to="/car-configurator">Konfigurator</NavLink></li>
             <li className={styles.navItem}>Salony</li>
             <li className={styles.navItem}>Finansowanie</li>
-            <li className={styles.navItem}>Kontakt</li>
+            <li className={styles.navItem}><NavLink to="/contact">Kontakt</NavLink></li>
             <li className={styles.navItem}><NavLink to="/login">Logowanie</NavLink></li>
           </ul>
         </nav>

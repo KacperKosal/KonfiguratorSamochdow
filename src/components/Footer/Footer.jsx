@@ -17,8 +17,9 @@ const Footer = () => {
           <ul className={styles.footerText}>
             <li className={styles.navItem}><NavLink to="/home">Modele</NavLink></li>
             <li className={styles.navItem}><NavLink to="/car-configurator">Konfigurator</NavLink></li>
+            <li><NavLink className={styles.navItem} to="/contact">Kontakt</NavLink></li>
             <li><NavLink className={styles.navItem} to="/login">Zaloguj się</NavLink></li>
-            <NavLink className={styles.navItem} to="/register">Zarejestruj się</NavLink>
+            <li><NavLink className={styles.navItem} to="/register">Zarejestruj się</NavLink></li>
           </ul>
         </div>
         <div>

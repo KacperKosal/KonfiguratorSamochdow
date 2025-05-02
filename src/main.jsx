@@ -8,6 +8,7 @@ import Header from './components/Header/Header.jsx'
 import Footer from './components/Footer/Footer.jsx'
 import Login from './Views/Login/Login.jsx'
 import Register from './Views/Register/Register.jsx'
+import Contact from './Views/Contact/Contact.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/car-configurator" element={<CarConfigurator />} />
         <Route path="/login" element={<Login/>} />
         <Route path='/register' element={<Register />} />
+        <Route path='/contact' element={<Contact />} />
       </Routes>
       <Footer />
     </BrowserRouter>

@@ -1,93 +1,143 @@
 import React, { useState } from 'react';
+import styles from './Contact.module.css';
 
-import { Mail, Phone, MapPin, Clock, AlertCircle, Send, Facebook, Twitter, Instagram, Linkedin, HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
-import styles from './contact.module.css';  // Upewnij się, że plik znajduje się w tej samej lokalizacji
+export default function Contact() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: 'info',
+    message: ''
+  });
+  const [submitted, setSubmitted] = useState(false);
 
-const ContactPage = () => {
-  // ... Twoja logika formularza, obsługa FAQ, itd.
-  // Zamiast klas Tailwind użyj stylów z modułu: className={styles.nazwaKlasy}
-  
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [id]: value
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Tu można dodać integrację z API do wysyłania formularza
+    console.log('Wysyłanie formularza:', formData);
+    setSubmitted(true);
+  };
+
   return (
-    <div className={styles.contactContainer}>
-      <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <div className={styles.logo}>AutoKonfigurator</div>
-          <nav>
-            <ul className={styles.navList}>
-              <li className={styles.navItem}>Strona główna</li>
-              <li className={styles.navItem}>Modele</li>
-              <li className={styles.navItem}>Konfigurator</li>
-              <li className={styles.navItem}>Akcesoria</li>
-              <li className={styles.navItem}>Kontakt</li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-
-      <div className={styles.banner}>
-        <div className={styles.bannerContent}>
-          <h1 className={styles.bannerTitle}>Kontakt</h1>
-          <p className={styles.bannerSubtitle}>Jesteśmy do Twojej dyspozycji. Skontaktuj się z nami w dowolnej sprawie.</p>
-        </div>
-      </div>
-
+    <div className={styles.page}>
       <main className={styles.main}>
-        <div className={styles.gridTwoCols}>
-          <div className={styles.formContainer}>
-            <h2 className={styles.formTitle}>Wyślij wiadomość</h2>
-            {/* ...reszta formularza... */}
-          </div>
-          <div className={styles.contactInfo}>
-            <h2 className={styles.infoTitle}>Dane kontaktowe</h2>
-            <div className={styles.infoItem}>
-              <MapPin className={styles.infoIcon} />
-              <div className={styles.infoText}>
-                AutoKonfigurator Sp. z o.o.<br />
-                ul. Motoryzacyjna 10<br />
-                00-001 Warszawa
+        <div className={styles.container}>
+          <h1 className={styles.pageTitle}>Kontakt</h1>
+          
+          <div className={styles.contactWrapper}>
+            {/* Informacje kontaktowe */}
+            <div className={styles.contactInfo}>
+              <h2 className={styles.sectionTitle}>Dane kontaktowe</h2>
+              
+              <div className={styles.infoItem}>
+                <strong>Email:</strong>
+                <p>info@autokonfigurator.pl</p>
+              </div>
+              
+              <div className={styles.infoItem}>
+                <strong>Telefon:</strong>
+                <p>+48 123 456 789</p>
+              </div>
+              
+              <div className={styles.infoItem}>
+                <strong>Adres:</strong>
+                <p>ul. Motoryzacyjna 10</p>
+                <p>00-001 Warszawa</p>
+              </div>
+              
+              <div className={styles.workingHours}>
+                <h3 className={styles.subSectionTitle}>Godziny otwarcia</h3>
+                <p>Poniedziałek - Piątek: 8:00 - 18:00</p>
+                <p>Sobota: 9:00 - 14:00</p>
+                <p>Niedziela: Zamknięte</p>
               </div>
             </div>
-            <div className={styles.infoItem}>
-              <Phone className={styles.infoIcon} />
-              <div className={styles.infoText}>
-                Sprzedaż: +48 123 456 789<br />
-                Serwis: +48 123 456 788<br />
-                Fax: +48 123 456 787
-              </div>
+            
+            {/* Formularz kontaktowy */}
+            <div className={styles.contactForm}>
+              <h2 className={styles.sectionTitle}>Napisz do nas</h2>
+              
+              {submitted ? (
+                <div className={styles.successMessage}>
+                  <h3 className={styles.successTitle}>Dziękujemy za wiadomość!</h3>
+                  <p className={styles.successDescription}>Odpowiemy najszybciej jak to możliwe.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit}>
+                  <div className={styles.formGroup}>
+                    <label htmlFor="name">Imię i nazwisko</label>
+                    <input 
+                      type="text" 
+                      id="name" 
+                      value={formData.name}
+                      onChange={handleChange}
+                      required 
+                    />
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label htmlFor="email">Email</label>
+                    <input 
+                      type="email" 
+                      id="email" 
+                      value={formData.email}
+                      onChange={handleChange}
+                      required 
+                    />
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label htmlFor="phone">Telefon</label>
+                    <input 
+                      type="tel" 
+                      id="phone" 
+                      value={formData.phone}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label htmlFor="subject">Temat</label>
+                    <select 
+                      id="subject"
+                      value={formData.subject}
+                      onChange={handleChange}
+                    >
+                      <option value="info">Informacje ogólne</option>
+                      <option value="config">Konfiguracja samochodu</option>
+                      <option value="test">Jazda testowa</option>
+                      <option value="other">Inne</option>
+                    </select>
+                  </div>
+                  
+                  <div className={styles.formGroup}>
+                    <label htmlFor="message">Wiadomość</label>
+                    <textarea 
+                      id="message" 
+                      rows="5"
+                      value={formData.message}
+                      onChange={handleChange}
+                      required
+                    ></textarea>
+                  </div>
+                  
+                  <button type="submit" className={styles.submitBtn}>
+                    Wyślij wiadomość
+                  </button>
+                </form>
+              )}
             </div>
-            <div className={styles.infoItem}>
-              <Mail className={styles.infoIcon} />
-              <div className={styles.infoText}>
-                Sprzedaż: sprzedaz@autokonfigurator.pl<br />
-                Serwis: serwis@autokonfigurator.pl<br />
-                Ogólny: info@autokonfigurator.pl
-              </div>
-            </div>
-            <div className={styles.infoItem}>
-              <Clock className={styles.infoIcon} />
-              <div className={styles.infoText}>
-                Poniedziałek - Piątek: 8:00 - 18:00<br />
-                Sobota: 9:00 - 14:00<br />
-                Niedziela: Zamknięte
-              </div>
-            </div>
-            {/* Social media, mapa, FAQ można również przenieść do modułu */}
           </div>
         </div>
       </main>
-
-      <footer className={styles.footer}>
-        <div className={styles.footerContent}>
-          <p className={styles.footerText}>© 2025 AutoKonfigurator. Wszelkie prawa zastrzeżone.</p>
-          <div className={styles.footerLinks}>
-            <a href="#" className={styles.footerLink}>Polityka prywatności</a>
-            <a href="#" className={styles.footerLink}>Warunki korzystania</a>
-            <a href="#" className={styles.footerLink}>Kontakt</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
-};
-
-export default ContactPage;
+}
