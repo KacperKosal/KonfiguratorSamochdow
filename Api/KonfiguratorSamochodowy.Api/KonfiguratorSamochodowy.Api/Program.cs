@@ -1,8 +1,11 @@
-using Microsoft.OpenApi.Models;
-using KonfiguratorSamochodowy.Api.Repositories;
-using KonfiguratorSamochodowy.Api.Endpoints;
 using KonfiguratorSamochodowy.Api.Common.Services;
+using KonfiguratorSamochodowy.Api.Endpoints;
+using KonfiguratorSamochodowy.Api.Repositories;
+using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
+using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 using KonfiguratorSamochodowy.Api.Services;
+using KonfiguratorSamochodowy.Api.Validators;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +22,11 @@ builder.Services.AddScoped<ILoginUserService, LoginUserService>();
 builder.Services.AddScoped<IModelsService, ModelsService>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddScoped<IRefreshJwtService, RefreshJwtService>();
+builder.Services.AddSingleton<ICarInteriorEquipmentRepository, InMemoryCarInteriorEquipmentRepository>();
+builder.Services.AddScoped<CreateCarInteriorEquipmentValidator>();
+builder.Services.AddScoped<UpdateCarInteriorEquipmentValidator>();
+builder.Services.AddScoped<ICarInteriorEquipmentService, CarInteriorEquipmentService>();
+
 
 
 var app = builder.Build();
@@ -28,6 +36,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.MapCarInteriorEquipmentEndpoints();
 
 app.UseHttpsRedirection();
 
