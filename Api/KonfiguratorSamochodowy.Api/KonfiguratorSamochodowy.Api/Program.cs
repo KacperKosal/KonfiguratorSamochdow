@@ -26,7 +26,10 @@ builder.Services.AddSingleton<ICarInteriorEquipmentRepository, InMemoryCarInteri
 builder.Services.AddScoped<CreateCarInteriorEquipmentValidator>();
 builder.Services.AddScoped<UpdateCarInteriorEquipmentValidator>();
 builder.Services.AddScoped<ICarInteriorEquipmentService, CarInteriorEquipmentService>();
-
+builder.Services.AddSingleton<ICarAccessoryRepository, InMemoryCarAccessoryRepository>();
+builder.Services.AddScoped<CreateCarAccessoryValidator>();
+builder.Services.AddScoped<UpdateCarAccessoryValidator>();
+builder.Services.AddScoped<ICarAccessoryService, CarAccessoryService>();
 
 
 var app = builder.Build();
@@ -46,6 +49,7 @@ RegisterEndpoint.MapEndPoint(app);
 ModelsEndpoint.MapEndPoint(app);
 RefreshJwtEndpoint.MapEndPoint(app);
 ValidateJwtEndpoint.MapEndPoint(app);
+app.MapCarAccessoryEndpoints();
 
 app.MapSwagger();
 app.Run();
