@@ -178,3 +178,40 @@ INSERT INTO Rejestracja (IDUzytkownika, DataRejestracji, AdresIP, Status) VALUES
 INSERT INTO Administrator (IDUzytkownika, PoziomUprawnien, OstatnieLogowanie) VALUES
   (1, 'SuperAdmin', '2025-04-22 08:30:00'),
   (3, 'Moderator',  '2025-04-24 17:20:00');
+
+  CREATE TABLE car_accessories (
+    id VARCHAR(255) PRIMARY KEY,
+    car_id VARCHAR(255) NOT NULL,
+    car_model VARCHAR(255) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2) NOT NULL,
+    manufacturer VARCHAR(255),
+    part_number VARCHAR(100),
+    is_original_bmw_part BOOLEAN NOT NULL,
+    is_in_stock BOOLEAN NOT NULL,
+    stock_quantity INT NOT NULL,
+    image_url TEXT,
+    size VARCHAR(100),
+    pattern VARCHAR(100),
+    color VARCHAR(100),
+    material VARCHAR(100),
+    capacity INT,
+    compatibility VARCHAR(255),
+    age_group VARCHAR(50),
+    max_load INT,
+    is_universal BOOLEAN NOT NULL,
+    installation_difficulty VARCHAR(50),
+    warranty VARCHAR(100)
+);
+
+-- Tworzenie indeksów dla poprawy wydajności zapytań
+CREATE INDEX idx_car_accessories_car_id ON car_accessories (car_id);
+CREATE INDEX idx_car_accessories_car_model ON car_accessories (car_model);
+CREATE INDEX idx_car_accessories_category ON car_accessories (category);
+CREATE INDEX idx_car_accessories_type ON car_accessories (type);
+CREATE INDEX idx_car_accessories_price ON car_accessories (price);
+CREATE INDEX idx_car_accessories_is_original_bmw_part ON car_accessories (is_original_bmw_part);
+CREATE INDEX idx_car_accessories_is_in_stock ON car_accessories (is_in_stock);
