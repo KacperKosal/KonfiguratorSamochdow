@@ -22,6 +22,22 @@ const RegisterPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+  const handleRegister = async function(body)
+  {
+      try{
+        const response = await fetch(`${apiUrl}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+  });
+
+      } catch(error) {
+        setRegistrationSuccess(false)
+      };
+      
+  }
+
   // Obsługa zmian w formularzu
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -82,6 +98,13 @@ const RegisterPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
+      handleRegister({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword
+      })
       setIsSubmitting(true);
       setTimeout(() => {
         setIsSubmitting(false);

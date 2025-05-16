@@ -1,14 +1,37 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Mail, Lock, Eye, EyeOff,} from 'lucide-react';
 import styles from './Login.module.css';
 import { NavLink } from 'react-router-dom';
+import { StoreContext } from '../../store/StoreContext';
 
 const LoginPage = () => {
+  const { state,dispatch } = useContext(StoreContext);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const apiUrl = import.meta.env.VITE_API_URL;
+
+  const handleLogin = async function(body)
+  {
+      try{
+      const response = await fetch(`${apiUrl}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+  });
+
+  const data = await response.json();
+   dispatch({ type: 'SET_TOKEN', payload: data});
+   console.log(state)
+
+      } catch(error) {
+        console.log(error)
+      };
+      
+  }
 
   // Walidacja formularza
   const validateForm = () => {
@@ -41,6 +64,9 @@ const LoginPage = () => {
         setIsSubmitting(false);
         alert('Zalogowano pomyślnie!');
       }, 1500);
+      handleLogin({
+        email: email,
+        password: password})
     }
   };
 

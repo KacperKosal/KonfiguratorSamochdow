@@ -1,8 +1,16 @@
-import React from 'react';
 import styles from './Header.module.css';
 import { NavLink } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from 'react';
+import { StoreContext } from '../../store/StoreContext';
 
 const Header = () => {
+  const { state,dispatch } = useContext(StoreContext);
+  const [isLogged, setIsLogged] = useState(false);
+
+  useEffect(()=>{
+    if (state.accessToken) setIsLogged(true);
+  },[state.accessToken])
+  console.log(state)
   return (
     <header className={styles.header}>
       <div className={styles.headerContainer}>
@@ -17,6 +25,9 @@ const Header = () => {
             <li className={styles.navItem}><NavLink to="/login">Logowanie</NavLink></li>
           </ul>
         </nav>
+      </div>
+      <div className={styles.login}>
+          {isLogged && (<p>Zalogowany</p>) }
       </div>
     </header>
   );

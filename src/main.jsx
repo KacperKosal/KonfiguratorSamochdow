@@ -9,9 +9,11 @@ import Footer from './components/Footer/Footer.jsx'
 import Login from './Views/Login/Login.jsx'
 import Register from './Views/Register/Register.jsx'
 import Contact from './Views/Contact/Contact.jsx'
+import { StoreProvider } from '../src/store/StoreProvider.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
+    <StoreProvider>
     <BrowserRouter>
       <Header />
       <Routes>
@@ -23,5 +25,6 @@ createRoot(document.getElementById('root')).render(
       </Routes>
       <Footer />
     </BrowserRouter>
+    </StoreProvider>
   </StrictMode>,
 )
