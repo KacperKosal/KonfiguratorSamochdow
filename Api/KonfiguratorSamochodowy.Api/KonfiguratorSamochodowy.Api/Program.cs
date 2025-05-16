@@ -26,7 +26,7 @@ builder.Services.AddSingleton<ICarInteriorEquipmentRepository, InMemoryCarInteri
 builder.Services.AddScoped<CreateCarInteriorEquipmentValidator>();
 builder.Services.AddScoped<UpdateCarInteriorEquipmentValidator>();
 builder.Services.AddScoped<ICarInteriorEquipmentService, CarInteriorEquipmentService>();
-builder.Services.AddSingleton<ICarAccessoryRepository, InMemoryCarAccessoryRepository>();
+builder.Services.AddSingleton<ICarAccessoryRepository, CarAccessoryRepository>();
 builder.Services.AddScoped<CreateCarAccessoryValidator>();
 builder.Services.AddScoped<UpdateCarAccessoryValidator>();
 builder.Services.AddScoped<ICarAccessoryService, CarAccessoryService>();
