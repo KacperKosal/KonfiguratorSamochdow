@@ -1,5 +1,5 @@
-using KonfiguratorSamochodowy.Api.Common;
 using KonfiguratorSamochodowy.Api.Models;
+using KonfiguratorSamochodowy.Api.Repositories.Helpers;
 using System.Collections.Concurrent;
 
 namespace KonfiguratorSamochodowy.Api.Repositories

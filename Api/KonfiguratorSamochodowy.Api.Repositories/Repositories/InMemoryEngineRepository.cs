@@ -1,6 +1,6 @@
-using KonfiguratorSamochodowy.Api.Common;
-using KonfiguratorSamochodowy.Api.Models;
-using KonfiguratorSamochodowy.Api.Requests;
+using KonfiguratorSamochodowy.Api.Repositories.Dto;
+using KonfiguratorSamochodowy.Api.Repositories.Helpers;
+using KonfiguratorSamochodowy.Api.Repositories.Models;
 using System.Collections.Concurrent;
 
 namespace KonfiguratorSamochodowy.Api.Repositories
@@ -156,7 +156,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories
                 new Error("NotFound", $"Nie znaleziono silnika o ID: {id}")));
         }
 
-        public Task<Result<IEnumerable<Engine>>> GetFilteredAsync(FilterEnginesRequest filter)
+        public Task<Result<IEnumerable<Engine>>> GetFilteredAsync(FilterEnginesRequestDto filter)
         {
             var query = _engines.Values.AsEnumerable();
 

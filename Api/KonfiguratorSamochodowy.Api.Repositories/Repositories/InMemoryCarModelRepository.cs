@@ -1,6 +1,6 @@
-using KonfiguratorSamochodowy.Api.Common;
 using KonfiguratorSamochodowy.Api.Models;
-using KonfiguratorSamochodowy.Api.Requests;
+using KonfiguratorSamochodowy.Api.Repositories.Dto;
+using KonfiguratorSamochodowy.Api.Repositories.Helpers;
 using System.Collections.Concurrent;
 
 namespace KonfiguratorSamochodowy.Api.Repositories
@@ -112,7 +112,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories
                 new Error("NotFound", $"Nie znaleziono modelu samochodu o ID: {id}")));
         }
 
-        public Task<Result<IEnumerable<CarModel>>> GetFilteredAsync(FilterCarModelsRequest filter)
+        public Task<Result<IEnumerable<CarModel>>> GetFilteredAsync(FilterCarModelsRequestDto filter)
         {
             var query = _carModels.Values.AsEnumerable();
 
