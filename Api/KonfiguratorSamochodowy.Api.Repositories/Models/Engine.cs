@@ -12,17 +12,17 @@ public class Engine
     /// <summary>
     /// Identyfikator silnika (używany w API)
     /// </summary>
-    public string Id { get; set; }
+    public string Id { get; set; } = string.Empty;
 
     /// <summary>
     /// Nazwa silnika
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Typ silnika
     /// </summary>
-    public string Type { get; set; }
+    public string Type { get; set; } = string.Empty;
 
     /// <summary>
     /// Pojemność silnika w cm³
@@ -32,12 +32,12 @@ public class Engine
     /// <summary>
     /// Pojemność silnika (string na potrzeby bazy danych)
     /// </summary>
-    public string Pojemnosc { get; set; }
+    public string Pojemnosc { get; set; } = string.Empty;
 
     /// <summary>
     /// Typ silnika (string na potrzeby bazy danych)
     /// </summary>
-    public string Typ { get; set; }
+    public string Typ { get; set; } = string.Empty;
 
     /// <summary>
     /// Moc silnika w KM
@@ -57,7 +57,7 @@ public class Engine
     /// <summary>
     /// Rodzaj paliwa
     /// </summary>
-    public string FuelType { get; set; }
+    public string FuelType { get; set; } = string.Empty;
 
     /// <summary>
     /// Ilość cylindrów
@@ -67,7 +67,7 @@ public class Engine
     /// <summary>
     /// Rodzaj skrzyni biegów
     /// </summary>
-    public string Transmission { get; set; }
+    public string Transmission { get; set; } = string.Empty;
 
     /// <summary>
     /// Ilość biegów
@@ -77,7 +77,7 @@ public class Engine
     /// <summary>
     /// Rodzaj napędu
     /// </summary>
-    public string DriveType { get; set; }
+    public string DriveType { get; set; } = string.Empty;
 
     /// <summary>
     /// Zużycie paliwa w l/100km
@@ -92,7 +92,7 @@ public class Engine
     /// <summary>
     /// Opis silnika
     /// </summary>
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// Czy silnik jest aktywny
@@ -102,7 +102,7 @@ public class Engine
     /// <summary>
     /// Data utworzenia
     /// </summary>
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Data aktualizacji

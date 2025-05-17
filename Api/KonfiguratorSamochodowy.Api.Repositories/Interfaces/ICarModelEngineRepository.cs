@@ -1,7 +1,7 @@
 using KonfiguratorSamochodowy.Api.Models;
 using KonfiguratorSamochodowy.Api.Repositories.Helpers;
 
-namespace KonfiguratorSamochodowy.Api.Repositories
+namespace KonfiguratorSamochodowy.Api.Repositories.Interfaces
 {
     public interface ICarModelEngineRepository
     {

@@ -1,9 +1,14 @@
 using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
 using KonfiguratorSamochodowy.Api.Repositories.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
+using System;
 using System.Data;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 namespace KonfiguratorSamochodowy.Api.Repositories;
 
@@ -27,14 +32,24 @@ public static class RepositoriesInstaller
             throw new InvalidOperationException("Connection string 'Psql' is not configured.");
         }
 
+        // Register DbContext for Entity Framework (minimal use)
+        services.AddDbContext<AppDbContext>(options => 
+            options.UseNpgsql(connectionString));
+
+        // Register IDbConnection for Dapper (main data access)
         services.AddTransient<IDbConnection>(_ => new NpgsqlConnection(connectionString));
         
+        // Register existing repositories
         services.AddTransient<IUserRepository, UserRepository>();
         services.AddTransient<IVehicleRepository, VehicleRepository>();
         services.AddTransient<IConfigurationRepository, ConfigurationRepository>();
         services.AddTransient<IVechicleFeaturesRepository, VechicleFeaturesRepository>();
-        services.AddTransient<KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository, EngineRepository>();
-
+        
+        // Register our pure SQL implementations using Dapper
+        services.AddTransient<ICarModelRepository, SqlCarModelRepository>();
+        services.AddTransient<ICarModelEngineRepository, SqlCarModelEngineRepository>();
+        services.AddTransient<IEngineRepository, SqlEngineRepository>();
+        
         return services;
     }
 } 

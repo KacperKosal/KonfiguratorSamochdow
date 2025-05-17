@@ -2,11 +2,11 @@ using KonfiguratorSamochodowy.Api.Common.Services;
 using KonfiguratorSamochodowy.Api.Endpoints;
 using KonfiguratorSamochodowy.Api.Repositories;
 using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
-using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 using KonfiguratorSamochodowy.Api.Services;
 using KonfiguratorSamochodowy.Api.Validators;
 using Microsoft.OpenApi.Models;
 using FluentValidation;
+using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,10 +32,8 @@ builder.Services.AddScoped<CreateCarAccessoryValidator>();
 builder.Services.AddScoped<UpdateCarAccessoryValidator>();
 builder.Services.AddScoped<ICarAccessoryService, CarAccessoryService>();
 
-// Rejestracja repozytoriów
-builder.Services.AddSingleton<ICarModelRepository, InMemoryCarModelRepository>();
-builder.Services.AddSingleton<KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository, InMemoryEngineRepository>();
-builder.Services.AddSingleton<ICarModelEngineRepository, InMemoryCarModelEngineRepository>();
+// Repositories are already registered in AddRepositories() method
+// No need to register them here - remove the duplicate registrations
 
 // Rejestracja walidatorów
 builder.Services.AddScoped<CreateCarModelValidator>();

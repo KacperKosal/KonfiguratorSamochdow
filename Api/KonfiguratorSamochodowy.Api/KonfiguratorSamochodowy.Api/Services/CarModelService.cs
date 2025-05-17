@@ -1,10 +1,10 @@
 using KonfiguratorSamochodowy.Api.Dtos;
 using KonfiguratorSamochodowy.Api.Models;
-using KonfiguratorSamochodowy.Api.Repositories;
 using KonfiguratorSamochodowy.Api.Repositories.Helpers;
 using KonfiguratorSamochodowy.Api.Requests;
 using KonfiguratorSamochodowy.Api.Validators;
 using FluentValidation;
+using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
 
 namespace KonfiguratorSamochodowy.Api.Services
 {

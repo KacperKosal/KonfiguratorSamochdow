@@ -3,21 +3,21 @@ using KonfiguratorSamochodowy.Api.Models;
 using KonfiguratorSamochodowy.Api.Repositories;
 using KonfiguratorSamochodowy.Api.Repositories.Helpers;
 using KonfiguratorSamochodowy.Api.Repositories.Models;
-using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 using KonfiguratorSamochodowy.Api.Requests;
 using KonfiguratorSamochodowy.Api.Validators;
 using FluentValidation;
+using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
 
 namespace KonfiguratorSamochodowy.Api.Services
 {
     public class EngineService : IEngineService
     {
-        private readonly KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository _repository;
+        private readonly IEngineRepository _repository;
         private readonly CreateEngineValidator _createValidator;
         private readonly UpdateEngineValidator _updateValidator;
         
         public EngineService(
-            KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository repository,
+            IEngineRepository repository,
             CreateEngineValidator createValidator,
             UpdateEngineValidator updateValidator)
         {

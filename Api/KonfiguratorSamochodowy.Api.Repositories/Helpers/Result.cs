@@ -4,9 +4,9 @@
     {
         public bool IsSuccess { get; }
         public T Value { get; }
-        public Error Error { get; }
+        public Error? Error { get; }
 
-        private Result(bool isSuccess, T value, Error error)
+        private Result(bool isSuccess, T value, Error? error)
         {
             IsSuccess = isSuccess;
             Value = value;
@@ -14,7 +14,7 @@
         }
 
         public static Result<T> Success(T value) => new Result<T>(true, value, null);
-        public static Result<T> Failure(Error error) => new Result<T>(false, default, error);
+        public static Result<T> Failure(Error error) => new Result<T>(false, default!, error);
     }
 
     

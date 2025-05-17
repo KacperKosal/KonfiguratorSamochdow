@@ -11,7 +11,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories;
 /// <summary>
 /// Implementacja repozytorium pojazdów
 /// </summary>
-internal sealed class VehicleRepository(IDbConnection connection, IVechicleFeaturesRepository vechicleFeaturesRepository, KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository engineRepository) : IVehicleRepository
+internal sealed class VehicleRepository(IDbConnection connection, IVechicleFeaturesRepository vechicleFeaturesRepository, IEngineRepository engineRepository) : IVehicleRepository
 {
     /// <summary>
     /// Pobiera listę pojazdów na podstawie parametrów wyszukiwania
@@ -64,13 +64,13 @@ internal sealed class VehicleRepository(IDbConnection connection, IVechicleFeatu
             sql.Append(" ORDER BY ");
             switch (sortingOptions.SortingOption.Value)
             {
-                case SortingOption.PriceAsc:
+                case SortingOption.PriceAscending:
                     sql.Append("Cena ASC");
                     break;
-                case SortingOption.PriceDesc:
+                case SortingOption.PriceDescending:
                     sql.Append("Cena DESC");
                     break;
-                case SortingOption.Name:
+                case SortingOption.NameAscending:
                     sql.Append("Model ASC");
                     break;
                 default:

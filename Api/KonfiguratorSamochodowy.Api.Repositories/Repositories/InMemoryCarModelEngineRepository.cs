@@ -1,8 +1,9 @@
 using KonfiguratorSamochodowy.Api.Models;
 using KonfiguratorSamochodowy.Api.Repositories.Helpers;
+using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
 using System.Collections.Concurrent;
 
-namespace KonfiguratorSamochodowy.Api.Repositories
+namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
 {
     public class InMemoryCarModelEngineRepository : ICarModelEngineRepository
     {

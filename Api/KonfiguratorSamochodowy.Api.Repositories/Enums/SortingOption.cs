@@ -2,7 +2,10 @@
 
 public enum SortingOption
 {
-    PriceAsc,
-    PriceDesc,
-    Name,
+    PriceAscending,
+    PriceDescending,
+    YearAscending,
+    YearDescending,
+    NameAscending,
+    NameDescending,
 }

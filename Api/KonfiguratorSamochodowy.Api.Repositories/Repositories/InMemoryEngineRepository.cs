@@ -1,10 +1,10 @@
 using KonfiguratorSamochodowy.Api.Repositories.Dto;
 using KonfiguratorSamochodowy.Api.Repositories.Helpers;
+using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
 using KonfiguratorSamochodowy.Api.Repositories.Models;
-using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 using System.Collections.Concurrent;
 
-namespace KonfiguratorSamochodowy.Api.Repositories
+namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
 {
     public class InMemoryEngineRepository : IEngineRepository
     {
