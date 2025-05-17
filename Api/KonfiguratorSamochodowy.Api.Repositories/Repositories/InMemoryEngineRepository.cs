@@ -1,6 +1,7 @@
 using KonfiguratorSamochodowy.Api.Repositories.Dto;
 using KonfiguratorSamochodowy.Api.Repositories.Helpers;
 using KonfiguratorSamochodowy.Api.Repositories.Models;
+using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 using System.Collections.Concurrent;
 
 namespace KonfiguratorSamochodowy.Api.Repositories
@@ -232,6 +233,17 @@ namespace KonfiguratorSamochodowy.Api.Repositories
 
             return Result<bool>.Failure(
                 new Error("DatabaseError", $"Nie udało się usunąć silnika o ID: {id}"));
+        }
+
+        public Task<IEnumerable<Engine>> GetAllByVechicleIdAsync(int vehicleId)
+        {
+            // Filter engines by vehicle ID - for in-memory implementation, we'll use a simple filter
+            // that matches engines where the ID matches the vehicleId parameter
+            var result = _engines.Values
+                .Where(e => e.ID == vehicleId || int.TryParse(e.Id, out var id) && id == vehicleId)
+                .ToList();
+            
+            return Task.FromResult<IEnumerable<Engine>>(result);
         }
     }
 }

@@ -1,14 +1,9 @@
 ﻿using KonfiguratorSamochodowy.Api.Repositories.Models;
+using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 
 namespace KonfiguratorSamochodowy.Api.Repositories.Interfaces;
 
-public interface IEngineRepository
+[Obsolete("This interface is deprecated. Use KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository instead.")]
+public interface IEngineRepository : Repositories.IEngineRepository
 {
-    Task<IEnumerable<Engine>> GetAllByVechicleIdAsync(int engineId);
-
-    Task<int> CreateAsync(Engine engineFeatures);
-
-    Task UpdateAsync(Engine engineFeatures);
-
-    Task DeleteAsync(int id);
 }

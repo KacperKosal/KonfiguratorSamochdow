@@ -2,8 +2,7 @@ using KonfiguratorSamochodowy.Api.Repositories.Dto;
 using KonfiguratorSamochodowy.Api.Repositories.Helpers;
 using KonfiguratorSamochodowy.Api.Repositories.Models;
 
-
-namespace KonfiguratorSamochodowy.Api.Repositories
+namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
 {
     public interface IEngineRepository
     {
@@ -13,5 +12,6 @@ namespace KonfiguratorSamochodowy.Api.Repositories
         Task<Result<Engine>> CreateAsync(Engine engine);
         Task<Result<Engine>> UpdateAsync(string id, Engine engine);
         Task<Result<bool>> DeleteAsync(string id);
+        Task<IEnumerable<Engine>> GetAllByVechicleIdAsync(int vehicleId);
     }
 }

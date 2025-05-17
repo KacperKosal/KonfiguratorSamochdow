@@ -12,15 +12,15 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Interfaces
         Task<Result<IEnumerable<CarAccessory>>> GetByCategoryAsync(string category);
         Task<Result<IEnumerable<CarAccessory>>> GetByTypeAsync(string type);
         Task<Result<IEnumerable<CarAccessory>>> GetFilteredAsync(
-            string carId = null,
-            string carModel = null,
-            string category = null,
-            string type = null,
+            string? carId = null,
+            string? carModel = null,
+            string? category = null,
+            string? type = null,
             decimal? minPrice = null,
             decimal? maxPrice = null,
             bool? isOriginalBMWPart = null,
             bool? isInStock = null,
-            string installationDifficulty = null);
+            string? installationDifficulty = null);
         Task<Result<CarAccessory>> CreateAsync(CarAccessory accessory);
         Task<Result<CarAccessory>> UpdateAsync(string id, CarAccessory accessory);
         Task<Result<bool>> DeleteAsync(string id);

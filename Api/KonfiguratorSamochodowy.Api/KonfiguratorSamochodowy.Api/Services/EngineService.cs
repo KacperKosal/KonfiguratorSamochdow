@@ -1,7 +1,9 @@
-using KonfiguratorSamochodowy.Api.Common;
 using KonfiguratorSamochodowy.Api.Dtos;
 using KonfiguratorSamochodowy.Api.Models;
 using KonfiguratorSamochodowy.Api.Repositories;
+using KonfiguratorSamochodowy.Api.Repositories.Helpers;
+using KonfiguratorSamochodowy.Api.Repositories.Models;
+using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 using KonfiguratorSamochodowy.Api.Requests;
 using KonfiguratorSamochodowy.Api.Validators;
 using FluentValidation;
@@ -10,12 +12,12 @@ namespace KonfiguratorSamochodowy.Api.Services
 {
     public class EngineService : IEngineService
     {
-        private readonly IEngineRepository _repository;
+        private readonly KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository _repository;
         private readonly CreateEngineValidator _createValidator;
         private readonly UpdateEngineValidator _updateValidator;
         
         public EngineService(
-            IEngineRepository repository,
+            KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository repository,
             CreateEngineValidator createValidator,
             UpdateEngineValidator updateValidator)
         {
@@ -45,7 +47,21 @@ namespace KonfiguratorSamochodowy.Api.Services
 
         public async Task<Result<IEnumerable<EngineDto>>> GetFilteredAsync(FilterEnginesRequest filter)
         {
-            var result = await _repository.GetFilteredAsync(filter);
+            // Convert FilterEnginesRequest to FilterEnginesRequestDto
+            var filterDto = new KonfiguratorSamochodowy.Api.Repositories.Dto.FilterEnginesRequestDto
+            {
+                Type = filter.Type,
+                FuelType = filter.FuelType,
+                MinCapacity = filter.MinCapacity,
+                MaxCapacity = filter.MaxCapacity,
+                MinPower = filter.MinPower,
+                MaxPower = filter.MaxPower,
+                Transmission = filter.Transmission,
+                DriveType = filter.DriveType,
+                IsActive = filter.IsActive
+            };
+            
+            var result = await _repository.GetFilteredAsync(filterDto);
             if (!result.IsSuccess)
                 return Result<IEnumerable<EngineDto>>.Failure(result.Error);
                 

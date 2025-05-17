@@ -105,7 +105,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                     ? Results.Ok(result.Value) 
                     : Results.Problem(result.Error.Message, statusCode: 500);
             })
-            .WithName("GetFullCarConfiguration")
+            .WithName("GetFullCarInteriorConfiguration")
             .WithDisplayName("Pobierz pełną konfigurację wyposażenia wnętrza samochodu")
             .Produces<CarInteriorConfigurationDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status500InternalServerError);

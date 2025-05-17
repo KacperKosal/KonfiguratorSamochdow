@@ -33,7 +33,7 @@ public static class RepositoriesInstaller
         services.AddTransient<IVehicleRepository, VehicleRepository>();
         services.AddTransient<IConfigurationRepository, ConfigurationRepository>();
         services.AddTransient<IVechicleFeaturesRepository, VechicleFeaturesRepository>();
-        services.AddTransient<IEngineRepository, EngineRepository>();
+        services.AddTransient<KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository, EngineRepository>();
 
         return services;
     }

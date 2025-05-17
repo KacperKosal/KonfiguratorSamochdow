@@ -1,7 +1,9 @@
-using KonfiguratorSamochodowy.Api.Common;
 using KonfiguratorSamochodowy.Api.Dtos;
 using KonfiguratorSamochodowy.Api.Models;
 using KonfiguratorSamochodowy.Api.Repositories;
+using KonfiguratorSamochodowy.Api.Repositories.Helpers;
+using KonfiguratorSamochodowy.Api.Repositories.Models;
+using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 using KonfiguratorSamochodowy.Api.Requests;
 using KonfiguratorSamochodowy.Api.Validators;
 using FluentValidation;
@@ -12,14 +14,14 @@ namespace KonfiguratorSamochodowy.Api.Services
     {
         private readonly ICarModelEngineRepository _repository;
         private readonly ICarModelRepository _carModelRepository;
-        private readonly IEngineRepository _engineRepository;
+        private readonly KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository _engineRepository;
         private readonly AddCarModelEngineValidator _addValidator;
         private readonly UpdateCarModelEngineValidator _updateValidator;
         
         public CarModelEngineService(
             ICarModelEngineRepository repository,
             ICarModelRepository carModelRepository,
-            IEngineRepository engineRepository,
+            KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository engineRepository,
             AddCarModelEngineValidator addValidator,
             UpdateCarModelEngineValidator updateValidator)
         {

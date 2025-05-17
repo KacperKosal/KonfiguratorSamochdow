@@ -6,6 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>e1fac7bf-12e7-463c-8fef-419c95d5ee17</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <!-- Suppress nullability warnings -->
+    <NoWarn>$(NoWarn);CS8618;CS8625;CS8604;CS8629</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

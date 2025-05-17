@@ -7,10 +7,6 @@ using KonfiguratorSamochodowy.Api.Services;
 using KonfiguratorSamochodowy.Api.Validators;
 using Microsoft.OpenApi.Models;
 using FluentValidation;
-using KonfiguratorSamochodowy.Api.Endpoints;
-using KonfiguratorSamochodowy.Api.Repositories;
-using KonfiguratorSamochodowy.Api.Services;
-using KonfiguratorSamochodowy.Api.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,18 +23,18 @@ builder.Services.AddScoped<ILoginUserService, LoginUserService>();
 builder.Services.AddScoped<IModelsService, ModelsService>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
 builder.Services.AddScoped<IRefreshJwtService, RefreshJwtService>();
-builder.Services.AddSingleton<ICarInteriorEquipmentRepository, InMemoryCarInteriorEquipmentRepository>();
+builder.Services.AddSingleton<KonfiguratorSamochodowy.Api.Repositories.Interfaces.ICarInteriorEquipmentRepository, KonfiguratorSamochodowy.Api.Repositories.Repositories.InMemoryCarInteriorEquipmentRepository>();
 builder.Services.AddScoped<CreateCarInteriorEquipmentValidator>();
 builder.Services.AddScoped<UpdateCarInteriorEquipmentValidator>();
 builder.Services.AddScoped<ICarInteriorEquipmentService, CarInteriorEquipmentService>();
-builder.Services.AddSingleton<ICarAccessoryRepository, CarAccessoryRepository>();
+builder.Services.AddSingleton<KonfiguratorSamochodowy.Api.Repositories.Interfaces.ICarAccessoryRepository, KonfiguratorSamochodowy.Api.Repositories.Repositories.CarAccessoryRepository>();
 builder.Services.AddScoped<CreateCarAccessoryValidator>();
 builder.Services.AddScoped<UpdateCarAccessoryValidator>();
 builder.Services.AddScoped<ICarAccessoryService, CarAccessoryService>();
 
 // Rejestracja repozytoriów
 builder.Services.AddSingleton<ICarModelRepository, InMemoryCarModelRepository>();
-builder.Services.AddSingleton<IEngineRepository, InMemoryEngineRepository>();
+builder.Services.AddSingleton<KonfiguratorSamochodowy.Api.Repositories.Repositories.IEngineRepository, InMemoryEngineRepository>();
 builder.Services.AddSingleton<ICarModelEngineRepository, InMemoryCarModelEngineRepository>();
 
 // Rejestracja walidatorów
@@ -74,7 +70,6 @@ app.UseHttpsRedirection();
 
 LoginEndpoint.MapEndPoint(app);
 RegisterEndpoint.MapEndPoint(app);
-ModelsEndpoint.MapEndPoint(app);
 RefreshJwtEndpoint.MapEndPoint(app);
 ValidateJwtEndpoint.MapEndPoint(app);
 app.MapCarAccessoryEndpoints();

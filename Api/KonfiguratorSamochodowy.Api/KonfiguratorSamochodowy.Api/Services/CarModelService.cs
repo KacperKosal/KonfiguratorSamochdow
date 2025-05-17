@@ -1,7 +1,7 @@
-using KonfiguratorSamochodowy.Api.Common;
 using KonfiguratorSamochodowy.Api.Dtos;
 using KonfiguratorSamochodowy.Api.Models;
 using KonfiguratorSamochodowy.Api.Repositories;
+using KonfiguratorSamochodowy.Api.Repositories.Helpers;
 using KonfiguratorSamochodowy.Api.Requests;
 using KonfiguratorSamochodowy.Api.Validators;
 using FluentValidation;
@@ -45,7 +45,20 @@ namespace KonfiguratorSamochodowy.Api.Services
 
         public async Task<Result<IEnumerable<CarModelDto>>> GetFilteredAsync(FilterCarModelsRequest filter)
         {
-            var result = await _repository.GetFilteredAsync(filter);
+            // Convert FilterCarModelsRequest to FilterCarModelsRequestDto
+            var filterDto = new KonfiguratorSamochodowy.Api.Repositories.Dto.FilterCarModelsRequestDto
+            {
+                Manufacturer = filter.Manufacturer,
+                BodyType = filter.BodyType,
+                Segment = filter.Segment,
+                MinProductionYear = filter.MinProductionYear,
+                MaxProductionYear = filter.MaxProductionYear,
+                MinPrice = filter.MinPrice,
+                MaxPrice = filter.MaxPrice,
+                IsActive = filter.IsActive
+            };
+            
+            var result = await _repository.GetFilteredAsync(filterDto);
             if (!result.IsSuccess)
                 return Result<IEnumerable<CarModelDto>>.Failure(result.Error);
                 

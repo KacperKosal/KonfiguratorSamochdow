@@ -56,7 +56,7 @@ namespace KonfiguratorSamochodowy.Api.Validators
         
         private bool BeValidDriveType(string driveType)
         {
-            return DriveType.AllTypes.Contains(driveType);
+            return KonfiguratorSamochodowy.Api.Enums.DriveType.AllTypes.Contains(driveType);
         }
     }
 }
