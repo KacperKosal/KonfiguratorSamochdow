@@ -1,8 +1,15 @@
 import React from 'react';
 import { ArrowRight, Info, Heart } from 'lucide-react';
 import styles from './ModelCard.module.css';
+import { useNavigate } from 'react-router-dom';
 
-const ModelCard = ({ model, formatPrice }) => {
+const ModelCard = ({ model, formatPrice }) => 
+  {
+   const navigate = useNavigate()
+   const goToConfigurator = () => {
+    navigate('/car-configurator')
+  }
+  
   return (
     <div className={styles.card}>
       <div className={styles.imageContainer}>
@@ -12,9 +19,7 @@ const ModelCard = ({ model, formatPrice }) => {
             NOWOŚĆ
           </div>
         )}
-        <button className={styles.favoriteButton}>
-          <Heart size={18} className="text-gray-600" />
-        </button>
+        
       </div>
       <div className={styles.content}>
         <h2 className={styles.title}>{model.name}</h2>
@@ -50,13 +55,16 @@ const ModelCard = ({ model, formatPrice }) => {
             <div className={styles.price}>{formatPrice(model.basePrice)}</div>
           </div>
           <div className={styles.buttons}>
-            <button className={styles.configureButton}>
+            
+            
+            <button className={styles.configureButton} 
+            onClick={goToConfigurator}>
+
               <span>Konfiguruj</span>
               <ArrowRight size={16} />
+              
             </button>
-            <button className={styles.infoButton}>
-              <Info size={18} />
-            </button>
+            
           </div>
         </div>
       </div>

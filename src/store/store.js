@@ -8,6 +8,9 @@ export function reducer(state, action) {
     case 'SET_TOKEN':
         localStorage.setItem('accessToken', action.payload)
       return { ...state, accessToken: action.payload };
+    case 'LOGOUT':
+        localStorage.removeItem('accessToken')
+      return { ...state, accessToken: null };
     default:
       return state;
   }

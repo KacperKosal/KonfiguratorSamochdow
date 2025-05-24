@@ -17,5 +17,8 @@ internal enum ValidationErrorCodes
     LoginRequestEmailInvalid = 12,
     LoginRequestInvalidPassword = 13,
     LoginRequestInvalidEmail = 14,
-
+    ChangePasswordCurrentPasswordEmpty = 15,
+    ChangePasswordNewPasswordEmpty = 16,
+    ChangePasswordNewPasswordLength = 17,
+    ChangePasswordInvalidCurrentPassword = 18,
 }

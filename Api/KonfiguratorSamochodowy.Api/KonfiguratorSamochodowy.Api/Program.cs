@@ -32,25 +32,26 @@ builder.Services.AddScoped<CreateCarAccessoryValidator>();
 builder.Services.AddScoped<UpdateCarAccessoryValidator>();
 builder.Services.AddScoped<ICarAccessoryService, CarAccessoryService>();
 
-// Repositories are already registered in AddRepositories() method
-// No need to register them here - remove the duplicate registrations
-
-// Rejestracja walidatorów
 builder.Services.AddScoped<CreateCarModelValidator>();
 builder.Services.AddScoped<UpdateCarModelValidator>();
 builder.Services.AddScoped<CreateEngineValidator>();
 builder.Services.AddScoped<UpdateEngineValidator>();
 builder.Services.AddScoped<AddCarModelEngineValidator>();
 builder.Services.AddScoped<UpdateCarModelEngineValidator>();
-
-// Rejestracja serwisów
+builder.Services.AddScoped<IChangePasswordService, ChangePasswordService>();
 builder.Services.AddScoped<ICarModelService, CarModelService>();
 builder.Services.AddScoped<IEngineService, EngineService>();
 builder.Services.AddScoped<ICarModelEngineService, CarModelEngineService>();
 builder.Services.AddScoped<ICarConfigurationService, CarConfigurationService>();
 
+builder.Services.AddCors();
 
 var app = builder.Build();
+
+app.UseCors(cfg => 
+{
+    cfg.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("http://localhost:5173");
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -70,6 +71,7 @@ LoginEndpoint.MapEndPoint(app);
 RegisterEndpoint.MapEndPoint(app);
 RefreshJwtEndpoint.MapEndPoint(app);
 ValidateJwtEndpoint.MapEndPoint(app);
+ChangePasswordEndpoint.MapEndPoint(app);
 app.MapCarAccessoryEndpoints();
 
 app.MapSwagger();

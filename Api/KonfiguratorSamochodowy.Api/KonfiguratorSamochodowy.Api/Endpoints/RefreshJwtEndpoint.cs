@@ -11,14 +11,14 @@ internal static class RefreshJwtEndpoint
         {
             var refreshToken = context.GetRefreshToken();
 
-            var userId = context.GetUserId(jwtService);
+            var userId = context.GetUserIdFromToken(jwtService);
 
-            if (userId == -1 || refreshToken == null)
+            if (userId == null || refreshToken == null)
             {
                 return Results.Unauthorized();
             }
 
-            var newToken = await refreshJwtService.RefreshJwtAsync(refreshToken, userId);
+            var newToken = await refreshJwtService.RefreshJwtAsync(refreshToken, userId.Value);
 
             return Results.Ok(newToken);
         }).WithTags("Autentykacja").WithName("Odświeżanie tokena");

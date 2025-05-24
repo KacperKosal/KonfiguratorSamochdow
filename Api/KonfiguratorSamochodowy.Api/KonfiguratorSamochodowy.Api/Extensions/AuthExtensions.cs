@@ -1,4 +1,6 @@
 ﻿using KonfiguratorSamochodowy.Api.Common.Services;
+using KonfiguratorSamochodowy.Api.Repositories.Helpers;
+using KonfiguratorSamochodowy.Api.Services;
 using Microsoft.Extensions.Primitives;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -9,7 +11,7 @@ internal static class AuthExtensions
 {
     internal static bool IsAuthenticated(this HttpContext context, IJwtService jwtService)
     {
-        if (!context.Request.Headers.TryGetValue("Authorizatoin", out StringValues token) || string.IsNullOrEmpty(token)) return false;
+        if (!context.Request.Headers.TryGetValue("Authorization", out StringValues token) || string.IsNullOrEmpty(token)) return false;
 
         if (!token.ToString().StartsWith("Bearer")) return false;
 
@@ -17,27 +19,62 @@ internal static class AuthExtensions
 
         return jwtService.ValidateToken(tokenValue);
     }
-    internal static int GetUserId(this HttpContext context, IJwtService jwtService)
-    {
-        if (!context.Request.Headers.TryGetValue("Authorization", out StringValues token) || string.IsNullOrEmpty(token)) return -1;
 
-        if (!token.ToString().StartsWith("Bearer")) return -1;
+    internal static string? GetRefreshToken(this HttpContext context)
+    {
+        return context.Request.Cookies["refreshToken"];
+    }
+
+    internal static int? GetUserIdFromToken(this HttpContext context, IJwtService jwtService)
+    {
+        if (!context.Request.Headers.TryGetValue("Authorization", out StringValues token) || string.IsNullOrEmpty(token))
+            return null;
+
+        if (!token.ToString().StartsWith("Bearer"))
+            return null;
 
         var tokenValue = token.ToString()["Bearer ".Length..].Trim();
 
-        if (!jwtService.ValidateToken(tokenValue)) return -1;
+        if (!jwtService.ValidateToken(tokenValue))
+            return null;
 
         var handler = new JwtSecurityTokenHandler();
+        var jsonToken = handler.ReadJwtToken(tokenValue);
+        
+        var userIdClaim = jsonToken.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            return userId;
+        }
 
-        var jwtToken = handler.ReadJwtToken(tokenValue);
-
-        var nameIdentifierClaim = jwtToken.Claims.FirstOrDefault(e => e.Type == ClaimTypes.NameIdentifier);
-
-        return nameIdentifierClaim != null ? int.Parse(nameIdentifierClaim.Value) : -1;
+        return null;
     }
-    internal static string? GetRefreshToken(this HttpContext context)
+
+    internal static RouteHandlerBuilder RequierdAuthenticatedUser(this RouteHandlerBuilder builder)
     {
-        if (!context.Request.Cookies.TryGetValue("refreshToken", out string refreshToken) || string.IsNullOrEmpty(refreshToken)) return null;
-        return refreshToken;
+        builder.AddEndpointFilter(async (context, next) =>
+        {
+            var jwtService = context.HttpContext.RequestServices.GetRequiredService<IJwtService>();
+
+            if (!context.HttpContext.Request.Headers.TryGetValue("Authorization", out StringValues token) || string.IsNullOrEmpty(token))
+                return Results.Json(new{Error = "BRAK TOKENU W NAGŁÓWKU AUTORYZACYJNYM !"}, contentType: "application/json", statusCode: StatusCodes.Status401Unauthorized);
+
+            if (!token.ToString().StartsWith("Bearer"))
+                return Results.Json(new { Error = "NIEPRAWIDŁOWY FORMAT TOKENU" }, contentType: "application/json", statusCode: StatusCodes.Status401Unauthorized);
+
+            var tokenValue = token.ToString()["Bearer ".Length..].Trim();
+
+            if (!jwtService.ValidateToken(tokenValue))
+                return Results.Json(new { Error = "NIEPRAWIDŁOWY LUB WYGASŁY TOKEN" }, contentType: "application/json", statusCode: StatusCodes.Status401Unauthorized);
+
+            var handler = new JwtSecurityTokenHandler();
+            var jsonToken = handler.ReadJwtToken(tokenValue);
+
+            context.HttpContext.User = new ClaimsPrincipal(new ClaimsIdentity(jsonToken.Claims.Select(c => new Claim(c.Type, c.Value))));
+
+            return await next(context);
+        });
+
+        return builder;
     }
 }

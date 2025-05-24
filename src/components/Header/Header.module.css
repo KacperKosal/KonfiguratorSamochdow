@@ -34,3 +34,498 @@
 .navItem:hover {
   color: var(--color-primary);
 } 
+
+/* Dodaj te style do istniejącego pliku Header.module.css */
+
+/* Modal zmiany hasła */
+.passwordModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  width: 90%;
+  max-width: 450px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modalTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+}
+
+.passwordForm {
+  padding: 24px;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 40px 12px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.errorInput {
+  border-color: #ef4444;
+}
+
+.errorInput:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.passwordToggle:hover {
+  color: #374151;
+}
+
+.errorText {
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-bottom: 0;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cancelButton {
+  padding: 10px 20px;
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.cancelButton:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.submitButton {
+  padding: 10px 20px;
+  border: none;
+  background: #3b82f6;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.submitButton:hover {
+  background: #2563eb;
+}
+
+.disabledButton {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.disabledButton:hover {
+  background: #3b82f6;
+}
+
+/* Responsywność dla modala */
+@media (max-width: 768px) {
+  .modalContent {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .modalHeader {
+    padding: 20px 20px 16px 20px;
+  }
+  
+  .passwordForm {
+    padding: 20px;
+  }
+  
+  .modalActions {
+    flex-direction: column;
+  }
+  
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+  }
+}
+
+.userButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.userButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Overlay - ciemne tło */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 998;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -400px;
+  width: 400px;
+  height: 100vh;
+  background: white;
+  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+  transition: right 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarOpen {
+  right: 0;
+}
+
+.sidebarHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.sidebarTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.closeButton:hover {
+  background-color: #e5e7eb;
+  color: #374151;
+}
+
+.sidebarContent {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.configList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.configItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.configItem:hover {
+  background-color: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.configInfo {
+  flex: 1;
+}
+
+.configName {
+  font-weight: 600;
+  color: #374151;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.configDate {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.configPrice {
+  font-size: 14px;
+  color: #059669;
+  font-weight: 500;
+}
+
+.sidebarFooter {
+  padding: 20px;
+  border-top: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.settingsButton,
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+  margin-bottom: 8px;
+}
+
+.settingsButton {
+  color: #374151;
+}
+
+.settingsButton:hover {
+  background-color: #e5e7eb;
+}
+
+.logoutButton {
+  color: #dc2626;
+}
+
+.logoutButton:hover {
+  background-color: #fef2f2;
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100vw;
+    right: -100vw;
+  }
+}
+
+.rotated {
+  transform: rotate(180deg);
+  transition: transform 0.2s;
+}
+
+.dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  min-width: 280px;
+  z-index: 1000;
+  margin-top: 8px;
+}
+
+.dropdownHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dropdownContent {
+  padding: 8px 0;
+}
+
+.configItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.configItem:hover {
+  background-color: #f9fafb;
+}
+
+.configName {
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.configDate {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.dropdownDivider {
+  height: 1px;
+  background-color: #e5e7eb;
+  margin: 8px 0;
+}
+
+.dropdownFooter {
+  padding: 8px;
+}
+
+.settingsButton,
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.settingsButton {
+  color: #374151;
+}
+
+.settingsButton:hover {
+  background-color: #f3f4f6;
+}
+
+.logoutButton {
+  color: #dc2626;
+  margin-top: 4px;
+}
+
+.logoutButton:hover {
+  background-color: #fef2f2;
+}
+
+.logoutButton:active {
+  transform: scale(0.98);            /* lekki efekt wciśnięcia */
+}
+
+.logoutButton:disabled {
+  background-color: #bdc3c7;         /* szare, gdy nieaktywne */
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
