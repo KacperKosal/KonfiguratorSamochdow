@@ -14,12 +14,11 @@ const Footer = () => {
         </div>
         <div>
           <h3 className={styles.footerTitle}>Nawigacja</h3>
-          <ul className={styles.footerText}>
-            <li className={styles.navItem}><NavLink to="/home">Modele</NavLink></li>
-            <li className={styles.navItem}><NavLink to="/car-configurator">Konfigurator</NavLink></li>
-            <li><NavLink className={styles.navItem} to="/contact">Kontakt</NavLink></li>
-            <li><NavLink className={styles.navItem} to="/login">Zaloguj się</NavLink></li>
-            <li><NavLink className={styles.navItem} to="/register">Zarejestruj się</NavLink></li>
+          <ul className={styles.footerNav}>
+            <li><NavLink to="/home" className={styles.navItem}>Modele</NavLink></li>
+            <li><NavLink to="/contact" className={styles.navItem}>Kontakt</NavLink></li>
+            <li><NavLink to="/login" className={styles.navItem}>Zaloguj się</NavLink></li>
+            <li><NavLink to="/register" className={styles.navItem}>Zarejestruj się</NavLink></li>
           </ul>
         </div>
         <div>
