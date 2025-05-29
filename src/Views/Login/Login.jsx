@@ -1,37 +1,35 @@
 import React, { useContext, useState } from 'react';
-import { Mail, Lock, Eye, EyeOff,} from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import styles from './Login.module.css';
 import { NavLink } from 'react-router-dom';
 import { StoreContext } from '../../store/StoreContext';
 
 const LoginPage = () => {
-  const { state,dispatch } = useContext(StoreContext);
+  const { state, dispatch } = useContext(StoreContext);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFocused, setIsFocused] = useState({ email: false, password: false });
 
   const apiUrl = import.meta.env.VITE_API_URL;
 
-  const handleLogin = async function(body)
-  {
-      try{
+  const handleLogin = async function(body) {
+    try {
       const response = await fetch(`${apiUrl}/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-  });
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
 
-  const data = await response.json();
-   dispatch({ type: 'SET_TOKEN', payload: data});
-   console.log(state)
-
-      } catch(error) {
-        console.log(error)
-      };
-      
-  }
+      const data = await response.json();
+      dispatch({ type: 'SET_TOKEN', payload: data });
+      console.log(state);
+    } catch(error) {
+      console.log(error);
+    }
+  };
 
   // Walidacja formularza
   const validateForm = () => {
@@ -59,20 +57,29 @@ const LoginPage = () => {
 
     if (validateForm()) {
       setIsSubmitting(true);
+      handleLogin({
+        email: email,
+        password: password
+      });
       // Symulacja wysyłania danych
       setTimeout(() => {
         setIsSubmitting(false);
         alert('Zalogowano pomyślnie!');
       }, 1500);
-      handleLogin({
-        email: email,
-        password: password})
     }
+  };
+
+  // Obsługa focus dla pól
+  const handleFocus = (field) => {
+    setIsFocused(prev => ({ ...prev, [field]: true }));
+  };
+
+  const handleBlur = (field) => {
+    setIsFocused(prev => ({ ...prev, [field]: false }));
   };
 
   return (
     <div className={styles.loginContainer}>
-
       {/* Główna zawartość strony */}
       <main className={styles.main}>
         <div className={styles.formContainer}>
@@ -89,16 +96,25 @@ const LoginPage = () => {
             {/* Pole e-mail */}
             <div className={styles.formGroup}>
               <label htmlFor="email" className={styles.label}>Adres e-mail</label>
-              <div className={styles.inputWrapper}>
+              <div className={`${styles.inputWrapper} ${
+                isFocused.email ? styles.inputWrapperFocused : ''
+              } ${
+                errors.email ? styles.inputWrapperError : ''
+              }`}>
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => handleFocus('email')}
+                  onBlur={() => handleBlur('email')}
                   className={`${styles.input} ${errors.email ? styles.errorInput : ''}`}
                   placeholder="twoj@email.com"
+                  autoComplete="email"
                 />
-                <Mail className={styles.inputIcon} size={18} />
+                <Mail className={`${styles.inputIcon} ${
+                  isFocused.email || email ? styles.inputIconActive : ''
+                }`} size={18} />
               </div>
               {errors.email && (
                 <p className={styles.errorText}>
@@ -112,20 +128,30 @@ const LoginPage = () => {
               <div className={styles.labelWrapper}>
                 <label htmlFor="password" className={styles.label}>Hasło</label>
               </div>
-              <div className={styles.inputWrapper}>
+              <div className={`${styles.inputWrapper} ${
+                isFocused.password ? styles.inputWrapperFocused : ''
+              } ${
+                errors.password ? styles.inputWrapperError : ''
+              }`}>
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onFocus={() => handleFocus('password')}
+                  onBlur={() => handleBlur('password')}
                   className={`${styles.input} ${errors.password ? styles.errorInput : ''}`}
                   placeholder="Wprowadź hasło"
+                  autoComplete="current-password"
                 />
-                <Lock className={styles.inputIcon} size={18} />
+                <Lock className={`${styles.inputIcon} ${
+                  isFocused.password || password ? styles.inputIconActive : ''
+                }`} size={18} />
                 <button
                   type="button"
                   className={styles.passwordToggle}
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -158,7 +184,6 @@ const LoginPage = () => {
           </div>
         </div>
       </main>
-
     </div>
   );
 };

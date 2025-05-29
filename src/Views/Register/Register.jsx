@@ -21,22 +21,34 @@ const RegisterPage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
-
-  const apiUrl = import.meta.env.VITE_API_URL;
-  const handleRegister = async function(body)
-  {
-      try{
-        const response = await fetch(`${apiUrl}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+  const [isFocused, setIsFocused] = useState({
+    firstName: false,
+    lastName: false,
+    email: false,
+    password: false,
+    confirmPassword: false
   });
 
-      } catch(error) {
-        setRegistrationSuccess(false)
-      };
+  const apiUrl = import.meta.env.VITE_API_URL;
+  
+  const handleRegister = async function(body) {
+    try {
+      const response = await fetch(`${apiUrl}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
       
-  }
+      if (response.ok) {
+        setRegistrationSuccess(true);
+      } else {
+        setRegistrationSuccess(false);
+      }
+    } catch(error) {
+      setRegistrationSuccess(false);
+      console.error('Registration error:', error);
+    }
+  };
 
   // Obsługa zmian w formularzu
   const handleChange = (e) => {
@@ -45,6 +57,15 @@ const RegisterPage = () => {
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     });
+  };
+
+  // Obsługa focus dla pól
+  const handleFocus = (field) => {
+    setIsFocused(prev => ({ ...prev, [field]: true }));
+  };
+
+  const handleBlur = (field) => {
+    setIsFocused(prev => ({ ...prev, [field]: false }));
   };
 
   // Walidacja hasła
@@ -98,18 +119,17 @@ const RegisterPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
+      setIsSubmitting(true);
       handleRegister({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
         confirmPassword: formData.confirmPassword
-      })
-      setIsSubmitting(true);
+      });
       setTimeout(() => {
         setIsSubmitting(false);
-        setRegistrationSuccess(true);
-        // Opcjonalnie: zresetuj formularz
+        // setRegistrationSuccess(true); // Będzie ustawione przez handleRegister
       }, 1500);
     }
   };
@@ -128,6 +148,7 @@ const RegisterPage = () => {
   };
 
   const passwordStrength = getPasswordStrength(formData.password);
+  
   const getPasswordStrengthText = () => {
     if (passwordStrength === 0) return 'Bardzo słabe';
     if (passwordStrength === 1) return 'Słabe';
@@ -136,12 +157,13 @@ const RegisterPage = () => {
     if (passwordStrength === 4) return 'Silne';
     return 'Bardzo silne';
   };
+  
   const getPasswordStrengthColor = () => {
-    if (passwordStrength <= 1) return 'red';
-    if (passwordStrength === 2) return 'orange';
-    if (passwordStrength === 3) return 'yellow';
-    if (passwordStrength === 4) return 'green';
-    return 'darkgreen';
+    if (passwordStrength <= 1) return '#ef4444';
+    if (passwordStrength === 2) return '#f97316';
+    if (passwordStrength === 3) return '#eab308';
+    if (passwordStrength === 4) return '#22c55e';
+    return '#16a34a';
   };
 
   return (
@@ -151,15 +173,15 @@ const RegisterPage = () => {
         {registrationSuccess ? (
           <div className={styles.successContainer}>
             <div className={styles.successIcon}>
-              <Check size={32} />
+              <Check size={48} />
             </div>
             <h2 className={styles.successTitle}>Rejestracja zakończona pomyślnie!</h2>
             <p className={styles.successMessage}>
               Dziękujemy za rejestrację w serwisie AutoKonfigurator. Na podany adres e-mail wysłaliśmy link aktywacyjny.
             </p>
-            <a href="#" className={styles.successButton}>
+            <NavLink to="/login" className={styles.successButton}>
               Przejdź do strony logowania
-            </a>
+            </NavLink>
           </div>
         ) : (
           <div className={styles.formContainer}>
@@ -174,17 +196,26 @@ const RegisterPage = () => {
               <div className={styles.nameGrid}>
                 <div className={styles.formGroup}>
                   <label htmlFor="firstName" className={styles.label}>Imię</label>
-                  <div className={styles.inputWrapper}>
+                  <div className={`${styles.inputWrapper} ${
+                    isFocused.firstName ? styles.inputWrapperFocused : ''
+                  } ${
+                    errors.firstName ? styles.inputWrapperError : ''
+                  }`}>
                     <input
                       id="firstName"
                       name="firstName"
                       type="text"
                       value={formData.firstName}
                       onChange={handleChange}
+                      onFocus={() => handleFocus('firstName')}
+                      onBlur={() => handleBlur('firstName')}
                       className={`${styles.input} ${errors.firstName ? styles.errorInput : ''}`}
                       placeholder="Jan"
+                      autoComplete="given-name"
                     />
-                    <User className={styles.inputIcon} size={18} />
+                    <User className={`${styles.inputIcon} ${
+                      isFocused.firstName || formData.firstName ? styles.inputIconActive : ''
+                    }`} size={18} />
                   </div>
                   {errors.firstName && (
                     <p className={styles.errorText}>
@@ -192,19 +223,29 @@ const RegisterPage = () => {
                     </p>
                   )}
                 </div>
+                
                 <div className={styles.formGroup}>
                   <label htmlFor="lastName" className={styles.label}>Nazwisko</label>
-                  <div className={styles.inputWrapper}>
+                  <div className={`${styles.inputWrapper} ${
+                    isFocused.lastName ? styles.inputWrapperFocused : ''
+                  } ${
+                    errors.lastName ? styles.inputWrapperError : ''
+                  }`}>
                     <input
                       id="lastName"
                       name="lastName"
                       type="text"
                       value={formData.lastName}
                       onChange={handleChange}
+                      onFocus={() => handleFocus('lastName')}
+                      onBlur={() => handleBlur('lastName')}
                       className={`${styles.input} ${errors.lastName ? styles.errorInput : ''}`}
                       placeholder="Kowalski"
+                      autoComplete="family-name"
                     />
-                    <User className={styles.inputIcon} size={18} />
+                    <User className={`${styles.inputIcon} ${
+                      isFocused.lastName || formData.lastName ? styles.inputIconActive : ''
+                    }`} size={18} />
                   </div>
                   {errors.lastName && (
                     <p className={styles.errorText}>
@@ -217,17 +258,26 @@ const RegisterPage = () => {
               {/* E-mail */}
               <div className={styles.formGroup}>
                 <label htmlFor="email" className={styles.label}>Adres e-mail</label>
-                <div className={styles.inputWrapper}>
+                <div className={`${styles.inputWrapper} ${
+                  isFocused.email ? styles.inputWrapperFocused : ''
+                } ${
+                  errors.email ? styles.inputWrapperError : ''
+                }`}>
                   <input
                     id="email"
                     name="email"
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
+                    onFocus={() => handleFocus('email')}
+                    onBlur={() => handleBlur('email')}
                     className={`${styles.input} ${errors.email ? styles.errorInput : ''}`}
                     placeholder="twoj@email.com"
+                    autoComplete="email"
                   />
-                  <Mail className={styles.inputIcon} size={18} />
+                  <Mail className={`${styles.inputIcon} ${
+                    isFocused.email || formData.email ? styles.inputIconActive : ''
+                  }`} size={18} />
                 </div>
                 {errors.email && (
                   <p className={styles.errorText}>
@@ -239,41 +289,56 @@ const RegisterPage = () => {
               {/* Hasło */}
               <div className={styles.formGroup}>
                 <label htmlFor="password" className={styles.label}>Hasło</label>
-                <div className={styles.inputWrapper}>
+                <div className={`${styles.inputWrapper} ${
+                  isFocused.password ? styles.inputWrapperFocused : ''
+                } ${
+                  errors.password ? styles.inputWrapperError : ''
+                }`}>
                   <input
                     id="password"
                     name="password"
                     type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={handleChange}
+                    onFocus={() => handleFocus('password')}
+                    onBlur={() => handleBlur('password')}
                     className={`${styles.input} ${errors.password ? styles.errorInput : ''}`}
                     placeholder="Wprowadź hasło"
+                    autoComplete="new-password"
                   />
-                  <Lock className={styles.inputIcon} size={18} />
+                  <Lock className={`${styles.inputIcon} ${
+                    isFocused.password || formData.password ? styles.inputIconActive : ''
+                  }`} size={18} />
                   <button
                     type="button"
                     className={styles.passwordToggle}
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
+                
                 {formData.password && (
                   <div className={styles.passwordStrength}>
                     <div className={styles.strengthLabel}>
                       <span>Siła hasła:</span>
-                      <span style={{ color: getPasswordStrength(formData.password) }}>
+                      <span style={{ color: getPasswordStrengthColor() }}>
                         {getPasswordStrengthText()}
                       </span>
                     </div>
                     <div className={styles.strengthBarContainer}>
                       <div
                         className={styles.strengthBar}
-                        style={{ width: `${passwordStrength * 20}%`, backgroundColor: getPasswordStrengthColor() }}
+                        style={{ 
+                          width: `${passwordStrength * 20}%`, 
+                          backgroundColor: getPasswordStrengthColor() 
+                        }}
                       ></div>
                     </div>
                   </div>
                 )}
+                
                 {errors.password && Array.isArray(errors.password) ? (
                   <div className={styles.errorList}>
                     <div className={styles.errorLabel}>
@@ -295,21 +360,31 @@ const RegisterPage = () => {
               {/* Potwierdzenie hasła */}
               <div className={styles.formGroup}>
                 <label htmlFor="confirmPassword" className={styles.label}>Potwierdź hasło</label>
-                <div className={styles.inputWrapper}>
+                <div className={`${styles.inputWrapper} ${
+                  isFocused.confirmPassword ? styles.inputWrapperFocused : ''
+                } ${
+                  errors.confirmPassword ? styles.inputWrapperError : ''
+                }`}>
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={formData.confirmPassword}
                     onChange={handleChange}
+                    onFocus={() => handleFocus('confirmPassword')}
+                    onBlur={() => handleBlur('confirmPassword')}
                     className={`${styles.input} ${errors.confirmPassword ? styles.errorInput : ''}`}
                     placeholder="Potwierdź hasło"
+                    autoComplete="new-password"
                   />
-                  <Lock className={styles.inputIcon} size={18} />
+                  <Lock className={`${styles.inputIcon} ${
+                    isFocused.confirmPassword || formData.confirmPassword ? styles.inputIconActive : ''
+                  }`} size={18} />
                   <button
                     type="button"
                     className={styles.passwordToggle}
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label={showConfirmPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
                   >
                     {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -320,6 +395,7 @@ const RegisterPage = () => {
                   </p>
                 )}
               </div>
+              
               {/* Przycisk rejestracji */}
               <div className={styles.submitGroup}>
                 <button
