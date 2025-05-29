@@ -1,4 +1,5 @@
 ﻿
+using KonfiguratorSamochodowy.Api.Repositories.Enums;
 namespace KonfiguratorSamochodowy.Api.Repositories.Dto
 {
     public class FilterCarModelsRequestDto
@@ -15,6 +16,8 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Dto
         public string? Brand { get; set; }
         public int? MinYear { get; set; }
         public int? MaxYear { get; set; }
+        public bool? Has4x4 { get; set; }
+        public bool? IsElectric { get; set; }
         public Enums.SortingOption SortingOption { get; set; } = Enums.SortingOption.NameAscending;
     }
 }

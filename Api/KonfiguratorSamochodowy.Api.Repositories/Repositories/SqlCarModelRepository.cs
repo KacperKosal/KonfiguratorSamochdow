@@ -60,6 +60,8 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                             ELSE '/images/models/default.jpg'
                         END as ImageUrl,
                         TRUE as IsActive,
+                        p.ma4x4 as Has4x4,
+                        p.jestelektryczny as IsElectric,
                         NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
                         NULL as UpdatedAt
                     FROM 
@@ -182,7 +184,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 var parameters = new DynamicParameters();
 
                 // Apply filters
-                if (!string.IsNullOrEmpty(filter.Brand))
+                if (!string.IsNullOrEmpty(filter.Brand))  // ❌ Sprawdza Brand zamiast Manufacturer
                 {
                     queryBuilder.Append(" AND CASE WHEN p.model ILIKE '%bmw%' THEN 'BMW' WHEN p.model ILIKE '%toyota%' THEN 'Toyota' WHEN p.model ILIKE '%tesla%' THEN 'Tesla' ELSE SPLIT_PART(p.model, ' ', 1) END = @Brand");
                     parameters.Add("Brand", filter.Brand);
@@ -222,7 +224,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     parameters.Add("MaxYear", filter.MaxYear.Value);
                 }
 
-                if (!string.IsNullOrEmpty(filter.BodyType))
+                if (!string.IsNullOrEmpty(filter.BodyType))  // ✅ To jest poprawne
                 {
                     queryBuilder.Append(" AND CASE WHEN p.model ILIKE '%suv%' THEN 'SUV' WHEN p.model ILIKE '%sedan%' THEN 'Sedan' WHEN p.model ILIKE '%coupe%' THEN 'Coupe' WHEN p.model ILIKE '%kombi%' THEN 'Kombi' ELSE 'Sedan' END = @BodyType");
                     parameters.Add("BodyType", filter.BodyType);

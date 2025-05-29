@@ -11,6 +11,65 @@
   margin-bottom: 24px;
 }
 
+/* Nowe style dla selektorów */
+.modelSelector,
+.engineSelector {
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: var(--color-bg-primary);
+  border-radius: 4px;
+  box-shadow: 0 2px 5px var(--color-shadow);
+}
+
+.modelSelector label,
+.engineSelector label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.modelSelect,
+.engineSelect {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.modelSelect:focus,
+.engineSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Style dla stanów ładowania i błędów */
+.loading,
+.error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.loading {
+  color: var(--color-text-secondary);
+}
+
+.error {
+  color: var(--color-error, #ef4444);
+  background-color: var(--color-error-bg, #fef2f2);
+  border: 1px solid var(--color-error-border, #fecaca);
+  border-radius: 4px;
+  padding: 16px;
+}
+
 .configuratorContent {
   display: flex;
   flex-direction: column;
@@ -40,4 +99,4 @@
   .configuratorContent {
     flex-direction: row;
   }
-} 
+}

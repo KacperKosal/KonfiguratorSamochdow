@@ -1,4 +1,4 @@
-namespace KonfiguratorSamochodowy.Api.Models
+namespace KonfiguratorSamochodowy.Api.Repositories.Models
 {
     public class CarModel
     {
@@ -12,6 +12,8 @@ namespace KonfiguratorSamochodowy.Api.Models
         public string Description { get; set; } = string.Empty;
         public string ImageUrl { get; set; } = string.Empty;
         public bool IsActive { get; set; }
+        public bool Has4x4 { get; set; }
+        public bool IsElectric { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
     }

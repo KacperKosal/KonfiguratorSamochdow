@@ -45,17 +45,18 @@ namespace KonfiguratorSamochodowy.Api.Services
 
         public async Task<Result<IEnumerable<CarModelDto>>> GetFilteredAsync(FilterCarModelsRequest filter)
         {
-            // Convert FilterCarModelsRequest to FilterCarModelsRequestDto
             var filterDto = new KonfiguratorSamochodowy.Api.Repositories.Dto.FilterCarModelsRequestDto
             {
-                Manufacturer = filter.Manufacturer,
+                Brand = filter.Manufacturer,           // ✅ Mapuj Manufacturer na Brand
                 BodyType = filter.BodyType,
                 Segment = filter.Segment,
-                MinProductionYear = filter.MinProductionYear,
-                MaxProductionYear = filter.MaxProductionYear,
+                MinYear = filter.MinProductionYear,    // ✅ Mapuj na MinYear
+                MaxYear = filter.MaxProductionYear,    // ✅ Mapuj na MaxYear
                 MinPrice = filter.MinPrice,
                 MaxPrice = filter.MaxPrice,
-                IsActive = filter.IsActive
+                IsActive = filter.IsActive,
+                Has4x4 = filter.Has4x4,
+                IsElectric = filter.IsElectric
             };
             
             var result = await _repository.GetFilteredAsync(filterDto);

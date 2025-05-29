@@ -2,7 +2,7 @@ import styles from './Header.module.css';
 import { NavLink } from 'react-router-dom';
 import React, { useContext, useEffect, useState } from 'react';
 import { StoreContext } from '../../store/StoreContext';
-import { ChevronDown, User, Settings, Car, LogOut, X, Lock, Eye, EyeOff } from 'lucide-react';
+import { ChevronDown, User, Settings, Car, LogOut, X, Lock, Eye, EyeOff, Home, Phone, LogIn } from 'lucide-react';
 
 const Header = () => {
   const { state, dispatch } = useContext(StoreContext);
@@ -174,12 +174,26 @@ const Header = () => {
           <div className={styles.headerLogo}>AutoKonfigurator</div>
           <nav>
             <ul className={styles.navList}>
-              <li className={styles.navItem}><NavLink to="/home">Modele</NavLink></li>
-              <li className={styles.navItem}>Salony</li>
-              <li className={styles.navItem}>Finansowanie</li>
-              <li className={styles.navItem}><NavLink to="/contact">Kontakt</NavLink></li>
+              <li className={styles.navItem}>
+                <NavLink to="/home" className={styles.navLink}>
+                  <Home size={18} />
+                  <span>Modele</span>
+                </NavLink>
+              </li>
+              
+              <li className={styles.navItem}>
+                <NavLink to="/contact" className={styles.navLink}>
+                  <Phone size={18} />
+                  <span>Kontakt</span>
+                </NavLink>
+              </li>
               {!isLogged && (
-                <li className={styles.navItem}><NavLink to="/login">Logowanie</NavLink></li>
+                <li className={styles.navItem}>
+                  <NavLink to="/login" className={styles.navLink}>
+                    <LogIn size={18} />
+                    <span>Logowanie</span>
+                  </NavLink>
+                </li>
               )}
               {isLogged && (
                 <li className={styles.navItem}>
