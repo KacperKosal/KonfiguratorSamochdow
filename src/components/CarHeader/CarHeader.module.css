@@ -1,0 +1,55 @@
+/* CarHeader.module.css */
+
+.header {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .headerContent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .headerTitle {
+    font-size: 2.25rem;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+  }
+  
+  .headerSubtitle {
+    color: #6b7280;
+    font-size: 1.125rem;
+  }
+  
+  .stats {
+    text-align: right;
+  }
+  
+  .statsNumber {
+    font-size: 1.875rem;
+    font-weight: bold;
+    color: #2563eb;
+  }
+  
+  .statsLabel {
+    color: #9ca3af;
+    font-size: 0.875rem;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .headerContent {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+    }
+    
+    .stats {
+      text-align: center;
+    }
+  }

@@ -1,0 +1,139 @@
+/* CarTable.module.css */
+
+.tableContainer {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+  }
+  
+  .tableHeader {
+    padding: 2rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .tableTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1f2937;
+  }
+  
+  .tableSubtitle {
+    color: #6b7280;
+    margin-top: 0.25rem;
+  }
+  
+  .tableWrapper {
+    overflow-x: auto;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .tableHead {
+    background: #f9fafb;
+  }
+  
+  .tableHead th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .tableHead th:last-child {
+    text-align: right;
+  }
+  
+  .tableBody tr {
+    border-bottom: 1px solid #e5e7eb;
+    transition: background 0.15s;
+  }
+  
+  .tableBody tr:hover {
+    background: #f9fafb;
+  }
+  
+  .tableBody td {
+    padding: 1rem 1.5rem;
+  }
+  
+  .tableBody td:last-child {
+    text-align: right;
+  }
+  
+  .carInfo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .carImage {
+    width: 4rem;
+    height: 3rem;
+    object-fit: cover;
+    border-radius: 0.5rem;
+  }
+  
+  .carName {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+  }
+  
+  .carDetails {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  
+  .carType {
+    color: #1f2937;
+    font-weight: 500;
+    display: block;
+  }
+  
+  .carYear {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+  
+  .engineInfo {
+    color: #1f2937;
+    font-weight: 500;
+    display: block;
+  }
+  
+  .enginePower {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+  
+  .price {
+    color: #059669;
+    font-weight: bold;
+    font-size: 1.125rem;
+  }
+  
+  .featureBadges {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .moreFeatures {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .carInfo {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }

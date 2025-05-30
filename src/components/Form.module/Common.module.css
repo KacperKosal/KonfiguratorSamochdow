@@ -1,0 +1,121 @@
+/* Common.module.css - Wspólne style */
+
+/* Reset i podstawowe style */
+* {
+    box-sizing: border-box;
+  }
+  
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .cardHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  
+  .cardTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #1f2937;
+  }
+  
+  .closeBtn {
+    background: none;
+    border: none;
+    color: #9ca3af;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+  
+  .closeBtn:hover {
+    color: #4b5563;
+  }
+  
+  /* Empty state */
+  .emptyState {
+    padding: 3rem;
+    text-align: center;
+  }
+  
+  .emptyIcon {
+    font-size: 3.75rem;
+    color: #d1d5db;
+    margin-bottom: 1rem;
+  }
+  
+  .emptyTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #6b7280;
+    margin-bottom: 0.5rem;
+  }
+  
+  .emptySubtitle {
+    color: #9ca3af;
+  }
+  
+  /* Center content */
+  .center {
+    text-align: center;
+  }
+  
+  /* Spacing utilities */
+  .spaceY6 > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  .spaceY4 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .spaceY3 > * + * {
+    margin-top: 0.75rem;
+  }
+  
+  /* Badge styles */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-right: 0.25rem;
+  }
+  
+  .badgeBlue {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  
+  .badgeGreen {
+    background: #dcfce7;
+    color: #166534;
+  }
+  
+  .badgeGray {
+    background: #f3f4f6;
+    color: #1f2937;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .cardHeader {
+      flex-direction: column;
+      text-align: center;
+      gap: 1rem;
+    }
+  }

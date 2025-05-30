@@ -1,0 +1,47 @@
+/* CarAdminPanel.module.css */
+
+.carAdminPanel {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #ebf8ff 0%, #ffffff 50%, #eef2ff 100%);
+    padding: 1.5rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+  
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    padding: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .center {
+    text-align: center;
+  }
+  
+  .btnSuccess {
+    background: linear-gradient(to right, #10b981, #059669);
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .btnSuccess:hover {
+    background: linear-gradient(to right, #059669, #047857);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+  }

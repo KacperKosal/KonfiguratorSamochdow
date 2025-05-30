@@ -1,0 +1,95 @@
+/* Button.module.css - Style przycisków */
+
+.btn {
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .btn:hover {
+    transform: scale(1.05);
+  }
+  
+  .btnPrimary {
+    background: linear-gradient(to right, #3b82f6, #2563eb);
+    color: white;
+    padding: 0.75rem 2rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btnPrimary:hover {
+    background: linear-gradient(to right, #2563eb, #1d4ed8);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btnSuccess {
+    background: linear-gradient(to right, #10b981, #059669);
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btnSuccess:hover {
+    background: linear-gradient(to right, #059669, #047857);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btnWarning {
+    background: #f59e0b;
+    color: white;
+    padding: 0.5rem 1rem;
+  }
+  
+  .btnWarning:hover {
+    background: #d97706;
+  }
+  
+  .btnDanger {
+    background: #ef4444;
+    color: white;
+    padding: 0.5rem 1rem;
+  }
+  
+  .btnDanger:hover {
+    background: #dc2626;
+  }
+  
+  .btnSecondary {
+    background: #6b7280;
+    color: white;
+    padding: 0.75rem 2rem;
+  }
+  
+  .btnSecondary:hover {
+    background: #4b5563;
+  }
+  
+  .btnInfo {
+    background: #6366f1;
+    color: white;
+    padding: 0.5rem 1rem;
+  }
+  
+  .btnInfo:hover {
+    background: #4f46e5;
+  }
+  
+  /* Actions container */
+  .actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .actions {
+      flex-direction: column;
+    }
+  }
