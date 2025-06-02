@@ -8,19 +8,21 @@ const SummaryPanel = ({
   exteriorColors,
   wheelTypes,
   interiorColors,
+  selectedAccessories,
+  selectedInteriorEquipment,
   carColor,
   wheelType,
   interiorColor,
   totalPrice,
-  onSaveConfiguration,
+  onSaveConfiguration
 }) => {
   const selectedExterior = exteriorColors.find(c => c.value === carColor);
   const selectedWheels = wheelTypes.find(w => w.value === wheelType);
   const selectedInterior = interiorColors.find(i => i.value === interiorColor);
 
   return (
-    <div>
-      <h2 className={styles.summaryTitle}>Twoja konfiguracja</h2>
+    <div className={styles.summaryPanel}>
+      <h2>Podsumowanie konfiguracji</h2>
       
       {/* Model bazowy z danych API */}
       <div className={styles.summarySection}>
@@ -54,10 +56,40 @@ const SummaryPanel = ({
         <p>{selectedInterior?.name}</p>
         <p className={styles.summaryPrice}>+{selectedInterior?.price.toLocaleString()} zł</p>
       </div>
+      
+      {/* Nowa sekcja akcesorii */}
+      {selectedAccessories && selectedAccessories.length > 0 && (
+        <div className={styles.summarySection}>
+          <h3>Akcesoria</h3>
+          {selectedAccessories.map((accessory) => (
+            <div key={accessory.id} className={styles.accessoryItem}>
+              <p>{accessory.name}</p>
+              <p className={styles.summaryPrice}>+{accessory.price?.toLocaleString() || 0} zł</p>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {/* Sekcja wyposażenia wnętrza */}
+      {selectedInteriorEquipment && selectedInteriorEquipment.length > 0 && (
+        <div className={styles.summarySection}>
+          <h3>Wyposażenie wnętrza</h3>
+          {selectedInteriorEquipment.map((equipment) => (
+            <div key={equipment.id} className={styles.summaryItem}>
+              <div>
+                <p className={styles.summaryItemName}>{equipment.value}</p>
+                <p className={styles.summaryItemDescription}>{equipment.description}</p>
+              </div>
+              <p className={styles.summaryPrice}>+{equipment.additionalPrice?.toLocaleString()} zł</p>
+            </div>
+          ))}
+        </div>
+      )}
+      
       <div className={styles.priceDivider}>
         <div className={styles.totalPrice}>
           <span>Cena łączna</span>
-          <span>{totalPrice.toLocaleString()} zł</span>
+          <span>{(totalPrice && !isNaN(totalPrice) ? totalPrice : 0).toLocaleString()} zł</span>
         </div>
         <div className={styles.vatInfo}>
           Cena zawiera VAT (23%)
