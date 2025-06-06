@@ -25,7 +25,8 @@ CREATE TABLE Pojazd (
     Ma4x4 BOOLEAN,
     JestElektryczny BOOLEAN,
     Akcesoria TEXT,
-    Zdjecie BYTEA         
+    Zdjecie BYTEA,
+    ImageUrl VARCHAR(255)         
 );
 
 -- Silniki 
@@ -215,3 +216,12 @@ CREATE INDEX idx_car_accessories_type ON car_accessories (type);
 CREATE INDEX idx_car_accessories_price ON car_accessories (price);
 CREATE INDEX idx_car_accessories_is_original_bmw_part ON car_accessories (is_original_bmw_part);
 CREATE INDEX idx_car_accessories_is_in_stock ON car_accessories (is_in_stock);
+
+-- Migracja: Dodanie kolumny ImageUrl do istniejącej tabeli Pojazd (jeśli nie istnieje)
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'pojazd' AND column_name = 'imageurl') THEN
+        ALTER TABLE pojazd ADD COLUMN imageurl VARCHAR(255);
+    END IF;
+END $$;

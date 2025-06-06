@@ -54,12 +54,14 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         END as Segment,
                         p.cena as BasePrice,
                         p.opis as Description,
-                        CASE
-                            WHEN p.model ILIKE '%bmw%' THEN '/images/models/bmw.jpg'
-                            WHEN p.model ILIKE '%toyota%' THEN '/images/models/toyota.jpg'
-                            WHEN p.model ILIKE '%tesla%' THEN '/images/models/tesla.jpg'
-                            ELSE '/images/models/default.jpg'
-                        END as ImageUrl,
+                        COALESCE(p.imageurl, 
+                            CASE
+                                WHEN p.model ILIKE '%bmw%' THEN '/images/models/bmw.jpg'
+                                WHEN p.model ILIKE '%toyota%' THEN '/images/models/toyota.jpg'
+                                WHEN p.model ILIKE '%tesla%' THEN '/images/models/tesla.jpg'
+                                ELSE '/images/models/default.jpg'
+                            END
+                        ) as ImageUrl,
                         TRUE as IsActive,
                         p.ma4x4 as Has4x4,
                         p.jestelektryczny as IsElectric,
@@ -120,7 +122,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     FROM 
                         pojazd p
                     WHERE 
-                        p.id = @Id";
+                        p.id = @Id::integer";
 
                 var carModel = await _connection.QueryFirstOrDefaultAsync<CarModel>(query, new { Id = id });
 
@@ -284,7 +286,8 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         opis,
                         ma4x4,
                         jestelektryczny,
-                        akcesoria
+                        akcesoria,
+                        imageurl
                     )
                     VALUES (
                         @Name, 
@@ -294,7 +297,8 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         @Description, 
                         @BodyType = 'SUV', 
                         @Manufacturer = 'Tesla',
-                        'Brak'
+                        'Brak',
+                        @ImageUrl
                     )
                     RETURNING
                         id::TEXT as Id,
@@ -322,7 +326,14 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         END as Segment,
                         cena as BasePrice,
                         opis as Description,
-                        @ImageUrl as ImageUrl,
+                        COALESCE(imageurl, 
+                            CASE
+                                WHEN model ILIKE '%bmw%' THEN '/images/models/bmw.jpg'
+                                WHEN model ILIKE '%toyota%' THEN '/images/models/toyota.jpg'
+                                WHEN model ILIKE '%tesla%' THEN '/images/models/tesla.jpg'
+                                ELSE '/images/models/default.jpg'
+                            END
+                        ) as ImageUrl,
                         TRUE as IsActive,
                         NOW() as CreatedAt,
                         NULL as UpdatedAt";
@@ -364,9 +375,10 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         cena = @BasePrice,
                         opis = @Description,
                         ma4x4 = @BodyType = 'SUV',
-                        jestelektryczny = @Manufacturer = 'Tesla'
+                        jestelektryczny = @Manufacturer = 'Tesla',
+                        imageurl = @ImageUrl
                     WHERE 
-                        id = @Id
+                        id = @Id::integer
                     RETURNING
                         id::TEXT as Id,
                         model as Name,
@@ -433,7 +445,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 var checkRelatedQuery = @"
                     SELECT COUNT(*) 
                     FROM modelsilnik ms 
-                    WHERE ms.modelid = @Id";
+                    WHERE ms.modelid = @Id::integer";
 
                 var relatedCount = await _connection.ExecuteScalarAsync<int>(checkRelatedQuery, new { Id = id });
 
@@ -442,7 +454,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     return Result<bool>.Failure(new Error("ReferenceConstraint", $"Cannot delete car model with id {id} because it has related records in modelsilnik table"));
                 }
 
-                var query = "DELETE FROM pojazd WHERE id = @Id";
+                var query = "DELETE FROM pojazd WHERE id = @Id::integer";
                 var rowsAffected = await _connection.ExecuteAsync(query, new { Id = id });
 
                 if (rowsAffected == 0)

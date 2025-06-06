@@ -4,7 +4,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { StoreContext } from '../../store/StoreContext';
 import { ChevronDown, User, Settings, Car, LogOut, X, Lock, Eye, EyeOff, Home, Phone, LogIn, Shield } from 'lucide-react';
 import axiosInstance from '../../services/axiosConfig';
-import TokenTestButton from '../TokenTestButton/TokenTestButton';
 
 const Header = () => {
   const { state, dispatch } = useContext(StoreContext);
@@ -156,12 +155,8 @@ const Header = () => {
     };
   }, [isSidebarOpen, isPasswordModalOpen]);
 
-  console.log(state)
   return (
     <>
-      {/* Dodaj przycisk testowy tylko w rozwoju */}
-      {process.env.NODE_ENV === 'development' && <TokenTestButton />}
-      
       <header className={styles.header}>
         <div className={styles.headerContainer}>
           <div className={styles.headerLogo}>AutoKonfigurator</div>

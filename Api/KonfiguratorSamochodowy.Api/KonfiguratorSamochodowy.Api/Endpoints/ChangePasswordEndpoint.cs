@@ -44,6 +44,6 @@ internal static class ChangePasswordEndpoint
             {
                 return Results.StatusCode(500);
             }
-        }).WithTags("Autentykacja").WithName("ZmianaHasla").RequierdAuthenticatedUser();
+        }).WithTags("Autentykacja").WithName("ZmianaHasla").RequiredAuthenticatedUser();
     }
 }

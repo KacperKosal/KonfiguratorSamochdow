@@ -40,10 +40,18 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
             .Produces(StatusCodes.Status500InternalServerError);
 
             // Upload zdjęcia
-            group.MapPost("/upload", async ([FromForm] IFormFile file) =>
+            group.MapPost("/upload", async (HttpRequest request) =>
             {
                 try
                 {
+                    if (!request.HasFormContentType)
+                    {
+                        return Results.BadRequest("Nieprawidłowy typ zawartości");
+                    }
+
+                    var form = await request.ReadFormAsync();
+                    var file = form.Files.FirstOrDefault();
+
                     if (file == null || file.Length == 0)
                     {
                         return Results.BadRequest("Nie wybrano pliku");
@@ -85,14 +93,14 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                     return Results.Problem($"Błąd podczas przesyłania zdjęcia: {ex.Message}", statusCode: 500);
                 }
             })
-            .RequierdAuthenticatedUser()
+            .RequiredAuthenticatedUser()
             .WithName("UploadImage")
             .WithDisplayName("Prześlij zdjęcie")
-            .Accepts<IFormFile>("multipart/form-data")
             .Produces<object>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
-            .Produces(StatusCodes.Status500InternalServerError);
+            .Produces(StatusCodes.Status500InternalServerError)
+            .DisableAntiforgery();
 
             // Usuwanie zdjęcia
             group.MapDelete("/{fileName}", async ([FromRoute] string fileName) =>
@@ -115,7 +123,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                     return Results.Problem($"Błąd podczas usuwania zdjęcia: {ex.Message}", statusCode: 500);
                 }
             })
-            .RequierdAuthenticatedUser()
+            .RequiredAuthenticatedUser()
             .WithName("DeleteImage")
             .WithDisplayName("Usuń zdjęcie")
             .Produces<object>(StatusCodes.Status200OK)

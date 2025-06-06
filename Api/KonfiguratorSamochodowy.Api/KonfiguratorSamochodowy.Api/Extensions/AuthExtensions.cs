@@ -80,7 +80,7 @@ internal static class AuthExtensions
         return null;
     }
 
-    internal static RouteHandlerBuilder RequierdAuthenticatedUser(this RouteHandlerBuilder builder)
+    internal static RouteHandlerBuilder RequiredAuthenticatedUser(this RouteHandlerBuilder builder)
     {
         builder.AddEndpointFilter(async (context, next) =>
         {

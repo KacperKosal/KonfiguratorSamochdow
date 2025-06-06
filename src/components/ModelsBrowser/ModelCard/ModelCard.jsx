@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, Info, Heart } from 'lucide-react';
+import SafeImage from '../../SafeImage/SafeImage';
 import styles from './ModelCard.module.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,7 +14,12 @@ const ModelCard = ({ model, formatPrice }) =>
   return (
     <div className={styles.card}>
       <div className={styles.imageContainer}>
-        <img src={model.image} alt={model.name} className={styles.image} />
+        <SafeImage 
+          src={model.image} 
+          alt={model.name} 
+          className={styles.image}
+          fallbackSrc="/api/placeholder/300/180"
+        />
         {model.new && (
           <div className={styles.newBadge}>
             NOWOŚĆ

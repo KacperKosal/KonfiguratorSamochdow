@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, Save, X, AlertCircle } from 'lucide-react';
 import adminApiService from '../../services/adminApiService';
+import SafeImage from '../SafeImage/SafeImage';
 import styles from './CarAdminPanel.module.css';
 
 const CarAdminPanel = () => {
@@ -28,6 +29,9 @@ const CarAdminPanel = () => {
 
   const [errors, setErrors] = useState({});
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [pendingImageFile, setPendingImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [imageLoadedSuccessfully, setImageLoadedSuccessfully] = useState(false);
 
   // Opcje dla select-ów
   const bodyTypes = ['Sedan', 'Hatchback', 'SUV', 'Combi', 'Coupe', 'Cabrio'];
@@ -69,6 +73,9 @@ const CarAdminPanel = () => {
     setErrors({});
     setIsEditing(false);
     setEditingId(null);
+    setPendingImageFile(null);
+    setImagePreview('');
+    setImageLoadedSuccessfully(false);
   };
 
   // Walidacja formularza
@@ -121,40 +128,45 @@ const CarAdminPanel = () => {
     }));
   };
 
-  // Obsługa uploadu zdjęcia
-  const handleImageUpload = async (e) => {
+  // Obsługa uploadu zdjęcia - przygotowanie do późniejszego wysłania
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    try {
-      setUploadingImage(true);
-      const result = await adminApiService.uploadImage(file);
-      setFormData(prev => ({
-        ...prev,
-        imageUrl: result.fileName
-      }));
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      setApiError('Nie udało się przesłać zdjęcia');
-    } finally {
-      setUploadingImage(false);
+    // Walidacja pliku
+    if (!file.type.startsWith('image/')) {
+      setApiError('Proszę wybrać plik obrazu (JPG, PNG, GIF, WebP)');
+      e.target.value = '';
+      return;
     }
+    
+    if (file.size > 10 * 1024 * 1024) {
+      setApiError('Plik jest za duży. Maksymalny rozmiar to 10MB.');
+      e.target.value = '';
+      return;
+    }
+
+    // Zapisz plik do późniejszego wysłania
+    setPendingImageFile(file);
+    
+    // Utwórz podgląd
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setImagePreview(event.target.result);
+      setImageLoadedSuccessfully(true); // Nowe zdjęcie zawsze jest dostępne
+    };
+    reader.readAsDataURL(file);
   };
 
   // Usuwanie zdjęcia
-  const handleRemoveImage = async () => {
-    if (formData.imageUrl) {
-      try {
-        await adminApiService.deleteImage(formData.imageUrl);
-        setFormData(prev => ({
-          ...prev,
-          imageUrl: ''
-        }));
-      } catch (error) {
-        console.error('Error deleting image:', error);
-        setApiError('Nie udało się usunąć zdjęcia');
-      }
-    }
+  const handleRemoveImage = () => {
+    setPendingImageFile(null);
+    setImagePreview('');
+    setImageLoadedSuccessfully(false);
+    setFormData(prev => ({
+      ...prev,
+      imageUrl: ''
+    }));
   };
 
   // Dodawanie nowego modelu
@@ -181,6 +193,9 @@ const CarAdminPanel = () => {
     setEditingId(car.id);
     setShowForm(true);
     setShowDetails(false);
+    setPendingImageFile(null);
+    setImagePreview('');
+    setImageLoadedSuccessfully(false);
   };
 
   // Zapisywanie formularza
@@ -193,8 +208,36 @@ const CarAdminPanel = () => {
 
     try {
       setLoading(true);
+      setUploadingImage(true);
+      
+      let imageUrl = formData.imageUrl;
+      
+      // Jeśli jest nowe zdjęcie do przesłania
+      if (pendingImageFile) {
+        try {
+          const result = await adminApiService.uploadImage(pendingImageFile);
+          imageUrl = result.fileName;
+          
+          // Usuń stare zdjęcie jeśli istnieje i jest inne niż nowe
+          if (formData.imageUrl && formData.imageUrl !== imageUrl) {
+            try {
+              await adminApiService.deleteImage(formData.imageUrl);
+            } catch (deleteError) {
+              console.warn('Could not delete old image:', deleteError);
+              // Nie przerywamy procesu jeśli nie udało się usunąć starego zdjęcia
+            }
+          }
+        } catch (uploadError) {
+          setApiError('Nie udało się przesłać zdjęcia');
+          setUploadingImage(false);
+          setLoading(false);
+          return;
+        }
+      }
+
       const carData = {
         ...formData,
+        imageUrl,
         basePrice: parseFloat(formData.basePrice),
         productionYear: parseInt(formData.productionYear)
       };
@@ -211,6 +254,9 @@ const CarAdminPanel = () => {
     } catch (error) {
       console.error('Error saving car model:', error);
       setApiError(`Nie udało się ${isEditing ? 'zaktualizować' : 'dodać'} modelu`);
+    } finally {
+      setLoading(false);
+      setUploadingImage(false);
     }
   };
 
@@ -364,11 +410,13 @@ const CarAdminPanel = () => {
             <div className={styles.formGroup}>
               <label>Zdjęcie samochodu</label>
               <div className={styles.imageUploadContainer}>
-                {formData.imageUrl ? (
+                
+                {/* Pokaż aktualne zdjęcie jeśli istnieje (imagePreview ma priorytet) */}
+                {imagePreview ? (
                   <div className={styles.imagePreview}>
                     <img 
-                      src={adminApiService.getImageUrl(formData.imageUrl)} 
-                      alt="Podgląd" 
+                      src={imagePreview} 
+                      alt="Podgląd nowego zdjęcia" 
                       className={styles.previewImage}
                     />
                     <button 
@@ -378,23 +426,48 @@ const CarAdminPanel = () => {
                     >
                       Usuń zdjęcie
                     </button>
+                    <p className={styles.pendingUploadInfo}>
+                      Nowe zdjęcie zostanie przesłane po zapisaniu formularza
+                    </p>
                   </div>
-                ) : (
-                  <div className={styles.uploadArea}>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className={styles.fileInput}
-                      disabled={uploadingImage}
+                ) : formData.imageUrl ? (
+                  <div className={styles.imagePreview}>
+                    <SafeImage 
+                      src={adminApiService.getImageUrl(formData.imageUrl)} 
+                      alt="Aktualne zdjęcie" 
+                      className={styles.previewImage}
+                      onImageStatusChange={setImageLoadedSuccessfully}
                     />
-                    {uploadingImage ? (
-                      <p>Przesyłanie...</p>
-                    ) : (
-                      <p>Kliknij aby wybrać zdjęcie lub przeciągnij je tutaj</p>
+                    {imageLoadedSuccessfully && (
+                      <button 
+                        type="button" 
+                        onClick={handleRemoveImage}
+                        className={styles.removeImageButton}
+                      >
+                        Usuń zdjęcie
+                      </button>
                     )}
                   </div>
-                )}
+                ) : null}
+                
+                {/* Zawsze pokaż opcję dodania/zmiany zdjęcia */}
+                <div className={styles.uploadArea} style={{ 
+                  marginTop: (imagePreview || (formData.imageUrl && imageLoadedSuccessfully)) ? '1rem' : '0'
+                }}>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className={styles.fileInput}
+                  />
+                  <p>
+                    {(imagePreview || (formData.imageUrl && imageLoadedSuccessfully)) 
+                      ? 'Dodaj nowe zdjęcie' 
+                      : 'Dodaj zdjęcie'
+                    }
+                  </p>
+                </div>
+                
               </div>
             </div>
 
@@ -535,15 +608,14 @@ const CarAdminPanel = () => {
                 <div><strong>Status:</strong> {selectedCar.isActive ? 'Aktywny' : 'Nieaktywny'}</div>
               </div>
               
-              {selectedCar.imageUrl && (
-                <div className={styles.imageContainer}>
-                  <img 
-                    src={adminApiService.getImageUrl(selectedCar.imageUrl)} 
-                    alt={selectedCar.name}
-                    className={styles.carImage}
-                  />
-                </div>
-              )}
+              <div className={styles.imageContainer}>
+                <SafeImage 
+                  src={selectedCar.imageUrl ? adminApiService.getImageUrl(selectedCar.imageUrl) : null}
+                  alt={selectedCar.name}
+                  className={styles.carImage}
+                  showFallback={true}
+                />
+              </div>
               
               <div className={styles.description}>
                 <strong>Opis:</strong>

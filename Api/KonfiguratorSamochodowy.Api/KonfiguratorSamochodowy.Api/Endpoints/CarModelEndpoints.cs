@@ -1,4 +1,5 @@
 using KonfiguratorSamochodowy.Api.Dtos;
+using KonfiguratorSamochodowy.Api.Extensions;
 using KonfiguratorSamochodowy.Api.Requests;
 using KonfiguratorSamochodowy.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -26,9 +27,9 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
             .Produces(StatusCodes.Status500InternalServerError);
 
             // Pobieranie modelu po ID
-            group.MapGet("/{id}", async ([FromRoute] string id, [FromServices] ICarModelService service) =>
+            group.MapGet("/{id}", async ([FromRoute] int id, [FromServices] ICarModelService service) =>
             {
-                var result = await service.GetByIdAsync(id);
+                var result = await service.GetByIdAsync(id.ToString());
                 return result.IsSuccess 
                     ? Results.Ok(result.Value) 
                     : Results.NotFound(result.Error.Message);
@@ -59,40 +60,46 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                     ? Results.Created($"/api/car-models/{result.Value.Id}", result.Value) 
                     : Results.BadRequest(result.Error.Message);
             })
+            .RequiredAuthenticatedUser()
             .WithName("CreateCarModel")
             .WithDisplayName("Utwórz nowy model samochodu")
             .Produces<CarModelDto>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status500InternalServerError);
 
             // Aktualizacja modelu
-            group.MapPut("/{id}", async ([FromRoute] string id, [FromBody] UpdateCarModelRequest request, 
+            group.MapPut("/{id}", async ([FromRoute] int id, [FromBody] UpdateCarModelRequest request, 
                 [FromServices] ICarModelService service) =>
             {
-                var result = await service.UpdateAsync(id, request);
+                var result = await service.UpdateAsync(id.ToString(), request);
                 return result.IsSuccess 
                     ? Results.Ok(result.Value) 
                     : result.Error.Code == "NotFound" 
                         ? Results.NotFound(result.Error.Message) 
                         : Results.BadRequest(result.Error.Message);
             })
+            .RequiredAuthenticatedUser()
             .WithName("UpdateCarModel")
             .WithDisplayName("Zaktualizuj model samochodu")
             .Produces<CarModelDto>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
 
             // Usuwanie modelu
-            group.MapDelete("/{id}", async ([FromRoute] string id, [FromServices] ICarModelService service) =>
+            group.MapDelete("/{id}", async ([FromRoute] int id, [FromServices] ICarModelService service) =>
             {
-                var result = await service.DeleteAsync(id);
+                var result = await service.DeleteAsync(id.ToString());
                 return result.IsSuccess 
                     ? Results.NoContent() 
                     : Results.NotFound(result.Error.Message);
             })
+            .RequiredAuthenticatedUser()
             .WithName("DeleteCarModel")
             .WithDisplayName("Usuń model samochodu")
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status401Unauthorized)
             .Produces(StatusCodes.Status404NotFound);
         }
     }
