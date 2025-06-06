@@ -9,6 +9,7 @@ using KonfiguratorSamochodowy.Api.Repositories.Dto;
 using KonfiguratorSamochodowy.Api.Repositories.Enums;
 using KonfiguratorSamochodowy.Api.Repositories.Helpers;
 using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
+using KonfiguratorSamochodowy.Api.Repositories.Models;
 using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 
 namespace KonfiguratorSamochodowy.Api.Repositories.Repositories

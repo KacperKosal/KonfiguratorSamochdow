@@ -1,33 +1,51 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import styles from './Login.module.css';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { StoreContext } from '../../store/StoreContext';
+import axiosInstance from '../../services/axiosConfig';
 
 const LoginPage = () => {
   const { state, dispatch } = useContext(StoreContext);
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFocused, setIsFocused] = useState({ email: false, password: false });
+  const [apiError, setApiError] = useState('');
 
-  const apiUrl = import.meta.env.VITE_API_URL;
+  // Przekieruj jeśli użytkownik jest już zalogowany
+  useEffect(() => {
+    if (state.accessToken) {
+      navigate('/home');
+    }
+  }, [state.accessToken, navigate]);
 
   const handleLogin = async function(body) {
     try {
-      const response = await fetch(`${apiUrl}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-
-      const data = await response.json();
-      dispatch({ type: 'SET_TOKEN', payload: data });
-      console.log(state);
+      const response = await axiosInstance.post('/login', body);
+      
+      // API zwraca token jako tekst
+      const token = response.data;
+      dispatch({ type: 'SET_TOKEN', payload: token });
+      
+      // Przekierowanie do strony głównej z modelami
+      navigate('/home');
     } catch(error) {
-      console.log(error);
+      console.error('Login error:', error);
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        // API zwraca obiekt z errorCode i errorMessage
+        const errorMessage = errorData.errorMessage || errorData.detail || errorData.message || 'Błąd logowania';
+        setApiError(errorMessage);
+      } else {
+        setApiError('Wystąpił błąd podczas logowania');
+      }
+      
+      setIsSubmitting(false);
     }
   };
 
@@ -52,20 +70,16 @@ const LoginPage = () => {
   };
 
   // Wysyłanie formularza
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setApiError(''); // Czyszczenie poprzednich błędów API
 
     if (validateForm()) {
       setIsSubmitting(true);
-      handleLogin({
+      await handleLogin({
         email: email,
         password: password
       });
-      // Symulacja wysyłania danych
-      setTimeout(() => {
-        setIsSubmitting(false);
-        alert('Zalogowano pomyślnie!');
-      }, 1500);
     }
   };
 
@@ -89,6 +103,14 @@ const LoginPage = () => {
             <h1 className={styles.bannerTitle}>Witaj!</h1>
             <p className={styles.bannerSubtitle}>Zaloguj się do swojego konta</p>
           </div>
+
+          {/* Wyświetlanie błędów z API */}
+          {apiError && (
+            <div className={styles.apiErrorContainer}>
+              <AlertCircle size={18} />
+              <p className={styles.apiErrorText}>{apiError}</p>
+            </div>
+          )}
 
           {/* Formularz logowania */}
           <form onSubmit={handleSubmit} className={styles.form}>

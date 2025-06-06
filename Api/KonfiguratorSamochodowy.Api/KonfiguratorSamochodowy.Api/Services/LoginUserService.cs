@@ -37,12 +37,12 @@ internal class LoginUserService(IUserRepository userRepository, IJwtService jwtS
         {
             throw new LoginRequestInvalidEmail("Nie znaleziono użytkownika o podanym adresie email.");
         }
-        if (user.Haslo != request.Password)
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, user.Haslo))
         {
             throw new LoginRequestInvalidPassword(nameof(ValidationErrorCodes.LoginRequestInvalidPassword),"Nieprawidłowe hasło.");
         }
 
-        var token = jwtService.GenerateToken(user.Id);
+        var token = jwtService.GenerateToken(user.Id, user.Rola);
         var refreshToken = jwtService.GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;

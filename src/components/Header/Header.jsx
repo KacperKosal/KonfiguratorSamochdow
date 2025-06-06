@@ -2,7 +2,9 @@ import styles from './Header.module.css';
 import { NavLink } from 'react-router-dom';
 import React, { useContext, useEffect, useState } from 'react';
 import { StoreContext } from '../../store/StoreContext';
-import { ChevronDown, User, Settings, Car, LogOut, X, Lock, Eye, EyeOff, Home, Phone, LogIn } from 'lucide-react';
+import { ChevronDown, User, Settings, Car, LogOut, X, Lock, Eye, EyeOff, Home, Phone, LogIn, Shield } from 'lucide-react';
+import axiosInstance from '../../services/axiosConfig';
+import TokenTestButton from '../TokenTestButton/TokenTestButton';
 
 const Header = () => {
   const { state, dispatch } = useContext(StoreContext);
@@ -120,34 +122,22 @@ const Header = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${apiUrl}/change-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${state.accessToken}`
-        },
-        body: JSON.stringify({
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword
-        })
+      const response = await axiosInstance.post('/change-password', {
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        alert('Hasło zostało pomyślnie zmienione!');
-        closePasswordModal();
-      } else {
-        // Obsługa błędów z serwera
-        if (data.message === 'Invalid current password') {
-          setPasswordErrors({ currentPassword: 'Nieprawidłowe obecne hasło' });
-        } else {
-          alert('Wystąpił błąd podczas zmiany hasła: ' + (data.message || 'Nieznany błąd'));
-        }
-      }
+      alert('Hasło zostało pomyślnie zmienione!');
+      closePasswordModal();
     } catch (error) {
       console.error('Error changing password:', error);
-      alert('Wystąpił błąd podczas zmiany hasła. Spróbuj ponownie.');
+      
+      // Obsługa błędów z serwera
+      if (error.response?.data?.message === 'Invalid current password') {
+        setPasswordErrors({ currentPassword: 'Nieprawidłowe obecne hasło' });
+      } else {
+        alert('Wystąpił błąd podczas zmiany hasła: ' + (error.response?.data?.message || 'Nieznany błąd'));
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -169,6 +159,9 @@ const Header = () => {
   console.log(state)
   return (
     <>
+      {/* Dodaj przycisk testowy tylko w rozwoju */}
+      {process.env.NODE_ENV === 'development' && <TokenTestButton />}
+      
       <header className={styles.header}>
         <div className={styles.headerContainer}>
           <div className={styles.headerLogo}>AutoKonfigurator</div>
@@ -187,6 +180,14 @@ const Header = () => {
                   <span>Kontakt</span>
                 </NavLink>
               </li>
+              {isLogged && state.user && state.user.role === 'Administrator' && (
+                <li className={styles.navItem}>
+                  <NavLink to="/admin" className={styles.navLink}>
+                    <Shield size={18} />
+                    <span>Panel Admin</span>
+                  </NavLink>
+                </li>
+              )}
               {!isLogged && (
                 <li className={styles.navItem}>
                   <NavLink to="/login" className={styles.navLink}>
@@ -262,6 +263,13 @@ const Header = () => {
         </div>
 
         <div className={styles.sidebarFooter}>
+          {state.user && state.user.role === 'Administrator' && (
+            <NavLink to="/admin" onClick={closeSidebar} className={styles.adminButton}>
+              <Shield size={18} />
+              <span>Panel administratora</span>
+            </NavLink>
+          )}
+          
           <button onClick={openPasswordModal} className={styles.settingsButton}>
             <Settings size={18} />
             <span>Ustawienia konta</span>

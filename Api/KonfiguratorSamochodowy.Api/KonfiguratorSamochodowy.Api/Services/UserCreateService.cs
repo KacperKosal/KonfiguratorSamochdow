@@ -50,13 +50,14 @@ internal class UserCreateService(IUserRepository userRepository) : IUserCreateSe
         {
             ImieNazwisko = request.FirstName + " " + request.LastName,
             Email = request.Email,
-            Haslo = request.Password,
+            Haslo = BCrypt.Net.BCrypt.HashPassword(request.Password),
+            Rola = "Uzytkownik"
         };
 
         var result = await userRepository.GetByEmailAsync(request.Email);
         if (result != null)
         {
-            throw new RegisterRequestEmailAlreadyExists( "Użytkownik o podanym adresie email już istnieje.");
+            throw new RegisterRequestEmailAlreadyExists("Użytkownik o podanym adresie email już istnieje.");
         }
         await userRepository.CreateAsync(user);
     }

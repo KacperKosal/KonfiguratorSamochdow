@@ -2,7 +2,7 @@
 
 internal interface IJwtService
 {
-    string GenerateToken(int userId);
+    string GenerateToken(int userId, string role);
     string GenerateRefreshToken();
     bool ValidateToken(string token);
 }

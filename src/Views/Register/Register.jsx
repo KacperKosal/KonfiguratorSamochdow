@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { 
   Mail, Lock, Eye, EyeOff, Facebook, Twitter, Linkedin, 
   AlertCircle, User, Check 
 } from 'lucide-react';
 import styles from './register.module.css';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import axiosInstance from '../../services/axiosConfig';
+import { StoreContext } from '../../store/StoreContext';
 
 const RegisterPage = () => {
+  const { state } = useContext(StoreContext);
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Przekieruj jeśli użytkownik jest już zalogowany
+  useEffect(() => {
+    if (state.accessToken) {
+      navigate('/home');
+    }
+  }, [state.accessToken, navigate]);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -21,6 +32,7 @@ const RegisterPage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [apiError, setApiError] = useState('');
   const [isFocused, setIsFocused] = useState({
     firstName: false,
     lastName: false,
@@ -29,24 +41,29 @@ const RegisterPage = () => {
     confirmPassword: false
   });
 
-  const apiUrl = import.meta.env.VITE_API_URL;
-  
   const handleRegister = async function(body) {
     try {
-      const response = await fetch(`${apiUrl}/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+      await axiosInstance.post('/register', body);
       
-      if (response.ok) {
-        setRegistrationSuccess(true);
-      } else {
-        setRegistrationSuccess(false);
-      }
+      setRegistrationSuccess(true);
+      // Przekierowanie do strony logowania po 2 sekundach
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch(error) {
       setRegistrationSuccess(false);
       console.error('Registration error:', error);
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        // API zwraca obiekt z errorCode i errorMessage
+        const errorMessage = errorData.errorMessage || errorData.detail || errorData.message || 'Błąd rejestracji';
+        setApiError(errorMessage);
+      } else {
+        setApiError('Wystąpił błąd podczas rejestracji');
+      }
+      
+      setIsSubmitting(false);
     }
   };
 
@@ -116,21 +133,19 @@ const RegisterPage = () => {
   };
 
   // Wysyłanie formularza
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setApiError(''); // Czyszczenie poprzednich błędów API
+    
     if (validateForm()) {
       setIsSubmitting(true);
-      handleRegister({
+      await handleRegister({
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
         confirmPassword: formData.confirmPassword
       });
-      setTimeout(() => {
-        setIsSubmitting(false);
-        // setRegistrationSuccess(true); // Będzie ustawione przez handleRegister
-      }, 1500);
     }
   };
 
@@ -190,6 +205,14 @@ const RegisterPage = () => {
               <h1 className={styles.bannerTitle}>Dołącz do nas</h1>
               <p className={styles.bannerSubtitle}>Stwórz swoje konto i rozpocznij personalizację</p>
             </div>
+            
+            {/* Wyświetlanie błędów z API */}
+            {apiError && (
+              <div className={styles.apiErrorContainer}>
+                <AlertCircle size={18} />
+                <p className={styles.apiErrorText}>{apiError}</p>
+              </div>
+            )}
             
             {/* Formularz rejestracji */}
             <form onSubmit={handleSubmit} className={styles.form}>

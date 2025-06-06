@@ -1,6 +1,7 @@
 using KonfiguratorSamochodowy.Api.Models;
 using KonfiguratorSamochodowy.Api.Repositories.Dto;
 using KonfiguratorSamochodowy.Api.Repositories.Helpers;
+using KonfiguratorSamochodowy.Api.Repositories.Models;
 
 namespace KonfiguratorSamochodowy.Api.Repositories.Interfaces
 {

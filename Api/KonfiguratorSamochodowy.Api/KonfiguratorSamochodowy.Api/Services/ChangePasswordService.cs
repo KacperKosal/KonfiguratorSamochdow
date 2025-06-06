@@ -42,7 +42,7 @@ internal class ChangePasswordService(IUserRepository userRepository) : IChangePa
                 "Użytkownik nie został znaleziony.");
         }
         
-        if (user.Haslo != request.CurrentPassword)
+        if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.Haslo))
         {
             throw new ChangePasswordInvalidCurrentPassword(
                 nameof(ValidationErrorCodes.ChangePasswordInvalidCurrentPassword), 
@@ -56,7 +56,7 @@ internal class ChangePasswordService(IUserRepository userRepository) : IChangePa
                 "Nowe hasło musi być różne od obecnego hasła.");
         }
         
-        user.Haslo = request.NewPassword;
+        user.Haslo = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
         await userRepository.UpdateAsync(user);
     }
 }

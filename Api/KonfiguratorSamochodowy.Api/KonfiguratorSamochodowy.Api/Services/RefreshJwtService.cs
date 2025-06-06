@@ -19,7 +19,7 @@ internal class RefreshJwtService(IUserRepository userRepository, IJwtService jwt
             throw new ArgumentException("Invalid refresh token");
         }
 
-        var newToken = jwtService.GenerateToken(userId);
+        var newToken = jwtService.GenerateToken(userId, user.Rola);
 
         return newToken;
     }

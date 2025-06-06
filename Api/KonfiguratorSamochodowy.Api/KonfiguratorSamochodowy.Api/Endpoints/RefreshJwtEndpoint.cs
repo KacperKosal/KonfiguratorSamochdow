@@ -11,7 +11,8 @@ internal static class RefreshJwtEndpoint
         {
             var refreshToken = context.GetRefreshToken();
 
-            var userId = context.GetUserIdFromToken(jwtService);
+            // Użyj nowej metody, która działa z wygasłymi tokenami
+            var userId = context.GetUserIdFromExpiredToken();
 
             if (userId == null || refreshToken == null)
             {

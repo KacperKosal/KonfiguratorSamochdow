@@ -5,6 +5,8 @@ import CategoryTabs from '../../components/ModelsBrowser/CategoryTabs/CategoryTa
 import ModelsGrid from '../../components/ModelsBrowser/ModelsGrid/ModelsGrid';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import styles from './Home.module.css';
+import axiosInstance from '../../services/axiosConfig';
+import adminApiService from '../../services/adminApiService';
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -18,10 +20,8 @@ export default function Home() {
   const [manufacturers, setManufacturers] = useState([]);
   const [bodyTypes, setBodyTypes] = useState([]);
   const [segments, setSegments] = useState([]);
-  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
-
-  const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7001';
 
   // Pobieranie wszystkich modeli z API
   const fetchCarModels = async (showLoading = true) => {
@@ -31,25 +31,15 @@ export default function Home() {
       }
       setError(null);
       
-      const response = await fetch(`${apiUrl}/api/car-models`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const response = await axiosInstance.get('/api/car-models');
+      const data = response.data;
       
       // Mapowanie danych z API na format używany w komponencie
       const mappedModels = data.map(model => ({
         id: model.id,
         name: model.name,
         category: mapBodyTypeToCategory(model.bodyType),
-        image: model.imageUrl || '/api/placeholder/300/180',
+        image: model.imageUrl ? adminApiService.getImageUrl(model.imageUrl) : '/api/placeholder/300/180',
         basePrice: model.basePrice,
         engineOptions: [], // Będzie pobierane osobno jeśli potrzebne
         description: model.description || 'Opis modelu',
@@ -79,7 +69,11 @@ export default function Home() {
       
     } catch (err) {
       console.error('Error fetching car models:', err);
-      setError('Nie udało się pobrać modeli samochodów. Spróbuj ponownie.');
+      if (err.response?.status === 401) {
+        setError('Sesja wygasła. Zaloguj się ponownie.');
+      } else {
+        setError('Nie udało się pobrać modeli samochodów. Spróbuj ponownie.');
+      }
     } finally {
       if (showLoading) {
         setLoading(false);
@@ -97,7 +91,7 @@ export default function Home() {
       const hasFilters = filters.manufacturer || filters.bodyType || filters.segment || 
                       filters.minPrice || filters.maxPrice || filters.minYear || filters.maxYear;
       
-      let url;
+      let response;
       
       if (hasFilters) {
         // Użyj endpoint z filtrami
@@ -115,30 +109,19 @@ export default function Home() {
         if (filters.maxYear) queryParams.append('MaxProductionYear', filters.maxYear);
         queryParams.append('IsActive', 'true');
 
-        url = `${apiUrl}/api/car-models/filter?${queryParams}`;
+        response = await axiosInstance.get(`/api/car-models/filter?${queryParams}`);
       } else {
         // Użyj podstawowy endpoint bez filtrów
-        url = `${apiUrl}/api/car-models`;
+        response = await axiosInstance.get('/api/car-models');
       }
 
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = response.data;
       
       let mappedModels = data.map(model => ({
         id: model.id,
         name: model.name,
         category: mapBodyTypeToCategory(model.bodyType),
-        image: model.imageUrl || '/api/placeholder/300/180',
+        image: model.imageUrl ? adminApiService.getImageUrl(model.imageUrl) : '/api/placeholder/300/180',
         basePrice: model.basePrice,
         engineOptions: [],
         description: model.description || 'Opis modelu',
@@ -182,7 +165,11 @@ export default function Home() {
       
     } catch (err) {
       console.error('Error filtering car models:', err);
-      setError('Nie udało się przefiltrować modeli. Spróbuj ponownie.');
+      if (err.response?.status === 401) {
+        setError('Sesja wygasła. Zaloguj się ponownie.');
+      } else {
+        setError('Nie udało się przefiltrować modeli. Spróbuj ponownie.');
+      }
     } finally {
       setLoading(false);
     }

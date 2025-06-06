@@ -5,6 +5,7 @@ using KonfiguratorSamochodowy.Api.Requests;
 using KonfiguratorSamochodowy.Api.Validators;
 using FluentValidation;
 using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
+using KonfiguratorSamochodowy.Api.Repositories.Models;
 
 namespace KonfiguratorSamochodowy.Api.Services
 {

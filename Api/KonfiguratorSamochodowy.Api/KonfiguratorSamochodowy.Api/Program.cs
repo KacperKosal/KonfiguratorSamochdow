@@ -53,6 +53,9 @@ app.UseCors(cfg =>
     cfg.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("http://localhost:5173");
 });
 
+// Obsługa plików statycznych
+app.UseStaticFiles();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -64,6 +67,7 @@ app.MapCarModelEndpoints();
 app.MapEngineEndpoints();
 app.MapCarModelEngineEndpoints();
 app.MapCarConfigurationEndpoints();
+app.MapImageEndpoints();
 
 app.UseHttpsRedirection();
 

@@ -19,8 +19,8 @@ internal static class LoginEndpoint
                 context.Response.Cookies.Append("refreshToken", result.RefreshToken, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = false,
-                    SameSite = SameSiteMode.Strict,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
                     Expires = DateTime.UtcNow.AddSeconds(refreshTokenExpiration)
                 });
 

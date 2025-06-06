@@ -12,6 +12,7 @@ import Login from './Views/Login/Login.jsx';
 import Register from './Views/Register/Register.jsx';
 import Contact from './Views/Contact/Contact.jsx';
 import CarAdminPanel from './components/CarAdminPanel/CarAdminPanel.jsx';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute.jsx';
 import { StoreProvider } from './store/StoreProvider.jsx';
 
 
@@ -20,14 +21,22 @@ createRoot(document.getElementById('root')).render(
     <StoreProvider>
       <BrowserRouter>
         <Routes>
-          {/* Trasa dla panelu administracyjnego bez Header i Footer */}
-          <Route path="/admin" element={<CarAdminPanel />} />
+          {/* Trasa dla panelu administracyjnego bez Header i Footer - tylko dla administratorów */}
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedRoute requiredRole="Administrator">
+                <CarAdminPanel />
+              </ProtectedRoute>
+            } 
+          />
           
           {/* Pozostałe trasy z Header i Footer */}
           <Route path="/*" element={
             <>
               <Header />
               <Routes>
+                <Route path="/" element={<Home />} />
                 <Route path="/home" element={<Home />} />
                 <Route path="/car-configurator" element={<CarConfigurator />} />
                 <Route path="/login" element={<Login />} />
