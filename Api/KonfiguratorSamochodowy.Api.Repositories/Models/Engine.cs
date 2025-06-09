@@ -24,25 +24,12 @@ public class Engine
     /// </summary>
     public int? Capacity { get; set; }
 
-    /// <summary>
-    /// Pojemność silnika (string na potrzeby bazy danych)
-    /// </summary>
-    public string Pojemnosc { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Typ silnika (string na potrzeby bazy danych)
-    /// </summary>
-    public string Typ { get; set; } = string.Empty;
 
     /// <summary>
     /// Moc silnika w KM
     /// </summary>
     public int Power { get; set; }
 
-    /// <summary>
-    /// Moc silnika w KM (short na potrzeby bazy danych)
-    /// </summary>
-    public short Moc { get; set; }
 
     /// <summary>
     /// Moment obrotowy w Nm

@@ -83,8 +83,8 @@ internal sealed class VehicleRepository(IDbConnection connection, IVechicleFeatu
 
         foreach (var vehicle in result)
         {
-            vehicle.Cechy = await vechicleFeaturesRepository.GetAllByVechicleIdAsync(vehicle.Id);
-            vehicle.Silniki = await engineRepository.GetAllByVechicleIdAsync(vehicle.Id);
+            vehicle.Features = await vechicleFeaturesRepository.GetAllByVechicleIdAsync(vehicle.Id);
+            vehicle.Engines = await engineRepository.GetAllByVechicleIdAsync(vehicle.Id);
         }
 
         return result;

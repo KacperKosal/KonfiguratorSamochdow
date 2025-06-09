@@ -193,13 +193,15 @@ const Header = () => {
               )}
               {isLogged && (
                 <li className={styles.navItem}>
-                  <button 
-                    onClick={toggleSidebar} 
-                    className={styles.userButton}
+                  <NavLink 
+                    to="/my-account"
+                    className={({ isActive }) => 
+                      `${styles.navLink} ${isActive ? styles.activeNavLink : ''}`
+                    }
                   >
                     <User size={18} />
                     <span>Moje konto</span>
-                  </button>
+                  </NavLink>
                 </li>
               )}
             </ul>

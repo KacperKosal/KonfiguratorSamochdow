@@ -41,6 +41,8 @@ builder.Services.AddScoped<ICarModelService, CarModelService>();
 builder.Services.AddScoped<IEngineService, EngineService>();
 builder.Services.AddScoped<ICarModelEngineService, CarModelEngineService>();
 builder.Services.AddScoped<ICarConfigurationService, CarConfigurationService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IUserConfigurationService, UserConfigurationService>();
 
 builder.Services.AddCors();
 
@@ -77,6 +79,8 @@ RegisterEndpoint.MapEndPoint(app);
 RefreshJwtEndpoint.MapEndPoint(app);
 ValidateJwtEndpoint.MapEndPoint(app);
 ChangePasswordEndpoint.MapEndPoint(app);
+ContactEndpoint.MapEndPoint(app);
+UserConfigurationEndpoints.MapEndPoint(app);
 app.MapCarAccessoryEndpoints();
 
 app.MapSwagger();

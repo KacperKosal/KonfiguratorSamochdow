@@ -53,11 +53,11 @@ internal class ModelsService(IVehicleRepository vehicleRepository) : IModelsServ
         {
             VechicleID = e.Id,
             Model = e.Model,
-            Price = e.Cena,
-            Description = e.Opis,
+            Price = e.Price,
+            Description = e.Description,
             ImageUrl = $"/models/image/{e.Id}",
-            Engines = e.Silniki?.Select(s => $"{s.Pojemnosc} {s.Typ} {s.Moc}KM"),
-            VehicleFeatures = e.Cechy?.Select(f => f.Cecha),
+            Engines = e.Engines?.Select(s => $"{s.Capacity} {s.Type} {s.Power}KM"),
+            VehicleFeatures = e.Features?.Select(f => f.Feature),
         };
 
         return result;

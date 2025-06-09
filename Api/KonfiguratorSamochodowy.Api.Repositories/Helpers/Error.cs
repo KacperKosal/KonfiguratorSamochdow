@@ -10,4 +10,12 @@ public class Error
         Code = code;
         Message = message;
     }
+
+    /// <summary>
+    /// Static factory methods for creating Error instances
+    /// </summary>
+    public static Error Failure(string code, string message) => new Error(code, message);
+    public static Error NotFound(string code, string message) => new Error(code, message);
+    public static Error Validation(string code, string message) => new Error(code, message);
+    public static Error Unauthorized(string code, string message) => new Error(code, message);
 }

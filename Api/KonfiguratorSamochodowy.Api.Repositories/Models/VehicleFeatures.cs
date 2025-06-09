@@ -13,7 +13,17 @@ public class VehicleFeatures
     public int IDPojazdu { get; set; }
 
     /// <summary>
+    /// Vehicle ID (English property)
+    /// </summary>
+    public int VehicleId { get; set; }
+
+    /// <summary>
     /// Cecha
     /// </summary>
     public string? Cecha { get; set; }
+
+    /// <summary>
+    /// Feature (English property)
+    /// </summary>
+    public string? Feature { get; set; }
 }

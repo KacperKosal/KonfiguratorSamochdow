@@ -1,0 +1,263 @@
+.myAccount {
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: #f8fafc;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pageTitle {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.userInfo {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.userHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.userInfo h2 {
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.userInfo p {
+  color: #64748b;
+  margin: 0;
+}
+
+.logoutButton {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.logoutButton:hover {
+  background: #b91c1c;
+}
+
+.configurationsSection {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.sectionTitle {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1.5rem;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.1rem;
+}
+
+.error {
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+}
+
+.noConfigurations {
+  text-align: center;
+  padding: 3rem;
+  color: #64748b;
+}
+
+.noConfigurations a {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.noConfigurations a:hover {
+  text-decoration: underline;
+}
+
+.configurationsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.configurationCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: #fafafa;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.configurationCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.configHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.configName {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  flex: 1;
+  margin-right: 1rem;
+}
+
+.configPrice {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #059669;
+  white-space: nowrap;
+}
+
+.configDetails {
+  margin-bottom: 1.5rem;
+}
+
+.configDetail {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.configDetail strong {
+  color: #374151;
+  margin-right: 0.5rem;
+  min-width: 80px;
+}
+
+.colorInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.colorSquare {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.configFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.configDate {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.configActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.deleteBtn {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.deleteBtn:hover {
+  background: #b91c1c;
+}
+
+.retryButton {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 1rem;
+}
+
+.retryButton:hover {
+  background: #2563eb;
+}
+
+@media (max-width: 768px) {
+  .myAccount {
+    padding: 1rem;
+  }
+  
+  .userHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .logoutButton {
+    align-self: stretch;
+    text-align: center;
+  }
+  
+  .configurationsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .configHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .configName {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+  
+  .configFooter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}

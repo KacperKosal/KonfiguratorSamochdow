@@ -11,6 +11,7 @@ import Footer from './components/Footer/Footer.jsx';
 import Login from './Views/Login/Login.jsx';
 import Register from './Views/Register/Register.jsx';
 import Contact from './Views/Contact/Contact.jsx';
+import MyAccount from './Views/MyAccount/MyAccount.jsx';
 import CarAdminPanel from './components/CarAdminPanel/CarAdminPanel.jsx';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute.jsx';
 import { StoreProvider } from './store/StoreProvider.jsx';
@@ -42,6 +43,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/my-account" element={<MyAccount />} />
               </Routes>
               <Footer />
             </>

@@ -176,35 +176,58 @@ const CarConfigurator = () => {
 
   // Funkcja do zapisania konfiguracji
   const saveConfiguration = async () => {
-    if (!selectedCarModel) return;
+    if (!selectedCarModel) {
+      alert('Wybierz model samochodu przed zapisaniem konfiguracji');
+      return;
+    }
+
+    // Zapytaj użytkownika o nazwę konfiguracji
+    const configurationName = prompt('Podaj nazwę dla swojej konfiguracji:', 
+      `${selectedCarModel.name} - ${new Date().toLocaleDateString()}`);
+    
+    if (!configurationName || configurationName.trim() === '') {
+      return;
+    }
     
     try {
+      // Przygotuj dane konfiguracji
+      const exteriorColorInfo = exteriorColors.find(c => c.value === carColor);
       const configurationData = {
+        configurationName: configurationName.trim(),
         carModelId: selectedCarModel.id,
-        engineId: selectedEngine?.engineId,
+        engineId: selectedEngine?.engineId || null,
         exteriorColor: carColor,
-        wheelType: wheelType,
-        interiorColor: interiorColor,
-        accessories: selectedAccessories.map(acc => acc.id),
-        interiorEquipment: selectedInteriorEquipment.map(eq => eq.id)
+        exteriorColorName: exteriorColorInfo?.name || 'Nieznany kolor',
+        accessoryIds: selectedAccessories.map(acc => acc.id),
+        interiorEquipmentIds: selectedInteriorEquipment.map(eq => eq.id),
+        totalPrice: totalPrice
       };
+
+      console.log('Zapisuję konfigurację:', configurationData);
       
-      const response = await fetch(`${apiUrl}/api/car-configurations`, {
+      // Wyślij do nowego endpointa
+      const response = await fetch(`${apiUrl}/api/user-configurations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         },
         body: JSON.stringify(configurationData)
       });
       
       if (response.ok) {
-        alert('Konfiguracja została zapisana!');
+        const result = await response.json();
+        alert(`Konfiguracja "${configurationName}" została zapisana w Twoim koncie!`);
+        console.log('Konfiguracja zapisana z ID:', result.Id);
+      } else if (response.status === 401) {
+        alert('Musisz być zalogowany, aby zapisać konfigurację. Przejdź do logowania.');
       } else {
-        throw new Error('Błąd zapisywania konfiguracji');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Błąd zapisywania konfiguracji');
       }
     } catch (err) {
       console.error('Błąd zapisywania konfiguracji:', err);
-      alert('Wystąpił błąd podczas zapisywania konfiguracji');
+      alert(`Wystąpił błąd podczas zapisywania konfiguracji: ${err.message}`);
     }
   };
 

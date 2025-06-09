@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from './Contact.module.css';
+import emailjs from '@emailjs/browser';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -10,6 +11,60 @@ export default function Contact() {
     message: ''
   });
   const [submitted, setSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  
+  // Konfiguracja EmailJS
+  const emailJSConfig = {
+    serviceId: 'service_y4kkqtb',  // Zaktualizowane ID
+    templateId: 'template_9jl4y8l', // Zaktualizowane ID
+    publicKey: 'CiHbW6-1RGLf5oeMm'
+  };
+
+  // Funkcja wysyłania przez EmailJS
+  const sendViaEmailJS = async (formData) => {
+    try {
+      console.log('🚀 Wysyłam email przez EmailJS...');
+      console.log('📧 Docelowy email: konfiguratorsamochodwy@gmail.com');
+      console.log('👤 Od:', formData.name, '-', formData.email);
+      
+      const templateParams = {
+        from_name: formData.name,
+        from_email: formData.email,
+        phone: formData.phone || 'Nie podano',
+        subject: getSubjectText(formData.subject),
+        message: formData.message,
+        to_email: 'konfiguratorsamochodwy@gmail.com'
+      };
+
+      console.log('📋 Template params:', templateParams);
+
+      const response = await emailjs.send(
+        emailJSConfig.serviceId,
+        emailJSConfig.templateId,
+        templateParams,
+        emailJSConfig.publicKey
+      );
+      
+      console.log('✅ Email wysłany pomyślnie przez EmailJS!', response);
+      console.log('📬 Email powinien pojawić się w skrzynce: konfiguratorsamochodwy@gmail.com');
+      return true;
+    } catch (error) {
+      console.error('❌ Błąd EmailJS:', error);
+      return false;
+    }
+  };
+
+  const getSubjectText = (subject) => {
+    const subjects = {
+      'info': 'Informacje ogólne',
+      'config': 'Konfiguracja samochodu',
+      'test': 'Jazda testowa',
+      'other': 'Inne zapytanie'
+    };
+    return subjects[subject] || 'Nowe zapytanie';
+  };
+
 
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -19,11 +74,29 @@ export default function Contact() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Tu można dodać integrację z API do wysyłania formularza
-    console.log('Wysyłanie formularza:', formData);
-    setSubmitted(true);
+    setIsLoading(true);
+    setError('');
+
+    console.log('Rozpoczynam wysyłanie formularza:', formData);
+
+    try {
+      console.log('Wysyłam przez EmailJS...');
+      const emailJSSuccess = await sendViaEmailJS(formData);
+      
+      if (emailJSSuccess) {
+        setSubmitted(true);
+        console.log('Wiadomość wysłana pomyślnie przez EmailJS');
+      } else {
+        setError('Nie udało się wysłać wiadomości. Spróbuj ponownie za chwilę lub skontaktuj się bezpośrednio na konfiguratorsamochodwy@gmail.com');
+      }
+    } catch (error) {
+      console.error('EmailJS error:', error);
+      setError('Wystąpił błąd podczas wysyłania wiadomości. Spróbuj ponownie później lub skontaktuj się bezpośrednio na konfiguratorsamochodwy@gmail.com');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -39,7 +112,7 @@ export default function Contact() {
               
               <div className={styles.infoItem}>
                 <strong>Email:</strong>
-                <p>info@autokonfigurator.pl</p>
+                <p>konfiguratorsamochodwy@gmail.com</p>
               </div>
               
               <div className={styles.infoItem}>
@@ -71,6 +144,12 @@ export default function Contact() {
                   <p className={styles.successDescription}>Odpowiemy najszybciej jak to możliwe.</p>
                 </div>
               ) : (
+                <div>
+                  {error && (
+                    <div className={styles.errorMessage}>
+                      <p>{error}</p>
+                    </div>
+                  )}
                 <form onSubmit={handleSubmit}>
                   <div className={styles.formGroup}>
                     <label htmlFor="name">Imię i nazwisko</label>
@@ -129,10 +208,11 @@ export default function Contact() {
                     ></textarea>
                   </div>
                   
-                  <button type="submit" className={styles.submitBtn}>
-                    Wyślij wiadomość
+                  <button type="submit" className={styles.submitBtn} disabled={isLoading}>
+                    {isLoading ? 'Wysyłanie...' : 'Wyślij wiadomość'}
                   </button>
                 </form>
+                </div>
               )}
             </div>
           </div>

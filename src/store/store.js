@@ -9,8 +9,11 @@ export const initialState = {
 const decodeToken = (token) => {
   try {
     const decoded = jwtDecode(token);
+    console.log('Full JWT payload:', decoded); // Debug - pokażmy co jest w tokenie
     return {
-      id: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || decoded.nameid,
+      id: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] || decoded.nameid || decoded.UserId,
+      email: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || decoded.email,
+      name: decoded['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || decoded.name,
       role: decoded['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || decoded.role,
       exp: decoded.exp
     };
