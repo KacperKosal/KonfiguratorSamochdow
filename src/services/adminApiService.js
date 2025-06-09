@@ -268,8 +268,86 @@ class AdminApiService {
   // Funkcja pomocnicza do budowania URL zdjęcia
   getImageUrl(fileName) {
     if (!fileName) return null;
-    const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7001';
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7020';
     return `${apiUrl}/api/images/${fileName}`;
+  }
+
+  // Car Model Images Management
+  async getCarModelImages(carModelId) {
+    try {
+      console.log('adminApiService.getCarModelImages: carModelId:', carModelId, 'type:', typeof carModelId);
+      
+      if (!carModelId || carModelId === 'undefined' || carModelId === 'null') {
+        throw new Error('Invalid car model ID');
+      }
+      
+      const response = await axiosInstance.get(`/api/car-model-images/${carModelId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching car model images:', error);
+      throw error;
+    }
+  }
+
+  async uploadCarModelImage(carModelId, file) {
+    try {
+      console.log('adminApiService.uploadCarModelImage: carModelId:', carModelId, 'type:', typeof carModelId);
+      
+      if (!carModelId || carModelId === 'undefined' || carModelId === 'null') {
+        throw new Error('Invalid car model ID for upload');
+      }
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axiosInstance.post(`/api/car-model-images/${carModelId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading car model image:', error);
+      throw error;
+    }
+  }
+
+  async deleteCarModelImage(imageId) {
+    try {
+      await axiosInstance.delete(`/api/car-model-images/${imageId}`);
+    } catch (error) {
+      console.error('Error deleting car model image:', error);
+      throw error;
+    }
+  }
+
+  async updateImageOrder(imageId, displayOrder) {
+    try {
+      const response = await axiosInstance.put(`/api/car-model-images/${imageId}/order`, {
+        displayOrder
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error updating image order:', error);
+      throw error;
+    }
+  }
+
+  async setMainImage(carModelId, imageId) {
+    try {
+      const response = await axiosInstance.put(`/api/car-model-images/${carModelId}/main-image/${imageId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error setting main image:', error);
+      throw error;
+    }
+  }
+
+  // Helper function for car model image URLs
+  getCarModelImageUrl(imageUrl) {
+    if (!imageUrl) return null;
+    const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7020';
+    return `${apiUrl}${imageUrl}`;
   }
 }
 

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Eye, Save, X, AlertCircle, Car, Settings, Package, Palette, Link } from 'lucide-react';
+import { Plus, Edit, Trash2, Eye, Save, X, AlertCircle, Car, Settings, Package, Palette, Link, Images } from 'lucide-react';
 import adminApiService from '../../services/adminApiService';
 import SafeImage from '../SafeImage/SafeImage';
 import EngineAssignment from './EngineAssignment';
+import CarModelImageManager from './CarModelImageManager';
 import { translateAccessoryType, translateInteriorEquipmentType, translateAccessoryCategory } from '../../utils/translations';
 import styles from './CarAdminPanel.module.css';
 
@@ -21,6 +22,8 @@ const CarAdminPanel = () => {
   const [showDetails, setShowDetails] = useState(false);
   const [showEngineAssignment, setShowEngineAssignment] = useState(false);
   const [selectedModelForEngine, setSelectedModelForEngine] = useState(null);
+  const [showImageManager, setShowImageManager] = useState(false);
+  const [selectedModelForImages, setSelectedModelForImages] = useState(null);
 
   // Stan formularza dopasowany do API
   const getInitialFormData = (tab) => {
@@ -766,6 +769,20 @@ const CarAdminPanel = () => {
     setShowDetails(false);
   };
 
+  // Funkcja zarządzania zdjęciami dla modelu
+  const handleManageImages = (model) => {
+    console.log('=== handleManageImages called ===');
+    console.log('Full model object:', model);
+    console.log('Model ID:', model.id);
+    console.log('Model ID type:', typeof model.id);
+    console.log('Model keys:', Object.keys(model));
+    
+    setSelectedModelForImages(model);
+    setShowImageManager(true);
+    setShowForm(false);
+    setShowDetails(false);
+  };
+
   const tabs = [
     { id: 'models', label: 'Modele Samochodów', icon: Car },
     { id: 'engines', label: 'Silniki', icon: Settings },
@@ -858,6 +875,9 @@ const CarAdminPanel = () => {
               </button>
               <button onClick={() => handleManageEngines(item)} className={styles.linkButton} title="Zarządzaj silnikami">
                 <Link size={16} />
+              </button>
+              <button onClick={() => handleManageImages(item)} className={styles.manageImagesButton} title="Zarządzaj zdjęciami">
+                <Images size={16} />
               </button>
               <button onClick={() => handleDeleteCar(item.id)} className={styles.deleteButton} title="Usuń">
                 <Trash2 size={16} />
@@ -1997,6 +2017,17 @@ const CarAdminPanel = () => {
           onClose={() => {
             setShowEngineAssignment(false);
             setSelectedModelForEngine(null);
+          }}
+        />
+      )}
+
+      {/* Modal zarządzania zdjęciami */}
+      {showImageManager && selectedModelForImages && (
+        <CarModelImageManager 
+          carModelId={selectedModelForImages.id}
+          onClose={() => {
+            setShowImageManager(false);
+            setSelectedModelForImages(null);
           }}
         />
       )}

@@ -43,6 +43,7 @@ builder.Services.AddScoped<ICarModelEngineService, CarModelEngineService>();
 builder.Services.AddScoped<ICarConfigurationService, CarConfigurationService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUserConfigurationService, UserConfigurationService>();
+builder.Services.AddScoped<ICarModelImageService, CarModelImageService>();
 
 builder.Services.AddCors();
 
@@ -71,6 +72,7 @@ app.MapEngineEndpoints();
 app.MapCarModelEngineEndpoints();
 app.MapCarConfigurationEndpoints();
 app.MapImageEndpoints();
+app.MapCarModelImageEndpoints();
 
 app.UseHttpsRedirection();
 
@@ -102,6 +104,9 @@ static async Task EnsureTablesExist(IServiceProvider services)
         
         // Extend Silnik table with additional columns
         await ExtendSilnikTable(connection);
+        
+        // Create car model images table
+        await CreateCarModelImagesTable(connection);
         
         // Check if car_interior_equipment table exists
         var checkSql = @"
@@ -290,5 +295,99 @@ static async Task ExtendSilnikTable(NpgsqlConnection connection)
     catch (Exception ex)
     {
         Console.WriteLine($"Error extending Silnik table: {ex.Message}");
+    }
+}
+
+static async Task CreateCarModelImagesTable(NpgsqlConnection connection)
+{
+    try
+    {
+        Console.WriteLine("=== CreateCarModelImagesTable: Starting ===");
+        var checkSql = @"
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'pojazd_zdjecie'
+            );";
+
+        var exists = await connection.ExecuteScalarAsync<bool>(checkSql);
+        Console.WriteLine($"=== CreateCarModelImagesTable: Table exists check returned: {exists} ===");
+
+        if (!exists)
+        {
+            Console.WriteLine("Creating pojazd_zdjecie table...");
+            
+            var createSql = @"
+                CREATE TABLE pojazd_zdjecie (
+                    ""Id"" VARCHAR(255) PRIMARY KEY,
+                    ""CarModelId"" VARCHAR(255) NOT NULL,
+                    ""ImageUrl"" VARCHAR(500) NOT NULL,
+                    ""DisplayOrder"" INTEGER NOT NULL DEFAULT 1,
+                    ""IsMainImage"" BOOLEAN NOT NULL DEFAULT FALSE,
+                    ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    ""UpdatedAt"" TIMESTAMP WITH TIME ZONE
+                );
+                
+                CREATE INDEX idx_pojazd_zdjecie_carmodelid ON pojazd_zdjecie(""CarModelId"");
+                CREATE INDEX idx_pojazd_zdjecie_displayorder ON pojazd_zdjecie(""DisplayOrder"");";
+            
+            await connection.ExecuteAsync(createSql);
+            Console.WriteLine("=== CreateCarModelImagesTable: Table created successfully ===");
+        }
+        else 
+        {
+            Console.WriteLine("=== CreateCarModelImagesTable: Table already exists, checking structure ===");
+            
+            // Check if the table has the correct column structure
+            var columnsQuery = @"
+                SELECT column_name, data_type 
+                FROM information_schema.columns 
+                WHERE table_name = 'pojazd_zdjecie' 
+                ORDER BY ordinal_position;";
+            
+            var columns = await connection.QueryAsync(columnsQuery);
+            var columnNames = columns.Select(c => c.column_name).ToList();
+            Console.WriteLine($"Existing columns: {string.Join(", ", columnNames)}");
+            
+            // Check if we have the expected quoted columns
+            var expectedColumns = new[] { "Id", "CarModelId", "ImageUrl", "DisplayOrder", "IsMainImage", "CreatedAt", "UpdatedAt" };
+            var hasCorrectStructure = expectedColumns.All(expected => columnNames.Contains(expected));
+            
+            if (!hasCorrectStructure)
+            {
+                Console.WriteLine("=== Table structure is incorrect, recreating table ===");
+                
+                // Drop and recreate table with correct structure
+                var dropSql = "DROP TABLE IF EXISTS pojazd_zdjecie CASCADE;";
+                await connection.ExecuteAsync(dropSql);
+                
+                var createSql = @"
+                    CREATE TABLE pojazd_zdjecie (
+                        ""Id"" VARCHAR(255) PRIMARY KEY,
+                        ""CarModelId"" VARCHAR(255) NOT NULL,
+                        ""ImageUrl"" VARCHAR(500) NOT NULL,
+                        ""DisplayOrder"" INTEGER NOT NULL DEFAULT 1,
+                        ""IsMainImage"" BOOLEAN NOT NULL DEFAULT FALSE,
+                        ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                        ""UpdatedAt"" TIMESTAMP WITH TIME ZONE
+                    );
+                    
+                    CREATE INDEX idx_pojazd_zdjecie_carmodelid ON pojazd_zdjecie(""CarModelId"");
+                    CREATE INDEX idx_pojazd_zdjecie_displayorder ON pojazd_zdjecie(""DisplayOrder"");";
+                
+                await connection.ExecuteAsync(createSql);
+                Console.WriteLine("=== CreateCarModelImagesTable: Table recreated with correct structure ===");
+            }
+            else
+            {
+                Console.WriteLine("=== CreateCarModelImagesTable: Table structure is correct ===");
+            }
+        }
+        Console.WriteLine("=== CreateCarModelImagesTable: Completed ===");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"=== CreateCarModelImagesTable: ERROR - {ex.Message} ===");
+        Console.WriteLine($"=== CreateCarModelImagesTable: FULL ERROR - {ex} ===");
     }
 }

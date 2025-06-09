@@ -12,7 +12,6 @@ const CarConfigurator = () => {
   
   const [activeTab, setActiveTab] = useState('engine');
   const [carColor, setCarColor] = useState('#000000');
-  const [currentRotation, setCurrentRotation] = useState(0);
   
   // Nowe stany dla danych z API
   const [carModels, setCarModels] = useState([]);
@@ -241,13 +240,6 @@ const CarConfigurator = () => {
 
 
 
-  const rotateLeft = () => {
-    setCurrentRotation((prev) => (prev - 45 + 360) % 360);
-  };
-
-  const rotateRight = () => {
-    setCurrentRotation((prev) => (prev + 45) % 360);
-  };
 
   // Obliczanie ceny z uwzględnieniem danych z API
   const totalPrice = useMemo(() => {
@@ -291,9 +283,6 @@ const CarConfigurator = () => {
       <div className={styles.configuratorContent}>
         <div className={styles.configuratorLeftPanel}>
           <CarViewer
-            currentRotation={currentRotation}
-            rotateLeft={rotateLeft}
-            rotateRight={rotateRight}
             selectedCarModel={selectedCarModel}
             carColor={carColor}
           />

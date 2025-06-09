@@ -16,6 +16,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories
         public DbSet<CarModel> CarModels { get; set; } = null!;
         public DbSet<Engine> Engines { get; set; } = null!;
         public DbSet<CarModelEngine> CarModelEngines { get; set; } = null!;
+        public DbSet<CarModelImage> CarModelImages { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,6 +26,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories
             modelBuilder.Entity<CarModel>().ToTable("pojazd");
             modelBuilder.Entity<Engine>().ToTable("silnik");
             modelBuilder.Entity<CarModelEngine>().ToTable("modelsilnik");
+            modelBuilder.Entity<CarModelImage>().ToTable("pojazd_zdjecie");
         }
     }
 }

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7001';
+const API_URL = import.meta.env.VITE_API_URL || 'https://localhost:7020';
 
 // Utworzenie instancji axios
 const axiosInstance = axios.create({
