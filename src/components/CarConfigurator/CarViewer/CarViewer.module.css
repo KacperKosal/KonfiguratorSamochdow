@@ -1,16 +1,20 @@
 .viewerContainer {
   position: relative;
   background-color: var(--color-bg-tertiary);
-  height: 400px;
+  height: 300px;
   margin-bottom: 16px;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 .viewerImage {
-  max-height: 300px;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
 }
 
 .rotateInfo {
@@ -42,4 +46,33 @@
 
 .rotateRight {
   right: 16px;
+}
+
+.carInfo {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  backdrop-filter: blur(4px);
+}
+
+.carName {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.carDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.carDetails span {
+  display: block;
 } 

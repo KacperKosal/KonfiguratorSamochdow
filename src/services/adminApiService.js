@@ -85,7 +85,10 @@ class AdminApiService {
 
   async updateEngine(id, engine) {
     try {
-      const response = await axiosInstance.put(`/api/engines/${id}`, engine);
+      console.log('updateEngine called with id:', id, 'type:', typeof id);
+      const url = `/api/engines/${id}`;
+      console.log('Making PUT request to URL:', url);
+      const response = await axiosInstance.put(url, engine);
       return response.data;
     } catch (error) {
       console.error('Error updating engine:', error);
@@ -95,6 +98,9 @@ class AdminApiService {
 
   async deleteEngine(id) {
     try {
+      if (!id) {
+        throw new Error('Engine ID is required for deletion');
+      }
       await axiosInstance.delete(`/api/engines/${id}`);
     } catch (error) {
       console.error('Error deleting engine:', error);
@@ -215,6 +221,46 @@ class AdminApiService {
       await axiosInstance.delete(`/api/images/${fileName}`);
     } catch (error) {
       console.error('Error deleting image:', error);
+      throw error;
+    }
+  }
+
+  // Zarządzanie powiązaniami model-silnik
+  async getEnginesForModel(modelId) {
+    try {
+      const response = await axiosInstance.get(`/api/car-models/${modelId}/engines`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching engines for model:', error);
+      throw error;
+    }
+  }
+
+  async addEngineToModel(modelId, engineData) {
+    try {
+      const response = await axiosInstance.post(`/api/car-models/${modelId}/engines`, engineData);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding engine to model:', error);
+      throw error;
+    }
+  }
+
+  async updateEngineForModel(modelId, engineId, engineData) {
+    try {
+      const response = await axiosInstance.put(`/api/car-models/${modelId}/engines/${engineId}`, engineData);
+      return response.data;
+    } catch (error) {
+      console.error('Error updating engine for model:', error);
+      throw error;
+    }
+  }
+
+  async removeEngineFromModel(modelId, engineId) {
+    try {
+      await axiosInstance.delete(`/api/car-models/${modelId}/engines/${engineId}`);
+    } catch (error) {
+      console.error('Error removing engine from model:', error);
       throw error;
     }
   }

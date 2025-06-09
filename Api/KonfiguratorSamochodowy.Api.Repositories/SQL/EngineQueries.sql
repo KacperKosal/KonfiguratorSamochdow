@@ -5,9 +5,15 @@
 SELECT
     ID,
     CAST(ID AS VARCHAR) AS Id,
-    COALESCE(Pojemnosc, '') AS Name,
+    COALESCE(CAST(Pojemnosc AS VARCHAR), '') AS Name,
     Typ AS Type,
-    CAST(Pojemnosc AS INT) AS Capacity,
+    CASE
+        WHEN Pojemnosc LIKE '%L%' THEN 
+            CAST(REPLACE(SUBSTRING(Pojemnosc, 1, POSITION('L' IN Pojemnosc) - 1), ',', '.') AS FLOAT)::INT * 1000
+        WHEN Pojemnosc = '—' THEN 0
+        WHEN Pojemnosc ~ '^[0-9]+$' THEN CAST(Pojemnosc AS INT)
+        ELSE 0
+    END AS Capacity,
     Moc AS Power,
     CAST(Moc * 1.5 AS INT) AS Torque,
     CASE

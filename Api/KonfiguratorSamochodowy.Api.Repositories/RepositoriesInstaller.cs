@@ -48,7 +48,9 @@ public static class RepositoriesInstaller
         // Register our pure SQL implementations using Dapper
         services.AddTransient<ICarModelRepository, SqlCarModelRepository>();
         services.AddTransient<ICarModelEngineRepository, SqlCarModelEngineRepository>();
-        services.AddTransient<IEngineRepository, SqlEngineRepository>();
+        services.AddTransient<IEngineRepository, EngineRepository>();
+        services.AddTransient<ICarAccessoryRepository, CarAccessoryRepository>();
+        services.AddTransient<ICarInteriorEquipmentRepository, CarInteriorEquipmentRepository>();
         
         return services;
     }

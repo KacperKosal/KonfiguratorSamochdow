@@ -5,6 +5,12 @@ const ConfigTabs = ({ activeTab, setActiveTab }) => {
   return (
     <div className={styles.tabs}>
       <button
+        onClick={() => setActiveTab('engine')}
+        className={`${styles.tabButton} ${activeTab === 'engine' ? styles.active : ''}`}
+      >
+        🔧 Silnik
+      </button>
+      <button
         onClick={() => setActiveTab('exterior')}
         className={`${styles.tabButton} ${activeTab === 'exterior' ? styles.active : ''}`}
       >

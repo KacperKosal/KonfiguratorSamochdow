@@ -106,10 +106,14 @@ namespace KonfiguratorSamochodowy.Api.Services
 
         public async Task<Result<EngineDto>> UpdateAsync(string id, UpdateEngineRequest request)
         {
+            Console.WriteLine($"UpdateAsync called with id: {id}");
+            Console.WriteLine($"Request data: Name={request.Name}, Type={request.Type}, Capacity={request.Capacity}, Power={request.Power}");
+            
             var validationResult = await _updateValidator.ValidateAsync(request);
             if (!validationResult.IsValid)
             {
                 var errorMessage = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+                Console.WriteLine($"Validation failed: {errorMessage}");
                 return Result<EngineDto>.Failure(
                     new Error("ValidationError", errorMessage));
             }

@@ -5,11 +5,6 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Models;
 public class Engine
 {
     /// <summary>
-    /// Unikalny identyfikator silnika
-    /// </summary>
-    public int ID { get; set; }
-
-    /// <summary>
     /// Identyfikator silnika (używany w API)
     /// </summary>
     public string Id { get; set; } = string.Empty;

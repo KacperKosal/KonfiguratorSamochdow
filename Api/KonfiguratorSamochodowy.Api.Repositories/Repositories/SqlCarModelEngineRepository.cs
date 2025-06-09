@@ -8,7 +8,6 @@ using KonfiguratorSamochodowy.Api.Models;
 using KonfiguratorSamochodowy.Api.Repositories.Enums;
 using KonfiguratorSamochodowy.Api.Repositories.Helpers;
 using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
-using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 
 namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
 {
@@ -22,6 +21,195 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
         }
 
         public async Task<Result<IEnumerable<CarModelEngine>>> GetAllAsync()
+        {
+            try
+            {
+                var query = @"
+                    SELECT
+                        CAST(ms.id AS VARCHAR) as Id,
+                        CAST(ms.modelid AS VARCHAR) as CarModelId,
+                        CAST(ms.silnikid AS VARCHAR) as EngineId,
+                        ms.cenadodatkowa as AdditionalPrice,
+                        TRUE as IsDefault,
+                        CAST(CASE 
+                            WHEN s.typ = 'benzyna' THEN 200 + CAST(s.moc AS INTEGER) / 2
+                            WHEN s.typ = 'diesel' THEN 180 + CAST(s.moc AS INTEGER) / 3
+                            WHEN s.typ = 'elektryczny' THEN 220 + CAST(s.moc AS INTEGER) / 4
+                            ELSE 160 + CAST(s.moc AS INTEGER) / 5
+                        END AS INT) as TopSpeed,
+                        CAST(CASE
+                            WHEN s.typ = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - CAST(s.moc AS INTEGER)) / 100.0
+                        END AS DECIMAL(4,1)) as Acceleration0To100,
+                        NOW() as AvailabilityDate,
+                        TRUE as IsAvailable, 
+                        NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
+                        NULL as UpdatedAt
+                    FROM 
+                        modelsilnik ms
+                    JOIN 
+                        pojazd p ON ms.modelid = p.id
+                    JOIN 
+                        silnik s ON ms.silnikid = s.id
+                    ORDER BY 
+                        p.model, CAST(s.moc AS INTEGER) DESC";
+
+                var carModelEngines = await _connection.QueryAsync<CarModelEngine>(query);
+                
+                return Result<IEnumerable<CarModelEngine>>.Success(carModelEngines);
+            }
+            catch (Exception ex)
+            {
+                return Result<IEnumerable<CarModelEngine>>.Failure(new Error("DatabaseError", $"Failed to get car model engines: {ex.Message}"));
+            }
+        }
+
+        public async Task<Result<CarModelEngine>> GetByIdAsync(string id)
+        {
+            try
+            {
+                var query = @"
+                    SELECT
+                        CAST(ms.id AS VARCHAR) as Id,
+                        CAST(ms.modelid AS VARCHAR) as CarModelId,
+                        CAST(ms.silnikid AS VARCHAR) as EngineId,
+                        ms.cenadodatkowa as AdditionalPrice,
+                        TRUE as IsDefault,
+                        CASE 
+                            WHEN s.typ = 'benzyna' THEN 200 + CAST(s.moc AS INTEGER) / 2
+                            WHEN s.typ = 'diesel' THEN 180 + CAST(s.moc AS INTEGER) / 3
+                            WHEN s.typ = 'elektryczny' THEN 220 + CAST(s.moc AS INTEGER) / 4
+                            ELSE 160 + CAST(s.moc AS INTEGER) / 5
+                        END as TopSpeed,
+                        CASE
+                            WHEN s.typ = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - CAST(s.moc AS INTEGER)) / 100.0
+                        END as Acceleration0To100,
+                        NOW() as AvailabilityDate,
+                        TRUE as IsAvailable, 
+                        NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
+                        NULL as UpdatedAt
+                    FROM 
+                        modelsilnik ms
+                    JOIN 
+                        pojazd p ON ms.modelid = p.id
+                    JOIN 
+                        silnik s ON ms.silnikid = s.id
+                    WHERE 
+                        ms.id = CAST(@Id AS INTEGER)";
+
+                var carModelEngine = await _connection.QueryFirstOrDefaultAsync<CarModelEngine>(query, new { Id = id });
+
+                if (carModelEngine == null)
+                {
+                    return Result<CarModelEngine>.Failure(new Error("NotFound", $"Car model engine with id {id} not found"));
+                }
+
+                return Result<CarModelEngine>.Success(carModelEngine);
+            }
+            catch (Exception ex)
+            {
+                return Result<CarModelEngine>.Failure(new Error("DatabaseError", $"Failed to get car model engine with id {id}: {ex.Message}"));
+            }
+        }
+
+        public async Task<Result<CarModelEngine>> GetByCarModelAndEngineIdAsync(string carModelId, string engineId)
+        {
+            try
+            {
+                var query = @"
+                    SELECT
+                        CAST(ms.id AS VARCHAR) as Id,
+                        CAST(ms.modelid AS VARCHAR) as CarModelId,
+                        CAST(ms.silnikid AS VARCHAR) as EngineId,
+                        ms.cenadodatkowa as AdditionalPrice,
+                        TRUE as IsDefault,
+                        CASE 
+                            WHEN s.typ = 'benzyna' THEN 200 + CAST(s.moc AS INTEGER) / 2
+                            WHEN s.typ = 'diesel' THEN 180 + CAST(s.moc AS INTEGER) / 3
+                            WHEN s.typ = 'elektryczny' THEN 220 + CAST(s.moc AS INTEGER) / 4
+                            ELSE 160 + CAST(s.moc AS INTEGER) / 5
+                        END as TopSpeed,
+                        CASE
+                            WHEN s.typ = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - CAST(s.moc AS INTEGER)) / 100.0
+                        END as Acceleration0To100,
+                        NOW() as AvailabilityDate,
+                        TRUE as IsAvailable, 
+                        NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
+                        NULL as UpdatedAt
+                    FROM 
+                        modelsilnik ms
+                    JOIN 
+                        pojazd p ON ms.modelid = p.id
+                    JOIN 
+                        silnik s ON ms.silnikid = s.id
+                    WHERE 
+                        ms.modelid = CAST(@CarModelId AS INTEGER)
+                        AND ms.silnikid = CAST(@EngineId AS INTEGER)";
+
+                var carModelEngine = await _connection.QueryFirstOrDefaultAsync<CarModelEngine>(query, new { CarModelId = carModelId, EngineId = engineId });
+
+                if (carModelEngine == null)
+                {
+                    return Result<CarModelEngine>.Failure(new Error("NotFound", $"Car model engine with carModelId {carModelId} and engineId {engineId} not found"));
+                }
+
+                return Result<CarModelEngine>.Success(carModelEngine);
+            }
+            catch (Exception ex)
+            {
+                return Result<CarModelEngine>.Failure(new Error("DatabaseError", $"Failed to get car model engine with carModelId {carModelId} and engineId {engineId}: {ex.Message}"));
+            }
+        }
+
+        public async Task<Result<IEnumerable<CarModelEngine>>> GetByCarModelIdAsync(string carModelId)
+        {
+            try
+            {
+                var query = @"
+                    SELECT
+                        CAST(ms.id AS VARCHAR) as Id,
+                        CAST(ms.modelid AS VARCHAR) as CarModelId,
+                        CAST(ms.silnikid AS VARCHAR) as EngineId,
+                        ms.cenadodatkowa as AdditionalPrice,
+                        TRUE as IsDefault,
+                        CASE 
+                            WHEN s.typ = 'benzyna' THEN 200 + CAST(s.moc AS INTEGER) / 2
+                            WHEN s.typ = 'diesel' THEN 180 + CAST(s.moc AS INTEGER) / 3
+                            WHEN s.typ = 'elektryczny' THEN 220 + CAST(s.moc AS INTEGER) / 4
+                            ELSE 160 + CAST(s.moc AS INTEGER) / 5
+                        END as TopSpeed,
+                        CASE
+                            WHEN s.typ = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - CAST(s.moc AS INTEGER)) / 100.0
+                        END as Acceleration0To100,
+                        NOW() as AvailabilityDate,
+                        TRUE as IsAvailable, 
+                        NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
+                        NULL as UpdatedAt
+                    FROM 
+                        modelsilnik ms
+                    JOIN 
+                        pojazd p ON ms.modelid = p.id
+                    JOIN 
+                        silnik s ON ms.silnikid = s.id
+                    WHERE 
+                        ms.modelid = CAST(@CarModelId AS INTEGER)
+                    ORDER BY 
+                        CAST(s.moc AS INTEGER) DESC";
+
+                var carModelEngines = await _connection.QueryAsync<CarModelEngine>(query, new { CarModelId = carModelId });
+                
+                return Result<IEnumerable<CarModelEngine>>.Success(carModelEngines);
+            }
+            catch (Exception ex)
+            {
+                return Result<IEnumerable<CarModelEngine>>.Failure(new Error("DatabaseError", $"Failed to get car model engines by car model id {carModelId}: {ex.Message}"));
+            }
+        }
+
+        public async Task<Result<IEnumerable<CarModelEngine>>> GetByEngineIdAsync(string engineId)
         {
             try
             {
@@ -52,199 +240,10 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         pojazd p ON ms.modelid = p.id
                     JOIN 
                         silnik s ON ms.silnikid = s.id
+                    WHERE 
+                        ms.silnikid = CAST(@EngineId AS INTEGER)
                     ORDER BY 
-                        p.model, s.moc DESC";
-
-                var carModelEngines = await _connection.QueryAsync<CarModelEngine>(query);
-                
-                return Result<IEnumerable<CarModelEngine>>.Success(carModelEngines);
-            }
-            catch (Exception ex)
-            {
-                return Result<IEnumerable<CarModelEngine>>.Failure(new Error("DatabaseError", $"Failed to get car model engines: {ex.Message}"));
-            }
-        }
-
-        public async Task<Result<CarModelEngine>> GetByIdAsync(string id)
-        {
-            try
-            {
-                var query = @"
-                    SELECT
-                        CAST(ms.""ID"" AS VARCHAR) as Id,
-                        CAST(ms.""ModelID"" AS VARCHAR) as CarModelId,
-                        CAST(ms.""SilnikID"" AS VARCHAR) as EngineId,
-                        ms.""CenaDodatkowa"" as AdditionalPrice,
-                        TRUE as IsDefault,
-                        CASE 
-                            WHEN s.""Typ"" = 'benzyna' THEN 200 + s.""Moc"" / 2
-                            WHEN s.""Typ"" = 'diesel' THEN 180 + s.""Moc"" / 3
-                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + s.""Moc"" / 4
-                            ELSE 160 + s.""Moc"" / 5
-                        END as TopSpeed,
-                        CASE
-                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - s.""Moc"") / 100.0
-                        END as Acceleration0To100,
-                        NOW() as AvailabilityDate,
-                        TRUE as IsAvailable, 
-                        NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
-                        NULL as UpdatedAt
-                    FROM 
-                        ""ModelSilnik"" ms
-                    JOIN 
-                        ""Model"" m ON ms.""ModelID"" = m.""ID""
-                    JOIN 
-                        ""Silnik"" s ON ms.""SilnikID"" = s.""ID""
-                    WHERE 
-                        ms.""ID"" = @Id";
-
-                var carModelEngine = await _connection.QueryFirstOrDefaultAsync<CarModelEngine>(query, new { Id = id });
-
-                if (carModelEngine == null)
-                {
-                    return Result<CarModelEngine>.Failure(new Error("NotFound", $"Car model engine with id {id} not found"));
-                }
-
-                return Result<CarModelEngine>.Success(carModelEngine);
-            }
-            catch (Exception ex)
-            {
-                return Result<CarModelEngine>.Failure(new Error("DatabaseError", $"Failed to get car model engine with id {id}: {ex.Message}"));
-            }
-        }
-
-        public async Task<Result<CarModelEngine>> GetByCarModelAndEngineIdAsync(string carModelId, string engineId)
-        {
-            try
-            {
-                var query = @"
-                    SELECT
-                        CAST(ms.""ID"" AS VARCHAR) as Id,
-                        CAST(ms.""ModelID"" AS VARCHAR) as CarModelId,
-                        CAST(ms.""SilnikID"" AS VARCHAR) as EngineId,
-                        ms.""CenaDodatkowa"" as AdditionalPrice,
-                        TRUE as IsDefault,
-                        CASE 
-                            WHEN s.""Typ"" = 'benzyna' THEN 200 + s.""Moc"" / 2
-                            WHEN s.""Typ"" = 'diesel' THEN 180 + s.""Moc"" / 3
-                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + s.""Moc"" / 4
-                            ELSE 160 + s.""Moc"" / 5
-                        END as TopSpeed,
-                        CASE
-                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - s.""Moc"") / 100.0
-                        END as Acceleration0To100,
-                        NOW() as AvailabilityDate,
-                        TRUE as IsAvailable, 
-                        NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
-                        NULL as UpdatedAt
-                    FROM 
-                        ""ModelSilnik"" ms
-                    JOIN 
-                        ""Model"" m ON ms.""ModelID"" = m.""ID""
-                    JOIN 
-                        ""Silnik"" s ON ms.""SilnikID"" = s.""ID""
-                    WHERE 
-                        ms.""ModelID"" = @CarModelId
-                        AND ms.""SilnikID"" = @EngineId";
-
-                var carModelEngine = await _connection.QueryFirstOrDefaultAsync<CarModelEngine>(query, new { CarModelId = carModelId, EngineId = engineId });
-
-                if (carModelEngine == null)
-                {
-                    return Result<CarModelEngine>.Failure(new Error("NotFound", $"Car model engine with carModelId {carModelId} and engineId {engineId} not found"));
-                }
-
-                return Result<CarModelEngine>.Success(carModelEngine);
-            }
-            catch (Exception ex)
-            {
-                return Result<CarModelEngine>.Failure(new Error("DatabaseError", $"Failed to get car model engine with carModelId {carModelId} and engineId {engineId}: {ex.Message}"));
-            }
-        }
-
-        public async Task<Result<IEnumerable<CarModelEngine>>> GetByCarModelIdAsync(string carModelId)
-        {
-            try
-            {
-                var query = @"
-                    SELECT
-                        CAST(ms.""ID"" AS VARCHAR) as Id,
-                        CAST(ms.""ModelID"" AS VARCHAR) as CarModelId,
-                        CAST(ms.""SilnikID"" AS VARCHAR) as EngineId,
-                        ms.""CenaDodatkowa"" as AdditionalPrice,
-                        TRUE as IsDefault,
-                        CASE 
-                            WHEN s.""Typ"" = 'benzyna' THEN 200 + s.""Moc"" / 2
-                            WHEN s.""Typ"" = 'diesel' THEN 180 + s.""Moc"" / 3
-                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + s.""Moc"" / 4
-                            ELSE 160 + s.""Moc"" / 5
-                        END as TopSpeed,
-                        CASE
-                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - s.""Moc"") / 100.0
-                        END as Acceleration0To100,
-                        NOW() as AvailabilityDate,
-                        TRUE as IsAvailable, 
-                        NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
-                        NULL as UpdatedAt
-                    FROM 
-                        ""ModelSilnik"" ms
-                    JOIN 
-                        ""Model"" m ON ms.""ModelID"" = m.""ID""
-                    JOIN 
-                        ""Silnik"" s ON ms.""SilnikID"" = s.""ID""
-                    WHERE 
-                        ms.""ModelID"" = @CarModelId
-                    ORDER BY 
-                        s.""Moc"" DESC";
-
-                var carModelEngines = await _connection.QueryAsync<CarModelEngine>(query, new { CarModelId = carModelId });
-                
-                return Result<IEnumerable<CarModelEngine>>.Success(carModelEngines);
-            }
-            catch (Exception ex)
-            {
-                return Result<IEnumerable<CarModelEngine>>.Failure(new Error("DatabaseError", $"Failed to get car model engines by car model id {carModelId}: {ex.Message}"));
-            }
-        }
-
-        public async Task<Result<IEnumerable<CarModelEngine>>> GetByEngineIdAsync(string engineId)
-        {
-            try
-            {
-                var query = @"
-                    SELECT
-                        CAST(ms.""ID"" AS VARCHAR) as Id,
-                        CAST(ms.""ModelID"" AS VARCHAR) as CarModelId,
-                        CAST(ms.""SilnikID"" AS VARCHAR) as EngineId,
-                        ms.""CenaDodatkowa"" as AdditionalPrice,
-                        TRUE as IsDefault,
-                        CASE 
-                            WHEN s.""Typ"" = 'benzyna' THEN 200 + s.""Moc"" / 2
-                            WHEN s.""Typ"" = 'diesel' THEN 180 + s.""Moc"" / 3
-                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + s.""Moc"" / 4
-                            ELSE 160 + s.""Moc"" / 5
-                        END as TopSpeed,
-                        CASE
-                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - s.""Moc"") / 100.0
-                        END as Acceleration0To100,
-                        NOW() as AvailabilityDate,
-                        TRUE as IsAvailable, 
-                        NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
-                        NULL as UpdatedAt
-                    FROM 
-                        ""ModelSilnik"" ms
-                    JOIN 
-                        ""Model"" m ON ms.""ModelID"" = m.""ID""
-                    JOIN 
-                        ""Silnik"" s ON ms.""SilnikID"" = s.""ID""
-                    WHERE 
-                        ms.""SilnikID"" = @EngineId
-                    ORDER BY 
-                        m.""Marka"", m.""Model""";
+                        p.marka, p.model";
 
                 var carModelEngines = await _connection.QueryAsync<CarModelEngine>(query, new { EngineId = engineId });
                 
@@ -263,8 +262,8 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 // Check if the combination already exists
                 var checkQuery = @"
                     SELECT COUNT(*) 
-                    FROM ""ModelSilnik"" 
-                    WHERE ""ModelID"" = @CarModelId AND ""SilnikID"" = @EngineId";
+                    FROM modelsilnik 
+                    WHERE modelid = CAST(@CarModelId AS INTEGER) AND silnikid = CAST(@EngineId AS INTEGER)";
 
                 var existingCount = await _connection.ExecuteScalarAsync<int>(checkQuery, new 
                 { 
@@ -278,57 +277,58 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 }
 
                 var query = @"
-                    INSERT INTO ""ModelSilnik"" (
-                        ""ID"",
-                        ""ModelID"",
-                        ""SilnikID"",
-                        ""CenaDodatkowa""
+                    INSERT INTO modelsilnik (
+                        modelid,
+                        silnikid,
+                        cenadodatkowa
                     )
                     VALUES (
-                        @Id,
-                        @CarModelId,
-                        @EngineId,
+                        CAST(@CarModelId AS INTEGER),
+                        CAST(@EngineId AS INTEGER),
                         @AdditionalPrice
-                    );
-                    
+                    ) RETURNING id";
+
+                var parameters = new
+                {
+                    CarModelId = carModelEngine.CarModelId,
+                    EngineId = carModelEngine.EngineId,
+                    AdditionalPrice = carModelEngine.AdditionalPrice
+                };
+
+                var insertedId = await _connection.QueryFirstOrDefaultAsync<int>(query, parameters);
+                
+                // Now get the created record
+                var selectQuery = @"
                     SELECT
-                        CAST(ms.""ID"" AS VARCHAR) as Id,
-                        CAST(ms.""ModelID"" AS VARCHAR) as CarModelId,
-                        CAST(ms.""SilnikID"" AS VARCHAR) as EngineId,
-                        ms.""CenaDodatkowa"" as AdditionalPrice,
+                        CAST(ms.id AS VARCHAR) as Id,
+                        CAST(ms.modelid AS VARCHAR) as CarModelId,
+                        CAST(ms.silnikid AS VARCHAR) as EngineId,
+                        ms.cenadodatkowa as AdditionalPrice,
                         TRUE as IsDefault,
                         CASE 
-                            WHEN s.""Typ"" = 'benzyna' THEN 200 + s.""Moc"" / 2
-                            WHEN s.""Typ"" = 'diesel' THEN 180 + s.""Moc"" / 3
-                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + s.""Moc"" / 4
-                            ELSE 160 + s.""Moc"" / 5
+                            WHEN s.typ = 'benzyna' THEN 200 + s.moc / 2
+                            WHEN s.typ = 'diesel' THEN 180 + s.moc / 3
+                            WHEN s.typ = 'elektryczny' THEN 220 + s.moc / 4
+                            ELSE 160 + s.moc / 5
                         END as TopSpeed,
                         CASE
-                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - s.""Moc"") / 100.0
+                            WHEN s.typ = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - s.moc) / 100.0
                         END as Acceleration0To100,
                         NOW() as AvailabilityDate,
                         TRUE as IsAvailable, 
                         NOW() as CreatedAt,
                         NULL as UpdatedAt
                     FROM 
-                        ""ModelSilnik"" ms
+                        modelsilnik ms
                     JOIN 
-                        ""Model"" m ON ms.""ModelID"" = m.""ID""
+                        pojazd p ON ms.modelid = p.id
                     JOIN 
-                        ""Silnik"" s ON ms.""SilnikID"" = s.""ID""
+                        silnik s ON ms.silnikid = s.id
                     WHERE 
-                        ms.""ID"" = @Id";
-
-                var parameters = new
-                {
-                    Id = string.IsNullOrEmpty(carModelEngine.Id) ? Guid.NewGuid().ToString() : carModelEngine.Id,
-                    CarModelId = carModelEngine.CarModelId,
-                    EngineId = carModelEngine.EngineId,
-                    AdditionalPrice = carModelEngine.AdditionalPrice
-                };
-
-                var result = await _connection.QueryFirstOrDefaultAsync<CarModelEngine>(query, parameters);
+                        ms.id = @InsertedId";
+                        
+                var result = await _connection.QueryFirstOrDefaultAsync<CarModelEngine>(selectQuery, new { InsertedId = insertedId });
 
                 if (result == null)
                 {
@@ -348,7 +348,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
             try
             {
                 // Check if the record exists
-                var checkQuery = "SELECT COUNT(*) FROM \"ModelSilnik\" WHERE \"ID\" = @Id";
+                var checkQuery = "SELECT COUNT(*) FROM modelsilnik WHERE id = CAST(@Id AS INTEGER)";
                 var existingCount = await _connection.ExecuteScalarAsync<int>(checkQuery, new { Id = id });
 
                 if (existingCount == 0)
@@ -359,10 +359,10 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 // Check if the updated combination would conflict with an existing one
                 var conflictCheckQuery = @"
                     SELECT COUNT(*) 
-                    FROM ""ModelSilnik"" 
-                    WHERE ""ModelID"" = @CarModelId 
-                      AND ""SilnikID"" = @EngineId 
-                      AND ""ID"" != @Id";
+                    FROM modelsilnik 
+                    WHERE modelid = CAST(@CarModelId AS INTEGER) 
+                      AND silnikid = CAST(@EngineId AS INTEGER) 
+                      AND id != CAST(@Id AS INTEGER)";
 
                 var conflictCount = await _connection.ExecuteScalarAsync<int>(conflictCheckQuery, new 
                 { 
@@ -377,41 +377,41 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 }
 
                 var query = @"
-                    UPDATE ""ModelSilnik"" SET
-                        ""ModelID"" = @CarModelId,
-                        ""SilnikID"" = @EngineId,
-                        ""CenaDodatkowa"" = @AdditionalPrice
+                    UPDATE modelsilnik SET
+                        modelid = CAST(@CarModelId AS INTEGER),
+                        silnikid = CAST(@EngineId AS INTEGER),
+                        cenadodatkowa = @AdditionalPrice
                     WHERE 
-                        ""ID"" = @Id;
+                        id = CAST(@Id AS INTEGER);
                         
                     SELECT
-                        CAST(ms.""ID"" AS VARCHAR) as Id,
-                        CAST(ms.""ModelID"" AS VARCHAR) as CarModelId,
-                        CAST(ms.""SilnikID"" AS VARCHAR) as EngineId,
-                        ms.""CenaDodatkowa"" as AdditionalPrice,
+                        CAST(ms.id AS VARCHAR) as Id,
+                        CAST(ms.modelid AS VARCHAR) as CarModelId,
+                        CAST(ms.silnikid AS VARCHAR) as EngineId,
+                        ms.cenadodatkowa as AdditionalPrice,
                         TRUE as IsDefault,
                         CASE 
-                            WHEN s.""Typ"" = 'benzyna' THEN 200 + s.""Moc"" / 2
-                            WHEN s.""Typ"" = 'diesel' THEN 180 + s.""Moc"" / 3
-                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + s.""Moc"" / 4
-                            ELSE 160 + s.""Moc"" / 5
+                            WHEN s.typ = 'benzyna' THEN 200 + s.moc / 2
+                            WHEN s.typ = 'diesel' THEN 180 + s.moc / 3
+                            WHEN s.typ = 'elektryczny' THEN 220 + s.moc / 4
+                            ELSE 160 + s.moc / 5
                         END as TopSpeed,
                         CASE
-                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - s.""Moc"") / 100.0
+                            WHEN s.typ = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - s.moc) / 100.0
                         END as Acceleration0To100,
                         NOW() as AvailabilityDate,
                         TRUE as IsAvailable, 
                         NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
                         NOW() as UpdatedAt
                     FROM 
-                        ""ModelSilnik"" ms
+                        modelsilnik ms
                     JOIN 
-                        ""Model"" m ON ms.""ModelID"" = m.""ID""
+                        pojazd p ON ms.modelid = p.id
                     JOIN 
-                        ""Silnik"" s ON ms.""SilnikID"" = s.""ID""
+                        silnik s ON ms.silnikid = s.id
                     WHERE 
-                        ms.""ID"" = @Id";
+                        ms.id = CAST(@Id AS INTEGER)";
 
                 var parameters = new
                 {
@@ -443,17 +443,17 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 // Check if there are related records in other tables
                 var checkRelatedQuery = @"
                     SELECT COUNT(*) 
-                    FROM ""Konfiguracja"" k 
-                    WHERE k.""ModelSilnikID"" = @Id";
+                    FROM konfiguracja k 
+                    WHERE k.modelsilnikid = CAST(@Id AS INTEGER)";
 
                 var relatedCount = await _connection.ExecuteScalarAsync<int>(checkRelatedQuery, new { Id = id });
 
                 if (relatedCount > 0)
                 {
-                    return Result<bool>.Failure(new Error("ReferenceConstraint", $"Cannot delete car model engine with id {id} because it has related records in Konfiguracja table"));
+                    return Result<bool>.Failure(new Error("ReferenceConstraint", $"Cannot delete car model engine with id {id} because it has related records in konfiguracja table"));
                 }
 
-                var query = "DELETE FROM \"ModelSilnik\" WHERE \"ID\" = @Id";
+                var query = "DELETE FROM modelsilnik WHERE id = CAST(@Id AS INTEGER)";
                 var rowsAffected = await _connection.ExecuteAsync(query, new { Id = id });
 
                 if (rowsAffected == 0)
@@ -476,18 +476,18 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 // Check if there are related records in other tables
                 var checkRelatedQuery = @"
                     SELECT COUNT(*) 
-                    FROM ""Konfiguracja"" k 
-                    JOIN ""ModelSilnik"" ms ON k.""ModelSilnikID"" = ms.""ID""
-                    WHERE ms.""ModelID"" = @CarModelId AND ms.""SilnikID"" = @EngineId";
+                    FROM konfiguracja k 
+                    JOIN modelsilnik ms ON k.modelsilnikid = ms.id
+                    WHERE ms.modelid = CAST(@CarModelId AS INTEGER) AND ms.silnikid = CAST(@EngineId AS INTEGER)";
 
                 var relatedCount = await _connection.ExecuteScalarAsync<int>(checkRelatedQuery, new { CarModelId = carModelId, EngineId = engineId });
 
                 if (relatedCount > 0)
                 {
-                    return Result<bool>.Failure(new Error("ReferenceConstraint", $"Cannot delete car model engine with carModelId {carModelId} and engineId {engineId} because it has related records in Konfiguracja table"));
+                    return Result<bool>.Failure(new Error("ReferenceConstraint", $"Cannot delete car model engine with carModelId {carModelId} and engineId {engineId} because it has related records in konfiguracja table"));
                 }
 
-                var query = "DELETE FROM \"ModelSilnik\" WHERE \"ModelID\" = @CarModelId AND \"SilnikID\" = @EngineId";
+                var query = "DELETE FROM modelsilnik WHERE modelid = CAST(@CarModelId AS INTEGER) AND silnikid = CAST(@EngineId AS INTEGER)";
                 var rowsAffected = await _connection.ExecuteAsync(query, new { CarModelId = carModelId, EngineId = engineId });
 
                 if (rowsAffected == 0)

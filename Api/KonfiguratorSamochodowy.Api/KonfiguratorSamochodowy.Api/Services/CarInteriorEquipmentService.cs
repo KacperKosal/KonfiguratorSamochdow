@@ -129,7 +129,7 @@ namespace KonfiguratorSamochodowy.Api.Services;
                 Description = request.Description,
                 IsDefault = request.IsDefault,
                 ColorCode = request.ColorCode,
-                Intensity = request.Intensity,
+                Intensity = string.IsNullOrEmpty(request.Intensity) ? null : int.TryParse(request.Intensity, out var intensity) ? intensity : null,
                 HasNavigation = request.HasNavigation,
                 HasPremiumSound = request.HasPremiumSound,
                 ControlType = request.ControlType
@@ -186,8 +186,8 @@ namespace KonfiguratorSamochodowy.Api.Services;
             if (!string.IsNullOrEmpty(request.ColorCode))
                 existingEquipment.ColorCode = request.ColorCode;
                 
-            if (request.Intensity.HasValue)
-                existingEquipment.Intensity = request.Intensity;
+            if (!string.IsNullOrEmpty(request.Intensity))
+                existingEquipment.Intensity = int.TryParse(request.Intensity, out var intensity) ? intensity : null;
                 
             if (request.HasNavigation.HasValue)
                 existingEquipment.HasNavigation = request.HasNavigation;

@@ -1,11 +1,10 @@
 import React from 'react';
 import styles from './ConfigOptions.module.css';
+import { translateInteriorEquipmentType, translateAccessoryCategory } from '../../../utils/translations';
 
 const ConfigOptions = ({
   activeTab,
   exteriorColors,
-  wheelTypes,
-  interiorColors,
   accessories,
   selectedAccessories,
   onAccessoryToggle,
@@ -14,11 +13,54 @@ const ConfigOptions = ({
   onInteriorEquipmentToggle,
   carColor,
   setCarColor,
-  wheelType,
-  setWheelType,
-  interiorColor,
-  setInteriorColor,
+  engines,
+  selectedEngine,
+  onEngineChange,
 }) => {
+  // Silnik
+  if (activeTab === 'engine') {
+    if (!engines || engines.length === 0) {
+      return (
+        <div className={styles.textCenter}>
+          <p>Brak dostępnych silników dla tego modelu.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.configGrid}>
+        {engines.map((engine) => (
+          <div
+            key={engine.engineId}
+            onClick={() => onEngineChange(engine)}
+            className={`${styles.configItem} ${styles.engineItem} ${
+              selectedEngine?.engineId === engine.engineId ? styles.selected : ''
+            }`}
+          >
+            <div className={styles.engineIcon}>🔧</div>
+            <div className={styles.engineInfo}>
+              <div className={styles.engineName}>{engine.engineName}</div>
+              <div className={styles.engineDetails}>
+                <div>Moc: {engine.power} KM</div>
+                <div>Moment obrotowy: {engine.torque} Nm</div>
+                <div>Typ: {engine.fuelType}</div>
+                {engine.displacement && (
+                  <div>Pojemność: {engine.displacement}L</div>
+                )}
+              </div>
+              <div className={styles.priceText}>
+                +{engine.additionalPrice?.toLocaleString() || 0} zł
+              </div>
+            </div>
+            {selectedEngine?.engineId === engine.engineId && (
+              <div className={styles.selectedIndicator}>✓</div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   // Nadwozie
   if (activeTab === 'exterior') {
     return (
@@ -45,56 +87,89 @@ const ConfigOptions = ({
 
   // Felgi
   if (activeTab === 'wheels') {
+    // Filter accessories to get only AlloyWheels
+    const wheelAccessories = accessories ? accessories.filter(acc => acc.type === 'AlloyWheels') : [];
+    
+    if (!wheelAccessories || wheelAccessories.length === 0) {
+      return (
+        <div className={styles.textCenter}>
+          <p>Brak dostępnych felg dla tego modelu.</p>
+          <p style={{fontSize: '12px', color: '#666', marginTop: '8px'}}>
+            Dodaj felgi w panelu administratora, aby wyświetlić je tutaj.
+          </p>
+        </div>
+      );
+    }
+    
     return (
-      <div className={styles.configGrid}>
-        {wheelTypes.map((wheel) => (
-          <div
-            key={wheel.value}
-            onClick={() => setWheelType(wheel.value)}
-            className={`${styles.configItem} ${wheelType === wheel.value ? styles.selected : ''}`}
-          >
-            <div>
-              <img
-                src={wheel.image}
-                alt={wheel.name}
-                className={styles.wheelImage}
-              />
+      <div className={styles.configContainer}>
+        {/* Wheel accessories section */}
+        <div className={styles.sectionTitle}>Dostępne felgi</div>
+        <div className={styles.configGrid}>
+          {wheelAccessories.map((wheelAcc) => (
+            <div
+              key={wheelAcc.id}
+              onClick={() => onAccessoryToggle(wheelAcc.id)}
+              className={`${styles.configItem} ${styles.accessoryItem} ${
+                wheelAcc.selected ? styles.selected : ''
+              } ${!wheelAcc.isInStock ? styles.outOfStock : ''}`}
+            >
+              {wheelAcc.imageUrl && (
+                <div className={styles.accessoryImageContainer}>
+                  <img
+                    src={wheelAcc.imageUrl}
+                    alt={wheelAcc.name}
+                    className={styles.wheelImage}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+              <div className={styles.accessoryInfo}>
+                <div className={styles.accessoryName}>{wheelAcc.name}</div>
+                {wheelAcc.size && (
+                  <div className={styles.wheelSize}>Rozmiar: {wheelAcc.size}"</div>
+                )}
+                {wheelAcc.pattern && (
+                  <div className={styles.wheelPattern}>Wzór: {wheelAcc.pattern}</div>
+                )}
+                {wheelAcc.description && (
+                  <div className={styles.accessoryDescription}>
+                    {wheelAcc.description}
+                  </div>
+                )}
+                <div className={styles.accessoryDetails}>
+                  {wheelAcc.manufacturer && (
+                    <div className={styles.manufacturer}>
+                      {wheelAcc.manufacturer}
+                    </div>
+                  )}
+                  {wheelAcc.isOriginalBMWPart && (
+                    <div className={styles.originalPart}>Oryginalna część BMW</div>
+                  )}
+                </div>
+                <div className={styles.priceText}>
+                  +{wheelAcc.price?.toLocaleString() || 0} zł
+                </div>
+                {!wheelAcc.isInStock && (
+                  <div className={styles.stockStatus}>Brak w magazynie</div>
+                )}
+              </div>
+              {wheelAcc.selected && (
+                <div className={styles.selectedIndicator}>✓</div>
+              )}
             </div>
-            <div>{wheel.name}</div>
-            <div className={styles.priceText}>
-              +{wheel.price.toLocaleString()} zł
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   }
 
-  // Wnętrze - rozszerzone o wyposażenie
+  // Wnętrze - wyposażenie wnętrza
   if (activeTab === 'interior') {
     return (
       <div className={styles.configContainer}>
-        {/* Sekcja kolorów wnętrza */}
-        <div className={styles.sectionTitle}>Kolory wnętrza</div>
-        <div className={styles.configGrid}>
-          {interiorColors.map((color) => (
-            <div
-              key={color.value}
-              onClick={() => setInteriorColor(color.value)}
-              className={`${styles.configItem} ${interiorColor === color.value ? styles.selected : ''}`}
-            >
-              <div
-                className={styles.colorBox}
-                style={{ backgroundColor: color.value }}
-              />
-              <div>{color.name}</div>
-              <div className={styles.priceText}>
-                +{color.price.toLocaleString()} zł
-              </div>
-            </div>
-          ))}
-        </div>
-
         {/* Sekcja wyposażenia wnętrza */}
         <div className={styles.sectionTitle}>Wyposażenie wnętrza</div>
         {!interiorEquipment || interiorEquipment.length === 0 ? (
@@ -115,7 +190,7 @@ const ConfigOptions = ({
               }, {})
             ).map(([type, equipmentList]) => (
               <div key={type} className={styles.equipmentCategory}>
-                <h4 className={styles.categoryTitle}>{type}</h4>
+                <h4 className={styles.categoryTitle}>{translateInteriorEquipmentType(type)}</h4>
                 <div className={styles.equipmentGrid}>
                   {equipmentList.map((equipment) => {
                     const isSelected = selectedInteriorEquipment.some(eq => eq.id === equipment.id);
@@ -163,19 +238,22 @@ const ConfigOptions = ({
     console.log('Renderowanie akcesorii:', accessories);
     console.log('Liczba akcesorii:', accessories?.length);
     
-    if (!accessories || accessories.length === 0) {
+    // Filter out AlloyWheels accessories (they are shown in wheels tab)
+    const nonWheelAccessories = accessories ? accessories.filter(acc => acc.type !== 'AlloyWheels') : [];
+    
+    if (!nonWheelAccessories || nonWheelAccessories.length === 0) {
       return (
         <div className={styles.textCenter}>
           <p>Brak dostępnych akcesorii dla tego modelu.</p>
           <p style={{fontSize: '12px', color: '#666', marginTop: '8px'}}>
-            Debug: accessories = {JSON.stringify(accessories)}
+            Debug: total accessories = {accessories?.length}, non-wheel accessories = {nonWheelAccessories.length}
           </p>
         </div>
       );
     }
 
-    // Grupowanie akcesorii według kategorii
-    const accessoriesByCategory = accessories.reduce((groups, accessory) => {
+    // Grupowanie akcesorii według kategorii (bez felg)
+    const accessoriesByCategory = nonWheelAccessories.reduce((groups, accessory) => {
       const category = accessory.category || 'Inne';
       if (!groups[category]) {
         groups[category] = [];
@@ -188,7 +266,7 @@ const ConfigOptions = ({
       <div className={styles.accessoriesContainer}>
         {Object.entries(accessoriesByCategory).map(([category, categoryAccessories]) => (
           <div key={category} className={styles.categorySection}>
-            <h3 className={styles.categoryTitle}>{category}</h3>
+            <h3 className={styles.categoryTitle}>{translateAccessoryCategory(category)}</h3>
             <div className={styles.configGrid}>
               {categoryAccessories.map((accessory) => (
                 <div

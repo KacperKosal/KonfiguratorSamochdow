@@ -13,7 +13,7 @@ namespace KonfiguratorSamochodowy.Api.Requests
         
         // Dodatkowe pola w zależności od typu
         public string ColorCode { get; set; }
-        public int? Intensity { get; set; }
+        public string Intensity { get; set; }
         public bool? HasNavigation { get; set; }
         public bool? HasPremiumSound { get; set; }
         public string ControlType { get; set; }

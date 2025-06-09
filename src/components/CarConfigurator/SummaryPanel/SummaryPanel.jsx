@@ -6,19 +6,13 @@ const SummaryPanel = ({
   selectedCarModel,
   selectedEngine,
   exteriorColors,
-  wheelTypes,
-  interiorColors,
   selectedAccessories,
   selectedInteriorEquipment,
   carColor,
-  wheelType,
-  interiorColor,
   totalPrice,
   onSaveConfiguration
 }) => {
   const selectedExterior = exteriorColors.find(c => c.value === carColor);
-  const selectedWheels = wheelTypes.find(w => w.value === wheelType);
-  const selectedInterior = interiorColors.find(i => i.value === interiorColor);
 
   return (
     <div className={styles.summaryPanel}>
@@ -43,32 +37,51 @@ const SummaryPanel = ({
       {/* Pozostałe sekcje bez zmian */}
       <div className={styles.summarySection}>
         <h3>Kolor nadwozia</h3>
-        <p>{selectedExterior?.name}</p>
+        <div className={styles.colorItem}>
+          <div 
+            className={styles.colorSquare}
+            style={{ backgroundColor: selectedExterior?.value || carColor }}
+          ></div>
+          <p>{selectedExterior?.name}</p>
+        </div>
         <p className={styles.summaryPrice}>+{selectedExterior?.price.toLocaleString()} zł</p>
       </div>
-      <div className={styles.summarySection}>
-        <h3>Felgi</h3>
-        <p>{selectedWheels?.name}</p>
-        <p className={styles.summaryPrice}>+{selectedWheels?.price.toLocaleString()} zł</p>
-      </div>
-      <div className={styles.summarySection}>
-        <h3>Wnętrze</h3>
-        <p>{selectedInterior?.name}</p>
-        <p className={styles.summaryPrice}>+{selectedInterior?.price.toLocaleString()} zł</p>
-      </div>
+      {/* Sekcja felg */}
+      {(() => {
+        const selectedWheels = selectedAccessories ? selectedAccessories.filter(acc => acc.type === 'AlloyWheels') : [];
+        return selectedWheels.length > 0 && (
+          <div className={styles.summarySection}>
+            <h3>Felgi</h3>
+            {selectedWheels.map((wheel) => (
+              <div key={wheel.id} className={styles.accessoryItem}>
+                <div>
+                  <p>{wheel.name}</p>
+                  {wheel.size && <p className={styles.wheelDetails}>Rozmiar: {wheel.size}"</p>}
+                  {wheel.pattern && <p className={styles.wheelDetails}>Wzór: {wheel.pattern}</p>}
+                </div>
+                <p className={styles.summaryPrice}>+{wheel.price?.toLocaleString() || 0} zł</p>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
       
-      {/* Nowa sekcja akcesorii */}
-      {selectedAccessories && selectedAccessories.length > 0 && (
-        <div className={styles.summarySection}>
-          <h3>Akcesoria</h3>
-          {selectedAccessories.map((accessory) => (
-            <div key={accessory.id} className={styles.accessoryItem}>
-              <p>{accessory.name}</p>
-              <p className={styles.summaryPrice}>+{accessory.price?.toLocaleString() || 0} zł</p>
-            </div>
-          ))}
-        </div>
-      )}
+      
+      {/* Sekcja akcesoriów (bez felg) */}
+      {(() => {
+        const nonWheelAccessories = selectedAccessories ? selectedAccessories.filter(acc => acc.type !== 'AlloyWheels') : [];
+        return nonWheelAccessories.length > 0 && (
+          <div className={styles.summarySection}>
+            <h3>Akcesoria</h3>
+            {nonWheelAccessories.map((accessory) => (
+              <div key={accessory.id} className={styles.accessoryItem}>
+                <p>{accessory.name}</p>
+                <p className={styles.summaryPrice}>+{accessory.price?.toLocaleString() || 0} zł</p>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
       
       {/* Sekcja wyposażenia wnętrza */}
       {selectedInteriorEquipment && selectedInteriorEquipment.length > 0 && (
@@ -102,9 +115,6 @@ const SummaryPanel = ({
         >
           <ShoppingCart size={20} />
           Zapisz konfigurację
-        </button>
-        <button className={`${styles.actionButton} ${styles.testDrive}`}>
-          Umów jazdę testową
         </button>
         <button className={`${styles.actionButton} ${styles.availability}`}>
           Sprawdź dostępność

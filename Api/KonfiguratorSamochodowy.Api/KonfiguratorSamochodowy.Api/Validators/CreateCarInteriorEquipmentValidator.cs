@@ -34,8 +34,8 @@ namespace KonfiguratorSamochodowy.Api.Validators
                     .Matches("^#[0-9A-Fa-f]{6}$").WithMessage("Kod koloru musi być w formacie #RRGGBB");
                     
                 RuleFor(x => x.Intensity)
-                    .NotNull().WithMessage("Intensywność oświetlenia ambientowego jest wymagana")
-                    .InclusiveBetween(1, 10).WithMessage("Intensywność musi być między 1 a 10");
+                    .NotEmpty().WithMessage("Intensywność oświetlenia ambientowego jest wymagana")
+                    .Must(BeValidIntensity).WithMessage("Intensywność musi być liczbą między 1 a 10");
             });
             
             When(x => x.Type == InteriorEquipmentType.RadioType, () => {
@@ -61,6 +61,19 @@ namespace KonfiguratorSamochodowy.Api.Validators
         private bool BeValidCruiseControlType(string controlType)
         {
             return new[] { "Standard", "Adaptive", "None" }.Contains(controlType);
+        }
+        
+        private bool BeValidIntensity(string intensity)
+        {
+            if (string.IsNullOrEmpty(intensity))
+                return false;
+                
+            if (int.TryParse(intensity, out var value))
+            {
+                return value >= 1 && value <= 10;
+            }
+            
+            return false;
         }
     }
 }

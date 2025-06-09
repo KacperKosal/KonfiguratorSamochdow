@@ -8,7 +8,7 @@ const ModelCard = ({ model, formatPrice }) =>
   {
    const navigate = useNavigate()
    const goToConfigurator = () => {
-    navigate('/car-configurator')
+    navigate('/car-configurator', { state: { modelId: model.id, modelName: model.name } })
   }
   
   return (
@@ -20,11 +20,6 @@ const ModelCard = ({ model, formatPrice }) =>
           className={styles.image}
           fallbackSrc="/api/placeholder/300/180"
         />
-        {model.new && (
-          <div className={styles.newBadge}>
-            NOWOŚĆ
-          </div>
-        )}
         
       </div>
       <div className={styles.content}>

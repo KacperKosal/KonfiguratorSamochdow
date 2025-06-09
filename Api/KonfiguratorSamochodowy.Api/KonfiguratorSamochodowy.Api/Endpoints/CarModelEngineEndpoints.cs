@@ -15,7 +15,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
             // Pobieranie silników dla danego modelu
             group.MapGet("/{carModelId}/engines", async ([FromRoute] string carModelId, [FromServices] ICarModelEngineService service) =>
             {
-                var result = await service.GetByCarModelIdAsync(carModelId);
+                var result = await service.GetEnginesForCarModelAsync(carModelId);
                 return result.IsSuccess 
                     ? Results.Ok(result.Value) 
                     : result.Error.Code == "NotFound" 
@@ -24,7 +24,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
             })
             .WithName("GetEnginesByCarModel")
             .WithDisplayName("Pobierz silniki dla modelu samochodu")
-            .Produces<IEnumerable<CarModelEngineDto>>(StatusCodes.Status200OK)
+            .Produces<IEnumerable<EngineForModelDto>>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .Produces(StatusCodes.Status500InternalServerError);
 

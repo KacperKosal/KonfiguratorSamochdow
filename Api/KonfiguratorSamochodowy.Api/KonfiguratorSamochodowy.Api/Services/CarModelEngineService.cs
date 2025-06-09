@@ -118,6 +118,43 @@ namespace KonfiguratorSamochodowy.Api.Services
             return Result<IEnumerable<CarModelEngineDto>>.Success(carModelEngineDtos);
         }
 
+        public async Task<Result<IEnumerable<EngineForModelDto>>> GetEnginesForCarModelAsync(string carModelId)
+        {
+            var result = await _repository.GetByCarModelIdAsync(carModelId);
+            if (!result.IsSuccess)
+                return Result<IEnumerable<EngineForModelDto>>.Failure(result.Error);
+            
+            var carModelEngines = result.Value.ToList();
+            var engineDtos = new List<EngineForModelDto>();
+            
+            foreach (var cme in carModelEngines)
+            {
+                var engineResult = await _engineRepository.GetByIdAsync(cme.EngineId);
+                if (engineResult.IsSuccess)
+                {
+                    var engine = engineResult.Value;
+                    engineDtos.Add(new EngineForModelDto
+                    {
+                        EngineId = engine.Id,
+                        EngineName = engine.Name,
+                        AdditionalPrice = cme.AdditionalPrice,
+                        Type = engine.Type,
+                        Capacity = engine.Capacity.HasValue ? (decimal)engine.Capacity.Value : 0m,
+                        Power = engine.Power,
+                        FuelType = engine.FuelType,
+                        TopSpeed = cme.TopSpeed,
+                        Acceleration0To100 = cme.Acceleration0To100,
+                        FuelConsumption = engine.FuelConsumption,
+                        CO2Emission = (decimal)engine.CO2Emission,
+                        IsDefault = cme.IsDefault,
+                        IsAvailable = cme.IsAvailable
+                    });
+                }
+            }
+            
+            return Result<IEnumerable<EngineForModelDto>>.Success(engineDtos);
+        }
+
         public async Task<Result<IEnumerable<CarModelEngineDto>>> GetByEngineIdAsync(string engineId)
         {
             var result = await _repository.GetByEngineIdAsync(engineId);

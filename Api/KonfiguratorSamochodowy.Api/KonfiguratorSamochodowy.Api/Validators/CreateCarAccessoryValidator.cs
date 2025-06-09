@@ -37,7 +37,8 @@ namespace KonfiguratorSamochodowy.Api.Validators
             When(x => x.Type == AccessoryType.AlloyWheels, () => {
                 RuleFor(x => x.Size)
                     .NotEmpty().WithMessage("Rozmiar felg jest wymagany")
-                    .Matches(@"^\d{2}""\d{1,2}$").WithMessage("Nieprawidłowy format rozmiaru (np. 19\"9)");
+                    .Must(x => new[] { "17", "18", "19", "20" }.Contains(x))
+                    .WithMessage("Dozwolone rozmiary felg: 17, 18, 19, 20");
 
                 RuleFor(x => x.Pattern)
                     .NotEmpty().WithMessage("Wzór felg jest wymagany");

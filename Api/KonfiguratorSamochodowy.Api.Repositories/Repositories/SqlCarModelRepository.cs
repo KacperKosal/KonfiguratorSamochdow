@@ -295,8 +295,8 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         'Standardowe', 
                         @BasePrice, 
                         @Description, 
-                        @BodyType = 'SUV', 
-                        @Manufacturer = 'Tesla',
+                        CASE WHEN @BodyType = 'SUV' THEN true ELSE false END, 
+                        CASE WHEN @Manufacturer = 'Tesla' OR @Segment = 'Electric' THEN true ELSE false END,
                         'Brak',
                         @ImageUrl
                     )
@@ -345,6 +345,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     ProductionYear = carModel.ProductionYear,
                     BodyType = carModel.BodyType,
                     Manufacturer = carModel.Manufacturer,
+                    Segment = carModel.Segment,
                     BasePrice = carModel.BasePrice,
                     Description = carModel.Description,
                     ImageUrl = carModel.ImageUrl

@@ -100,3 +100,24 @@
     flex-direction: row;
   }
 }
+
+.selectedModelInfo {
+  background-color: var(--color-bg-secondary);
+  padding: 16px 24px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  box-shadow: 0 2px 5px var(--color-shadow);
+}
+
+.selectedModelInfo h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  color: var(--color-text-primary);
+}
+
+.selectedModelInfo p {
+  margin: 0;
+  font-size: 18px;
+  color: var(--color-text-secondary);
+}

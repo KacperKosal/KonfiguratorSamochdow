@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import styles from './CarConfigurator.module.css';
 import CarViewer from '../../components/CarConfigurator/CarViewer/CarViewer';
 import ConfigTabs from '../../components/CarConfigurator/ConfigTabs/ConfigTabs';
@@ -6,10 +7,11 @@ import ConfigOptions from '../../components/CarConfigurator/ConfigOptions/Config
 import SummaryPanel from '../../components/CarConfigurator/SummaryPanel/SummaryPanel';
 
 const CarConfigurator = () => {
-  const [activeTab, setActiveTab] = useState('exterior');
+  const location = useLocation();
+  const modelFromNavigation = location.state?.modelId;
+  
+  const [activeTab, setActiveTab] = useState('engine');
   const [carColor, setCarColor] = useState('#000000');
-  const [wheelType, setWheelType] = useState('standard');
-  const [interiorColor, setInteriorColor] = useState('#ffffff');
   const [currentRotation, setCurrentRotation] = useState(0);
   
   // Nowe stany dla danych z API
@@ -39,12 +41,20 @@ const CarConfigurator = () => {
         const carModelsData = await carModelsResponse.json();
         setCarModels(carModelsData);
         
-        // Ustaw pierwszy model jako domyślny
-        if (carModelsData.length > 0) {
-          setSelectedCarModel(carModelsData[0]);
+        // Wybierz model na podstawie nawigacji lub pierwszy dostępny
+        let selectedModel = null;
+        if (modelFromNavigation) {
+          selectedModel = carModelsData.find(model => model.id === modelFromNavigation);
+        }
+        if (!selectedModel && carModelsData.length > 0) {
+          selectedModel = carModelsData[0];
+        }
+        
+        if (selectedModel) {
+          setSelectedCarModel(selectedModel);
           
           // Pobierz silniki dla wybranego modelu
-          const enginesResponse = await fetch(`${apiUrl}/api/car-models/${carModelsData[0].id}/engines`);
+          const enginesResponse = await fetch(`${apiUrl}/api/car-models/${selectedModel.id}/engines`);
           if (enginesResponse.ok) {
             const enginesData = await enginesResponse.json();
             setEngines(enginesData);
@@ -53,105 +63,31 @@ const CarConfigurator = () => {
             }
           }
           
-          // Pobierz akcesoria - spróbuj różnych endpointów
-          console.log('Próba pobrania akcesorii dla modelu:', carModelsData[0].name);
-          
-          // Najpierw spróbuj dla konkretnego modelu
+          // Pobierz akcesoria
           let accessoriesData = [];
           try {
-            const accessoriesResponse = await fetch(`${apiUrl}/api/car-accessories/model/${encodeURIComponent(carModelsData[0].name)}`);
+            const accessoriesResponse = await fetch(`${apiUrl}/api/car-accessories`);
             if (accessoriesResponse.ok) {
               accessoriesData = await accessoriesResponse.json();
-              console.log('Akcesoria dla modelu:', accessoriesData);
             }
           } catch (err) {
-            console.log('Błąd pobierania akcesorii dla modelu:', err);
-          }
-          
-          // Jeśli brak akcesorii dla modelu, pobierz wszystkie
-          if (accessoriesData.length === 0) {
-            try {
-              const allAccessoriesResponse = await fetch(`${apiUrl}/api/car-accessories`);
-              if (allAccessoriesResponse.ok) {
-                const allAccessoriesData = await allAccessoriesResponse.json();
-                console.log('Wszystkie akcesoria:', allAccessoriesData);
-                accessoriesData = allAccessoriesData;
-              }
-            } catch (err) {
-              console.log('Błąd pobierania wszystkich akcesorii:', err);
-            }
-          }
-          
-          // Jeśli nadal brak danych, użyj przykładowych akcesorii
-          if (accessoriesData.length === 0) {
-            accessoriesData = [
-              {
-                id: '1',
-                name: 'Dywaniki gumowe',
-                description: 'Wysokiej jakości dywaniki gumowe dopasowane do modelu',
-                price: 299,
-                category: 'Wnętrze',
-                manufacturer: 'BMW',
-                isOriginalBMWPart: true,
-                isInStock: true,
-                imageUrl: null
-              },
-              {
-                id: '2',
-                name: 'Bagażnik dachowy',
-                description: 'Uniwersalny bagażnik dachowy o pojemności 400L',
-                price: 1299,
-                category: 'Zewnętrzne',
-                manufacturer: 'Thule',
-                isOriginalBMWPart: false,
-                isInStock: true,
-                imageUrl: null
-              },
-              {
-                id: '3',
-                name: 'Zestaw zimowy',
-                description: 'Kompletny zestaw opon zimowych z felgami',
-                price: 2499,
-                category: 'Koła',
-                manufacturer: 'BMW',
-                isOriginalBMWPart: true,
-                isInStock: false,
-                imageUrl: null
-              },
-              {
-                id: '4',
-                name: 'System nawigacji',
-                description: 'Zaawansowany system nawigacji z mapami Europy',
-                price: 1899,
-                category: 'Elektronika',
-                manufacturer: 'BMW',
-                isOriginalBMWPart: true,
-                isInStock: true,
-                imageUrl: null
-              },
-              {
-                id: '5',
-                name: 'Foteliki dziecięce',
-                description: 'Bezpieczne foteliki dla dzieci 9-36kg',
-                price: 899,
-                category: 'Bezpieczeństwo',
-                manufacturer: 'BMW',
-                isOriginalBMWPart: true,
-                isInStock: true,
-                imageUrl: null
-              }
-            ];
-            console.log('Używam przykładowych akcesorii');
+            console.log('Błąd pobierania akcesorii:', err);
           }
           
           setAccessories(accessoriesData.map(acc => ({ ...acc, selected: false })));
-        }
-        
-        // Pobierz wszystkie silniki
-        const allEnginesResponse = await fetch(`${apiUrl}/api/engines`);
-        if (allEnginesResponse.ok) {
-          const allEnginesData = await allEnginesResponse.json();
-          // Możesz użyć tych danych do wyświetlenia opcji silników
+          
+          // Pobierz wyposażenie wnętrza
+          let interiorEquipmentData = [];
+          try {
+            const interiorResponse = await fetch(`${apiUrl}/api/car-interior-equipment`);
+            if (interiorResponse.ok) {
+              interiorEquipmentData = await interiorResponse.json();
+            }
+          } catch (err) {
+            console.log('Błąd pobierania wyposażenia wnętrza:', err);
+          }
+          
+          setInteriorEquipment(interiorEquipmentData.map(eq => ({ ...eq, selected: false })));
         }
         
       } catch (err) {
@@ -163,145 +99,7 @@ const CarConfigurator = () => {
     };
 
     fetchData();
-  }, [apiUrl]);
-
-  // W useEffect, dodaj pobieranie wyposażenia wnętrza:
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        // Pobierz modele samochodów
-        const carModelsResponse = await fetch(`${apiUrl}/api/car-models`);
-        if (!carModelsResponse.ok) throw new Error('Błąd pobierania modeli samochodów');
-        const carModelsData = await carModelsResponse.json();
-        setCarModels(carModelsData);
-        
-        // Ustaw pierwszy model jako domyślny
-        if (carModelsData.length > 0) {
-          setSelectedCarModel(carModelsData[0]);
-          
-          // Pobierz silniki dla wybranego modelu
-          const enginesResponse = await fetch(`${apiUrl}/api/car-models/${carModelsData[0].id}/engines`);
-          if (enginesResponse.ok) {
-            const enginesData = await enginesResponse.json();
-            setEngines(enginesData);
-            if (enginesData.length > 0) {
-              setSelectedEngine(enginesData[0]);
-            }
-          }
-          
-          // Pobierz akcesoria - spróbuj różnych endpointów
-          console.log('Próba pobrania akcesorii dla modelu:', carModelsData[0].name);
-          
-          // Najpierw spróbuj dla konkretnego modelu
-          let accessoriesData = [];
-          try {
-            const accessoriesResponse = await fetch(`${apiUrl}/api/car-accessories/model/${encodeURIComponent(carModelsData[0].name)}`);
-            if (accessoriesResponse.ok) {
-              accessoriesData = await accessoriesResponse.json();
-              console.log('Akcesoria dla modelu:', accessoriesData);
-            }
-          } catch (err) {
-            console.log('Błąd pobierania akcesorii dla modelu:', err);
-          }
-          
-          // Jeśli brak akcesorii dla modelu, pobierz wszystkie
-          if (accessoriesData.length === 0) {
-            try {
-              const allAccessoriesResponse = await fetch(`${apiUrl}/api/car-accessories`);
-              if (allAccessoriesResponse.ok) {
-                const allAccessoriesData = await allAccessoriesResponse.json();
-                console.log('Wszystkie akcesoria:', allAccessoriesData);
-                accessoriesData = allAccessoriesData;
-              }
-            } catch (err) {
-              console.log('Błąd pobierania wszystkich akcesorii:', err);
-            }
-          }
-          
-          // Jeśli nadal brak danych, użyj przykładowych akcesorii
-          if (accessoriesData.length === 0) {
-            accessoriesData = [
-              {
-                id: '1',
-                name: 'Dywaniki gumowe',
-                description: 'Wysokiej jakości dywaniki gumowe dopasowane do modelu',
-                price: 299,
-                category: 'Wnętrze',
-                manufacturer: 'BMW',
-                isOriginalBMWPart: true,
-                isInStock: true,
-                imageUrl: null
-              },
-              {
-                id: '2',
-                name: 'Bagażnik dachowy',
-                description: 'Uniwersalny bagażnik dachowy o pojemności 400L',
-                price: 1299,
-                category: 'Zewnętrzne',
-                manufacturer: 'Thule',
-                isOriginalBMWPart: false,
-                isInStock: true,
-                imageUrl: null
-              },
-              {
-                id: '3',
-                name: 'Zestaw zimowy',
-                description: 'Kompletny zestaw opon zimowych z felgami',
-                price: 2499,
-                category: 'Koła',
-                manufacturer: 'BMW',
-                isOriginalBMWPart: true,
-                isInStock: false,
-                imageUrl: null
-              },
-              {
-                id: '4',
-                name: 'System nawigacji',
-                description: 'Zaawansowany system nawigacji z mapami Europy',
-                price: 1899,
-                category: 'Elektronika',
-                manufacturer: 'BMW',
-                isOriginalBMWPart: true,
-                isInStock: true,
-                imageUrl: null
-              },
-              {
-                id: '5',
-                name: 'Foteliki dziecięce',
-                description: 'Bezpieczne foteliki dla dzieci 9-36kg',
-                price: 899,
-                category: 'Bezpieczeństwo',
-                manufacturer: 'BMW',
-                isOriginalBMWPart: true,
-                isInStock: true,
-                imageUrl: null
-              }
-            ];
-            console.log('Używam przykładowych akcesorii');
-          }
-          
-          setAccessories(accessoriesData.map(acc => ({ ...acc, selected: false })));
-        }
-        
-        // Pobierz wszystkie silniki
-        const allEnginesResponse = await fetch(`${apiUrl}/api/engines`);
-        if (allEnginesResponse.ok) {
-          const allEnginesData = await allEnginesResponse.json();
-          // Możesz użyć tych danych do wyświetlenia opcji silników
-        }
-        
-      } catch (err) {
-        setError(err.message);
-        console.error('Błąd pobierania danych:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [apiUrl]);
+  }, [apiUrl, modelFromNavigation]);
 
   // Funkcja do zmiany modelu samochodu
   const handleCarModelChange = async (modelId) => {
@@ -317,36 +115,19 @@ const CarConfigurator = () => {
         setSelectedEngine(enginesData.length > 0 ? enginesData[0] : null);
       }
       
-      // Pobierz akcesoria dla nowego modelu
-      console.log('Zmiana modelu - pobieranie akcesorii dla:', selectedModel.name);
-      
-      let accessoriesData = [];
-      try {
-        const accessoriesResponse = await fetch(`${apiUrl}/api/car-accessories/model/${encodeURIComponent(selectedModel.name)}`);
-        if (accessoriesResponse.ok) {
-          accessoriesData = await accessoriesResponse.json();
-        }
-      } catch (err) {
-        console.log('Błąd pobierania akcesorii dla nowego modelu:', err);
-      }
-      
-      // Jeśli brak akcesorii, pobierz wszystkie
-      if (accessoriesData.length === 0) {
-        try {
-          const allAccessoriesResponse = await fetch(`${apiUrl}/api/car-accessories`);
-          if (allAccessoriesResponse.ok) {
-            accessoriesData = await allAccessoriesResponse.json();
-          }
-        } catch (err) {
-          console.log('Błąd pobierania wszystkich akcesorii przy zmianie modelu:', err);
-        }
-      }
-      
-      setAccessories(accessoriesData.map(acc => ({ ...acc, selected: false })));
+      // Zresetuj wybrane akcesoria i wyposażenie
       setSelectedAccessories([]);
+      setSelectedInteriorEquipment([]);
+      setAccessories(prev => prev.map(acc => ({ ...acc, selected: false })));
+      setInteriorEquipment(prev => prev.map(eq => ({ ...eq, selected: false })));
     } catch (err) {
       console.error('Błąd zmiany modelu:', err);
     }
+  };
+
+  // Funkcja do obsługi zmiany silnika
+  const handleEngineChange = (engine) => {
+    setSelectedEngine(engine);
   };
 
   // Funkcja do obsługi wyboru akcesorii
@@ -404,11 +185,11 @@ const CarConfigurator = () => {
         exteriorColor: carColor,
         wheelType: wheelType,
         interiorColor: interiorColor,
-        accessories: accessories.filter(acc => acc.selected).map(acc => acc.id),
-        interiorEquipment: interiorEquipment.filter(eq => eq.selected).map(eq => eq.id)
+        accessories: selectedAccessories.map(acc => acc.id),
+        interiorEquipment: selectedInteriorEquipment.map(eq => eq.id)
       };
       
-      const response = await fetch(`${apiUrl}/api/car-configurations/${selectedCarModel.id}`, {
+      const response = await fetch(`${apiUrl}/api/car-configurations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -435,17 +216,7 @@ const CarConfigurator = () => {
     { name: 'Czerwony', value: '#ff0000', price: 3000 },
   ];
 
-  const wheelTypes = [
-    { name: 'Standardowe', value: 'standard', image: '/api/placeholder/100/100', price: 0 },
-    { name: 'Sportowe', value: 'sport', image: '/api/placeholder/100/100', price: 5000 },
-    { name: 'Premium', value: 'premium', image: '/api/placeholder/100/100', price: 8000 },
-  ];
 
-  const interiorColors = [
-    { name: 'Czarny', value: '#000000', price: 0 },
-    { name: 'Beżowy', value: '#f5f5dc', price: 2000 },
-    { name: 'Brązowy', value: '#8b4513', price: 2000 },
-  ];
 
   const rotateLeft = () => {
     setCurrentRotation((prev) => (prev - 45 + 360) % 360);
@@ -462,11 +233,9 @@ const CarConfigurator = () => {
     const accessoriesPrice = selectedAccessories.reduce((sum, acc) => sum + (acc?.price || 0), 0);
     const interiorEquipmentPrice = selectedInteriorEquipment.reduce((sum, eq) => sum + (eq?.additionalPrice || 0), 0);
     const exteriorColorPrice = exteriorColors.find(c => c.value === carColor)?.price || 0;
-    const wheelTypePrice = wheelTypes.find(w => w.value === wheelType)?.price || 0;
-    const interiorColorPrice = interiorColors.find(i => i.value === interiorColor)?.price || 0;
     
-    return basePrice + enginePrice + accessoriesPrice + interiorEquipmentPrice + exteriorColorPrice + wheelTypePrice + interiorColorPrice;
-  }, [selectedCarModel, selectedEngine, selectedAccessories, selectedInteriorEquipment, exteriorColors, wheelTypes, interiorColors, carColor, wheelType, interiorColor]);
+    return basePrice + enginePrice + accessoriesPrice + interiorEquipmentPrice + exteriorColorPrice;
+  }, [selectedCarModel, selectedEngine, selectedAccessories, selectedInteriorEquipment, exteriorColors, carColor]);
 
   if (loading) {
     return (
@@ -488,44 +257,11 @@ const CarConfigurator = () => {
     <div className={styles.configurator}>
       <h1 className={styles.configuratorTitle}>Konfigurator samochodu</h1>
       
-      {/* Selektor modelu samochodu */}
-      {carModels.length > 0 && (
-        <div className={styles.modelSelector}>
-          <label htmlFor="carModel">Wybierz model:</label>
-          <select 
-            id="carModel"
-            value={selectedCarModel?.id || ''}
-            onChange={(e) => handleCarModelChange(e.target.value)}
-            className={styles.modelSelect}
-          >
-            {carModels.map(model => (
-              <option key={model.id} value={model.id}>
-                {model.name} - {model.basePrice?.toLocaleString()} zł
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-      
-      {/* Selektor silnika */}
-      {engines.length > 0 && (
-        <div className={styles.engineSelector}>
-          <label htmlFor="engine">Wybierz silnik:</label>
-          <select 
-            id="engine"
-            value={selectedEngine?.engineId || ''}
-            onChange={(e) => {
-              const engine = engines.find(eng => eng.engineId === e.target.value);
-              setSelectedEngine(engine);
-            }}
-            className={styles.engineSelect}
-          >
-            {engines.map(engine => (
-              <option key={engine.engineId} value={engine.engineId}>
-                {engine.engineName} - +{engine.additionalPrice?.toLocaleString()} zł
-              </option>
-            ))}
-          </select>
+      {/* Wyświetlanie wybranego modelu */}
+      {selectedCarModel && (
+        <div className={styles.selectedModelInfo}>
+          <h2>{selectedCarModel.name}</h2>
+          <p>Cena bazowa: {selectedCarModel.basePrice?.toLocaleString()} zł</p>
         </div>
       )}
       
@@ -535,22 +271,24 @@ const CarConfigurator = () => {
             currentRotation={currentRotation}
             rotateLeft={rotateLeft}
             rotateRight={rotateRight}
+            selectedCarModel={selectedCarModel}
+            carColor={carColor}
           />
           <ConfigTabs activeTab={activeTab} setActiveTab={setActiveTab} />
           <ConfigOptions
             activeTab={activeTab}
             exteriorColors={exteriorColors}
-            wheelTypes={wheelTypes}
-            interiorColors={interiorColors}
             accessories={accessories}
+            interiorEquipment={interiorEquipment}
             selectedAccessories={selectedAccessories}
+            selectedInteriorEquipment={selectedInteriorEquipment}
             onAccessoryToggle={handleAccessoryToggle}
+            onInteriorEquipmentToggle={handleInteriorEquipmentToggle}
+            engines={engines}
+            selectedEngine={selectedEngine}
+            onEngineChange={handleEngineChange}
             carColor={carColor}
             setCarColor={setCarColor}
-            wheelType={wheelType}
-            setWheelType={setWheelType}
-            interiorColor={interiorColor}
-            setInteriorColor={setInteriorColor}
           />
         </div>
         <div className={styles.configuratorRightPanel}>
@@ -558,18 +296,11 @@ const CarConfigurator = () => {
             selectedCarModel={selectedCarModel}
             selectedEngine={selectedEngine}
             exteriorColors={exteriorColors}
-            wheelTypes={wheelTypes}
-            interiorColors={interiorColors}
             selectedAccessories={selectedAccessories}
             selectedInteriorEquipment={selectedInteriorEquipment}
             totalPrice={totalPrice}
-            onInteriorEquipmentToggle={handleInteriorEquipmentToggle}
+            onSaveConfiguration={saveConfiguration}
             carColor={carColor}
-            setCarColor={setCarColor}
-            wheelType={wheelType}
-            setWheelType={setWheelType}
-            interiorColor={interiorColor}
-            setInteriorColor={setInteriorColor}
           />
         </div>
       </div>

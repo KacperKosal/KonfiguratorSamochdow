@@ -38,6 +38,15 @@ CREATE TABLE Silnik (
     Moc SMALLINT
 );
 
+-- Tabela powiązań model-silnik
+CREATE TABLE ModelSilnik (
+    ID SERIAL PRIMARY KEY,
+    ModelID INT REFERENCES Pojazd(ID),
+    SilnikID INT REFERENCES Silnik(ID),
+    CenaDodatkowa DECIMAL(10,2) DEFAULT 0,
+    UNIQUE(ModelID, SilnikID)
+);
+
 -- Cechy pojazdu
 CREATE TABLE CechyPojazdu (
     ID SERIAL PRIMARY KEY,
@@ -48,20 +57,10 @@ CREATE TABLE CechyPojazdu (
 -- Tworzenie tabeli Element Wyposazenia
 CREATE TABLE ElementWyposazenia (
     ID SERIAL PRIMARY KEY,
-    Nazwa VARCHAR(100),
-    Opis TEXT,
-    Cena DECIMAL(10, 2),
-    Kategoria VARCHAR(50),
-    Zdjecie BYTEA
-);
-
--- Tworzenie tabeli Opcja Wyposazenia
-CREATE TABLE OpcjaWyposazenia (
-    ID SERIAL PRIMARY KEY,
-    IDPojazdu INT REFERENCES Pojazd(ID),
-    IDElementuWyposazenia INT REFERENCES ElementWyposazenia(ID),
+    TypElementu VARCHAR(50),
     Wartosc VARCHAR(100),
-    CenaDodatkowa DECIMAL(10, 2)
+    OpisElementu TEXT,
+    CenaDodatkowa DECIMAL(8, 2)
 );
 
 -- Tworzenie tabeli Konfiguracja
@@ -69,12 +68,13 @@ CREATE TABLE Konfiguracja (
     ID SERIAL PRIMARY KEY,
     IDUzytkownika INT REFERENCES Uzytkownik(ID),
     IDPojazdu INT REFERENCES Pojazd(ID),
+    ModelSilnikID INT REFERENCES ModelSilnik(ID),
     DataUtworzenia TIMESTAMP,
     NazwaKonfiguracji VARCHAR(100),
     OpisKonfiguracji TEXT
 );
 
--- Tworzenie tabeli Udostepnienie Konfiguracji
+-- Tworzenie tabeli Udostępnienie Konfiguracji
 CREATE TABLE UdostepnienieKonfiguracji (
     ID SERIAL PRIMARY KEY,
     IDKonfiguracji INT REFERENCES Konfiguracja(ID),
@@ -127,36 +127,45 @@ INSERT INTO Pojazd (Model, KolorNadwozia, WyposazenieWnetrza, Cena, Opis, Ma4x4,
 
 -- 3. Silniki
 INSERT INTO Silnik (PojazdID, Pojemnosc, Typ, Moc) VALUES
-  (1, '1.6L',      'benzyna',     132),
-  (2, '3.0L',      'diesel',      265),
-  (3, '—',         'elektryczny', 283);
+  (1, '1.6L',  'benzyna',     132),  -- Corolla - silnik benzynowy
+  (1, '1.8L',  'benzyna',     140),  -- Corolla - drugi silnik benzynowy
+  (2, '3.0L',  'diesel',      265),  -- BMW X5 - silnik diesla
+  (2, '4.4L',  'benzyna',     530),  -- BMW X5 - silnik benzynowy V8
+  (3, '—',     'elektryczny', 283);  -- Tesla Model 3 - silnik elektryczny
 
--- 4. Cechy pojazdu
+-- 4. Powiązania model-silnik
+INSERT INTO ModelSilnik (ModelID, SilnikID, CenaDodatkowa) VALUES
+  (1, 1, 0),      -- Toyota Corolla z silnikiem 1.6L (podstawowy)
+  (1, 2, 5000),   -- Toyota Corolla z silnikiem 1.8L (+5000 zł)
+  (2, 3, 0),      -- BMW X5 z silnikiem diesel (podstawowy)
+  (2, 4, 25000),  -- BMW X5 z silnikiem V8 (+25000 zł)
+  (3, 5, 0);      -- Tesla Model 3 z silnikiem elektrycznym
+
+-- 5. Cechy pojazdów
 INSERT INTO CechyPojazdu (IDPojazdu, Cecha) VALUES
-  (1, 'Eco'),
-  (1, 'Automatyczna skrzynia'),
+  (1, 'System multimedialny'),
+  (1, 'Tempomat'),
+  (1, 'Czujniki parkowania'),
   (2, 'Napęd 4×4'),
-  (3, 'Zero emisji');
+  (2, 'Skórzana tapicerka'),
+  (2, 'System nawigacji'),
+  (2, 'Panoramiczny dach'),
+  (3, 'Autopilot'),
+  (3, 'Supercharging'),
+  (3, 'Wyświetlacz 15"');
 
--- 5. Elementy wyposażenia
-INSERT INTO ElementWyposazenia (Nazwa, Opis, Cena, Kategoria, Zdjecie) VALUES
-  ('Hak holowniczy',     'Hak do holowania przyczepy',                       1200.00, 'Zewnętrzne', NULL),
-  ('System nagłośnienia','Premium audio z 12 głośnikami',                  3500.00, 'Wnętrze',    NULL),
-  ('Alufelgi 19\"',      'Felgi aluminiowe 19-calowe',                      2200.00, 'Koła',       NULL),
-  ('Pakiet zimowy',      'Podgrzewane fotele + kierownica + dysze spryskiwaczy', 1500.00, 'Wnętrze', NULL);
-
--- 6. Opcje wyposażenia
-INSERT INTO OpcjaWyposazenia (IDPojazdu, IDElementuWyposazenia, Wartosc, CenaDodatkowa) VALUES
+-- 6. Elementy wyposażenia
+INSERT INTO ElementWyposazenia (TypElementu, Wartosc, OpisElementu, CenaDodatkowa) VALUES
   (1, 1, 'Standardowy', 0.00),
   (1, 2, 'High-End',    1500.00),
   (2, 3, 'Sportowe',    0.00),
   (3, 4, 'Zimowy',      0.00);
 
 -- 7. Konfiguracje
-INSERT INTO Konfiguracja (IDUzytkownika, IDPojazdu, DataUtworzenia, NazwaKonfiguracji, OpisKonfiguracji) VALUES
-  (2, 1, '2025-04-20 10:15:00', 'Moja Corolla',    'Podstawowa konfiguracja z pakietem zimowym'),
-  (3, 3, '2025-04-22 14:30:00', 'Elektro Tesla',    'Maksymalny zasięg + Premium audio'),
-  (1, 2, '2025-04-23 09:45:00', 'Biznesowy X5',     'Wersja luksusowa z felgami sportowymi');
+INSERT INTO Konfiguracja (IDUzytkownika, IDPojazdu, ModelSilnikID, DataUtworzenia, NazwaKonfiguracji, OpisKonfiguracji) VALUES
+  (2, 1, 1, '2025-04-20 10:15:00', 'Moja Corolla',    'Podstawowa konfiguracja z pakietem zimowym'),
+  (3, 3, 5, '2025-04-22 14:30:00', 'Elektro Tesla',    'Maksymalny zasięg + Premium audio'),
+  (1, 2, 3, '2025-04-23 09:45:00', 'Biznesowy X5',     'Wersja luksusowa z felgami sportowymi');
 
 -- 8. Udostępnienia konfiguracji
 INSERT INTO UdostepnienieKonfiguracji (IDKonfiguracji, Link, Odbiorca, DataUdostepnienia) VALUES
@@ -225,3 +234,44 @@ BEGIN
         ALTER TABLE pojazd ADD COLUMN imageurl VARCHAR(255);
     END IF;
 END $$;
+
+-- Tworzenie tabel z małymi literami dla zgodności z Entity Framework
+CREATE TABLE IF NOT EXISTS pojazd AS SELECT 
+    id, model, kolornadwozia, wyposazeniewetrza, cena, opis, ma4x4, jestelektryczny, akcesoria, zdjecie, imageurl 
+    FROM Pojazd;
+    
+CREATE TABLE IF NOT EXISTS silnik AS SELECT 
+    id, pojazdid, pojemnosc, typ, moc 
+    FROM Silnik;
+    
+CREATE TABLE IF NOT EXISTS modelsilnik AS SELECT 
+    id, modelid, silnikid, cenadodatkowa 
+    FROM ModelSilnik;
+    
+CREATE TABLE IF NOT EXISTS konfiguracja AS SELECT 
+    id, iduzytkownika, idpojazdu, modelsilnikid, datautworzenia, nazwakonfiguracji, opiskonfiguracji 
+    FROM Konfiguracja;
+    
+CREATE TABLE IF NOT EXISTS cechypojazdu AS SELECT 
+    id, idpojazdu, cecha 
+    FROM CechyPojazdu;
+
+-- Dodanie przykładowych danych do tabeli wyposażenia wnętrza
+CREATE TABLE IF NOT EXISTS car_interior_equipment (
+    id VARCHAR(255) PRIMARY KEY,
+    type VARCHAR(50) NOT NULL,
+    value VARCHAR(255) NOT NULL,
+    description TEXT,
+    additional_price DECIMAL(10, 2) NOT NULL DEFAULT 0,
+    has_navigation BOOLEAN DEFAULT FALSE,
+    has_premium_sound BOOLEAN DEFAULT FALSE,
+    control_type VARCHAR(50)
+);
+
+INSERT INTO car_interior_equipment (id, type, value, description, additional_price, has_navigation, has_premium_sound, control_type) VALUES
+('1', 'Audio', 'System audio podstawowy', 'Standardowy system audio z radiem FM/AM', 0, FALSE, FALSE, 'Przyciski'),
+('2', 'Audio', 'System audio Premium', 'System audio wysokiej jakości z 12 głośnikami', 2500, FALSE, TRUE, 'Dotykowy'),
+('3', 'Nawigacja', 'Nawigacja podstawowa', 'System nawigacji z mapami Europy', 1500, TRUE, FALSE, 'Dotykowy'),
+('4', 'Nawigacja', 'Nawigacja Premium', 'Zaawansowany system nawigacji z Traffic Live', 3000, TRUE, TRUE, 'Głosowy'),
+('5', 'Klimatyzacja', 'Klimatyzacja automatyczna', 'Dwustrefowa automatyczna klimatyzacja', 2000, FALSE, FALSE, 'Automatyczny'),
+('6', 'Oświetlenie', 'Oświetlenie ambientowe', 'Kolorowe oświetlenie wnętrza z regulacją', 800, FALSE, FALSE, 'Dotykowy');
