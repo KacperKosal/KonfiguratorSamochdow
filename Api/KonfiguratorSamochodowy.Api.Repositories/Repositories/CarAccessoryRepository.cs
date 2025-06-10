@@ -530,5 +530,36 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 return Result<bool>.Failure(new Error("error", $"Błąd usuwania akcesorium: {ex.Message}"));
             }
         }
+        
+        public async Task<Result<bool>> IsPartNumberUniqueAsync(string partNumber, string? excludeId = null)
+        {
+            try
+            {
+                using (var connection = new NpgsqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    var query = excludeId != null 
+                        ? @"SELECT COUNT(*) FROM car_accessories WHERE part_number = @partNumber AND id != @excludeId"
+                        : @"SELECT COUNT(*) FROM car_accessories WHERE part_number = @partNumber";
+
+                    using (var command = new NpgsqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@partNumber", partNumber);
+                        if (excludeId != null)
+                        {
+                            command.Parameters.AddWithValue("@excludeId", excludeId);
+                        }
+
+                        var count = Convert.ToInt32(await command.ExecuteScalarAsync());
+                        return Result<bool>.Success(count == 0);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Result<bool>.Failure(new Error("error", $"Błąd sprawdzania unikalności numeru części: {ex.Message}"));
+            }
+        }
     }
 }

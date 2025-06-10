@@ -34,12 +34,10 @@ export const accessoryTypeTranslations = {
 };
 
 export const interiorEquipmentTypeTranslations = {
-  'SeatColor': 'Kolor foteli',
   'SeatHeating': 'Podgrzewanie foteli',
   'AdjustableHeadrests': 'Regulowane zagłówki',
   'MultifunctionSteeringWheel': 'Wielofunkcyjna kierownica',
   'RadioType': 'Typ radia',
-  'AmbientLighting': 'Oświetlenie nastrojowe',
   'CruiseControl': 'Tempomat',
   'ElectricMirrors': 'Elektryczne lusterka'
 };

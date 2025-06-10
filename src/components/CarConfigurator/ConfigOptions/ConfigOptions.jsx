@@ -252,23 +252,23 @@ const ConfigOptions = ({
       );
     }
 
-    // Grupowanie akcesorii według kategorii (bez felg)
-    const accessoriesByCategory = nonWheelAccessories.reduce((groups, accessory) => {
-      const category = accessory.category || 'Inne';
-      if (!groups[category]) {
-        groups[category] = [];
+    // Grupowanie akcesorii według typu (bez felg) - jeden wybór na typ
+    const accessoriesByType = nonWheelAccessories.reduce((groups, accessory) => {
+      const type = accessory.type || 'Inne';
+      if (!groups[type]) {
+        groups[type] = [];
       }
-      groups[category].push(accessory);
+      groups[type].push(accessory);
       return groups;
     }, {});
 
     return (
       <div className={styles.accessoriesContainer}>
-        {Object.entries(accessoriesByCategory).map(([category, categoryAccessories]) => (
-          <div key={category} className={styles.categorySection}>
-            <h3 className={styles.categoryTitle}>{translateAccessoryCategory(category)}</h3>
+        {Object.entries(accessoriesByType).map(([type, typeAccessories]) => (
+          <div key={type} className={styles.categorySection}>
+            <h3 className={styles.categoryTitle}>{type}</h3>
             <div className={styles.configGrid}>
-              {categoryAccessories.map((accessory) => (
+              {typeAccessories.map((accessory) => (
                 <div
                   key={accessory.id}
                   onClick={() => onAccessoryToggle(accessory.id)}

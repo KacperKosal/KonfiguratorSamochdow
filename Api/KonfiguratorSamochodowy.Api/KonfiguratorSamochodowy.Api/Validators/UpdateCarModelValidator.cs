@@ -10,7 +10,7 @@ namespace KonfiguratorSamochodowy.Api.Validators
         {
             When(x => !string.IsNullOrEmpty(x.Name), () => {
                 RuleFor(x => x.Name)
-                    .MaximumLength(100).WithMessage("Nazwa modelu nie może przekraczać 100 znaków");
+                    .MaximumLength(255).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
             });
             
             When(x => x.ProductionYear.HasValue, () => {
@@ -26,12 +26,18 @@ namespace KonfiguratorSamochodowy.Api.Validators
             
             When(x => !string.IsNullOrEmpty(x.Manufacturer), () => {
                 RuleFor(x => x.Manufacturer)
-                    .MaximumLength(50).WithMessage("Nazwa producenta nie może przekraczać 50 znaków");
+                    .MaximumLength(255).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
             });
             
             When(x => x.BasePrice.HasValue, () => {
                 RuleFor(x => x.BasePrice.Value)
-                    .GreaterThan(0).WithMessage("Cena podstawowa musi być większa od 0");
+                    .GreaterThan(0).WithMessage("Cena podstawowa musi być większa od 0")
+                    .LessThanOrEqualTo(1000000).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
+            });
+            
+            When(x => !string.IsNullOrEmpty(x.Description), () => {
+                RuleFor(x => x.Description)
+                    .MaximumLength(800).WithMessage("Opis nie może przekraczać 800 znaków");
             });
         }
         

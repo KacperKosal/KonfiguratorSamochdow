@@ -196,6 +196,19 @@ namespace KonfiguratorSamochodowy.Api.Services
 
             var existingAccessory = getResult.Value;
 
+            // Sprawdź wymagane pola dla Update
+            if (!string.IsNullOrEmpty(request.Manufacturer) && string.IsNullOrWhiteSpace(request.Manufacturer))
+                return Result<CarAccessoryDto>.Failure(
+                    new Error("ValidationError", "Pole producent jest wymagane."));
+                    
+            if (!string.IsNullOrEmpty(request.Compatibility) && string.IsNullOrWhiteSpace(request.Compatibility))
+                return Result<CarAccessoryDto>.Failure(
+                    new Error("ValidationError", "Pole kompatybilność jest wymagane."));
+                    
+            if (!string.IsNullOrEmpty(request.PartNumber) && string.IsNullOrWhiteSpace(request.PartNumber))
+                return Result<CarAccessoryDto>.Failure(
+                    new Error("ValidationError", "Numer części jest wymagany."));
+
             // Aktualizacja tylko tych pól, które są podane w zapytaniu
             if (!string.IsNullOrEmpty(request.Name))
                 existingAccessory.Name = request.Name;
@@ -210,7 +223,18 @@ namespace KonfiguratorSamochodowy.Api.Services
                 existingAccessory.Manufacturer = request.Manufacturer;
 
             if (!string.IsNullOrEmpty(request.PartNumber))
+            {
+                // Sprawdź unikalność numeru części
+                var uniqueResult = await _repository.IsPartNumberUniqueAsync(request.PartNumber, id);
+                if (!uniqueResult.IsSuccess)
+                    return Result<CarAccessoryDto>.Failure(uniqueResult.Error);
+                
+                if (!uniqueResult.Value)
+                    return Result<CarAccessoryDto>.Failure(
+                        new Error("ValidationError", "Numer części musi być unikalny."));
+                
                 existingAccessory.PartNumber = request.PartNumber;
+            }
 
             if (request.IsOriginalBMWPart.HasValue)
                 existingAccessory.IsOriginalBMWPart = request.IsOriginalBMWPart.Value;

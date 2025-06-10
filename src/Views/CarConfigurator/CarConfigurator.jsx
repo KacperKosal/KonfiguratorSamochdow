@@ -131,45 +131,64 @@ const CarConfigurator = () => {
 
   // Funkcja do obsługi wyboru akcesorii
   const handleAccessoryToggle = (accessoryId) => {
-    setAccessories(prev => 
-      prev.map(acc => 
-        acc.id === accessoryId 
-          ? { ...acc, selected: !acc.selected }
-          : acc
-      )
-    );
-    
-    setSelectedAccessories(prev => {
-      const accessory = accessories.find(acc => acc.id === accessoryId);
-      const isSelected = prev.some(acc => acc.id === accessoryId);
+    const clickedAccessory = accessories.find(acc => acc.id === accessoryId);
+    if (!clickedAccessory) return;
+
+    // Logika dla felg - tylko jedna może być wybrana
+    if (clickedAccessory.type === 'AlloyWheels') {
+      setAccessories(prev => 
+        prev.map(acc => {
+          if (acc.type === 'AlloyWheels') {
+            return { ...acc, selected: acc.id === accessoryId };
+          }
+          return acc;
+        })
+      );
       
-      if (isSelected) {
-        return prev.filter(acc => acc.id !== accessoryId);
-      } else {
-        return [...prev, accessory];
-      }
-    });
+      setSelectedAccessories(prev => {
+        // Usuń wszystkie felgi i dodaj tylko wybraną
+        const withoutWheels = prev.filter(acc => acc.type !== 'AlloyWheels');
+        return [...withoutWheels, clickedAccessory];
+      });
+    } 
+    // Logika dla innych akcesoriów - jeden na typ
+    else {
+      setAccessories(prev => 
+        prev.map(acc => {
+          if (acc.type === clickedAccessory.type) {
+            return { ...acc, selected: acc.id === accessoryId };
+          }
+          return acc;
+        })
+      );
+      
+      setSelectedAccessories(prev => {
+        // Usuń wszystkie akcesoria tego samego typu i dodaj wybrane
+        const withoutSameType = prev.filter(acc => acc.type !== clickedAccessory.type);
+        return [...withoutSameType, clickedAccessory];
+      });
+    }
   };
 
   // Funkcja do obsługi wyboru wyposażenia wnętrza
   const handleInteriorEquipmentToggle = (equipmentId) => {
+    const clickedEquipment = interiorEquipment.find(eq => eq.id === equipmentId);
+    if (!clickedEquipment) return;
+
+    // Logika - tylko jedna opcja na typ wyposażenia
     setInteriorEquipment(prev => 
-      prev.map(eq => 
-        eq.id === equipmentId 
-          ? { ...eq, selected: !eq.selected }
-          : eq
-      )
+      prev.map(eq => {
+        if (eq.type === clickedEquipment.type) {
+          return { ...eq, selected: eq.id === equipmentId };
+        }
+        return eq;
+      })
     );
     
     setSelectedInteriorEquipment(prev => {
-      const equipment = interiorEquipment.find(eq => eq.id === equipmentId);
-      const isSelected = prev.some(eq => eq.id === equipmentId);
-      
-      if (isSelected) {
-        return prev.filter(eq => eq.id !== equipmentId);
-      } else {
-        return [...prev, equipment];
-      }
+      // Usuń wszystkie wyposażenia tego samego typu i dodaj wybrane
+      const withoutSameType = prev.filter(eq => eq.type !== clickedEquipment.type);
+      return [...withoutSameType, clickedEquipment];
     });
   };
 

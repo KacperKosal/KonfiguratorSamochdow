@@ -10,7 +10,7 @@ namespace KonfiguratorSamochodowy.Api.Validators
         {
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Nazwa modelu jest wymagana")
-                .MaximumLength(100).WithMessage("Nazwa modelu nie może przekraczać 100 znaków");
+                .MaximumLength(255).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
                 
             RuleFor(x => x.ProductionYear)
                 .NotEmpty().WithMessage("Rok produkcji jest wymagany")
@@ -23,10 +23,14 @@ namespace KonfiguratorSamochodowy.Api.Validators
                 
             RuleFor(x => x.Manufacturer)
                 .NotEmpty().WithMessage("Producent jest wymagany")
-                .MaximumLength(50).WithMessage("Nazwa producenta nie może przekraczać 50 znaków");
+                .MaximumLength(255).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
                 
             RuleFor(x => x.BasePrice)
-                .GreaterThan(0).WithMessage("Cena podstawowa musi być większa od 0");
+                .GreaterThan(0).WithMessage("Cena podstawowa musi być większa od 0")
+                .LessThanOrEqualTo(1000000).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
+                
+            RuleFor(x => x.Description)
+                .MaximumLength(800).WithMessage("Opis nie może przekraczać 800 znaków");
         }
         
         private bool BeValidBodyType(string bodyType)

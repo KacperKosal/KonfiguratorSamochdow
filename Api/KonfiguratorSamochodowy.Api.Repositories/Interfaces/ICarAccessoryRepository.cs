@@ -24,5 +24,6 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Interfaces
         Task<Result<CarAccessory>> CreateAsync(CarAccessory accessory);
         Task<Result<CarAccessory>> UpdateAsync(string id, CarAccessory accessory);
         Task<Result<bool>> DeleteAsync(string id);
+        Task<Result<bool>> IsPartNumberUniqueAsync(string partNumber, string? excludeId = null);
     }
 }

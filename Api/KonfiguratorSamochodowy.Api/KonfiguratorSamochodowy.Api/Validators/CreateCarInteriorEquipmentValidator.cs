@@ -16,28 +16,14 @@ namespace KonfiguratorSamochodowy.Api.Validators
                 .Must(BeValidEquipmentType).WithMessage("Nieprawidłowy typ wyposażenia");
                 
             RuleFor(x => x.Value)
-                .NotEmpty().WithMessage("Wartość jest wymagana");
+                .NotEmpty().WithMessage("Wartość jest wymagana")
+                .MaximumLength(255).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
                 
             RuleFor(x => x.AdditionalPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("Cena dodatkowa nie może być ujemna");
+                .GreaterThanOrEqualTo(0).WithMessage("Cena dodatkowa nie może być ujemna")
+                .LessThanOrEqualTo(1000000).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
                 
             // Walidacje specyficzne dla typów
-            When(x => x.Type == InteriorEquipmentType.SeatColor, () => {
-                RuleFor(x => x.ColorCode)
-                    .NotEmpty().WithMessage("Kod koloru jest wymagany dla typu SeatColor")
-                    .Matches("^#[0-9A-Fa-f]{6}$").WithMessage("Kod koloru musi być w formacie #RRGGBB");
-            });
-            
-            When(x => x.Type == InteriorEquipmentType.AmbientLighting, () => {
-                RuleFor(x => x.ColorCode)
-                    .NotEmpty().WithMessage("Kod koloru jest wymagany dla typu AmbientLighting")
-                    .Matches("^#[0-9A-Fa-f]{6}$").WithMessage("Kod koloru musi być w formacie #RRGGBB");
-                    
-                RuleFor(x => x.Intensity)
-                    .NotEmpty().WithMessage("Intensywność oświetlenia ambientowego jest wymagana")
-                    .Must(BeValidIntensity).WithMessage("Intensywność musi być liczbą między 1 a 10");
-            });
-            
             When(x => x.Type == InteriorEquipmentType.RadioType, () => {
                 RuleFor(x => x.HasNavigation)
                     .NotNull().WithMessage("Informacja o nawigacji jest wymagana dla typu RadioType");
@@ -51,6 +37,9 @@ namespace KonfiguratorSamochodowy.Api.Validators
                     .NotEmpty().WithMessage("Typ tempomatu jest wymagany dla typu CruiseControl")
                     .Must(BeValidCruiseControlType).WithMessage("Nieprawidłowy typ tempomatu. Dozwolone wartości: Standard, Adaptive, None");
             });
+            
+            RuleFor(x => x.Description)
+                .MaximumLength(800).WithMessage("Opis nie może przekraczać 800 znaków");
         }
         
         private bool BeValidEquipmentType(string type)
@@ -61,19 +50,6 @@ namespace KonfiguratorSamochodowy.Api.Validators
         private bool BeValidCruiseControlType(string controlType)
         {
             return new[] { "Standard", "Adaptive", "None" }.Contains(controlType);
-        }
-        
-        private bool BeValidIntensity(string intensity)
-        {
-            if (string.IsNullOrEmpty(intensity))
-                return false;
-                
-            if (int.TryParse(intensity, out var value))
-            {
-                return value >= 1 && value <= 10;
-            }
-            
-            return false;
         }
     }
 }

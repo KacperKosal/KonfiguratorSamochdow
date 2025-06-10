@@ -10,33 +10,16 @@ namespace KonfiguratorSamochodowy.Api.Validators
             // Walidacja opcjonalnych pól
             When(x => x.AdditionalPrice.HasValue, () => {
                 RuleFor(x => x.AdditionalPrice.Value)
-                    .GreaterThanOrEqualTo(0).WithMessage("Cena dodatkowa nie może być ujemna");
-            });
-            
-            When(x => !string.IsNullOrEmpty(x.ColorCode), () => {
-                RuleFor(x => x.ColorCode)
-                    .Matches("^#[0-9A-Fa-f]{6}$").WithMessage("Kod koloru musi być w formacie #RRGGBB");
-            });
-            
-            When(x => !string.IsNullOrEmpty(x.Intensity), () => {
-                RuleFor(x => x.Intensity)
-                    .Must(BeValidIntensity).WithMessage("Intensywność musi być liczbą między 1 a 10");
+                    .GreaterThanOrEqualTo(0).WithMessage("Cena dodatkowa nie może być ujemna")
+                    .LessThanOrEqualTo(1000000).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
             });
             
             // ControlType validation removed - we don't have context about equipment type in update request
-        }
-        
-        private bool BeValidIntensity(string intensity)
-        {
-            if (string.IsNullOrEmpty(intensity))
-                return false;
-                
-            if (int.TryParse(intensity, out var value))
-            {
-                return value >= 1 && value <= 10;
-            }
             
-            return false;
+            When(x => !string.IsNullOrEmpty(x.Description), () => {
+                RuleFor(x => x.Description)
+                    .MaximumLength(800).WithMessage("Opis nie może przekraczać 800 znaków");
+            });
         }
     }
 }

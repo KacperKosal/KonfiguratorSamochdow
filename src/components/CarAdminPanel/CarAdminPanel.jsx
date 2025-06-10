@@ -91,8 +91,6 @@ const CarAdminPanel = () => {
           description: '',
           additionalPrice: '',
           isDefault: false,
-          colorCode: '',
-          intensity: '',
           hasNavigation: false,
           hasPremiumSound: false,
           controlType: ''
@@ -274,10 +272,14 @@ const CarAdminPanel = () => {
       case 'models':
         if (!formData.name.trim()) {
           newErrors.name = 'Nazwa modelu jest wymagana';
+        } else if (formData.name.length > 255) {
+          newErrors.name = 'Przekroczono dozwoloną liczbę znaków lub wartość liczbową.';
         }
 
         if (!formData.manufacturer) {
           newErrors.manufacturer = 'Producent jest wymagany';
+        } else if (formData.manufacturer.length > 255) {
+          newErrors.manufacturer = 'Przekroczono dozwoloną liczbę znaków lub wartość liczbową.';
         }
 
         if (!formData.bodyType) {
@@ -292,12 +294,16 @@ const CarAdminPanel = () => {
           newErrors.basePrice = 'Cena bazowa jest wymagana';
         } else if (isNaN(formData.basePrice) || parseFloat(formData.basePrice) <= 0) {
           newErrors.basePrice = 'Cena musi być liczbą większą od 0';
+        } else if (parseFloat(formData.basePrice) > 1000000) {
+          newErrors.basePrice = 'Przekroczono dozwoloną liczbę znaków lub wartość liczbową.';
         }
 
         if (!formData.description.trim()) {
           newErrors.description = 'Opis jest wymagany';
         } else if (formData.description.trim().length < 10) {
           newErrors.description = 'Opis musi mieć co najmniej 10 znaków';
+        } else if (formData.description.length > 800) {
+          newErrors.description = 'Opis nie może przekraczać 800 znaków';
         }
 
         const currentYear = new Date().getFullYear();
@@ -307,28 +313,119 @@ const CarAdminPanel = () => {
         break;
 
       case 'engines':
+        // Walidacja nazwy silnika
         if (!formData.name.trim()) {
           newErrors.name = 'Nazwa silnika jest wymagana';
+        } else if (formData.name.length > 255) {
+          newErrors.name = 'Nazwa silnika nie może przekraczać 255 znaków';
         }
 
+        // Walidacja typu silnika
         if (!formData.type) {
           newErrors.type = 'Typ silnika jest wymagany';
         }
 
+        // Walidacja rodzaju paliwa
         if (!formData.fuelType) {
           newErrors.fuelType = 'Rodzaj paliwa jest wymagany';
+        } else if (formData.fuelType.length > 255) {
+          newErrors.fuelType = 'Rodzaj paliwa nie może przekraczać 255 znaków';
         }
 
-        if (!formData.power || isNaN(formData.power) || parseInt(formData.power) <= 0) {
+        // Walidacja mocy (wymagane pole)
+        if (!formData.power) {
+          newErrors.power = 'Moc silnika jest wymagana';
+        } else if (isNaN(formData.power)) {
+          newErrors.power = 'Moc musi być liczbą';
+        } else if (parseInt(formData.power) <= 0) {
           newErrors.power = 'Moc musi być liczbą większą od 0';
+        } else if (parseInt(formData.power) > 1000000) {
+          newErrors.power = 'Moc nie może przekraczać 1 000 000 KM';
         }
 
-        if (formData.capacity && (isNaN(formData.capacity) || parseFloat(formData.capacity) < 0)) {
-          newErrors.capacity = 'Pojemność musi być liczbą większą lub równą 0';
+        // Sprawdź czy silnik jest elektryczny
+        const isElectricEngine = formData.type === 'Electric' || formData.fuelType === 'Electric' || formData.fuelType === 'elektryczny';
+
+        // Walidacja pojemności (wymagane)
+        const allowedCapacities = ['1000', '1600', '1800', '1900', '2000', '2500', '3000', '4000', '5000'];
+        if (!formData.capacity) {
+          newErrors.capacity = 'Pojemność silnika jest wymagana';
+        } else if (!allowedCapacities.includes(formData.capacity.toString())) {
+          newErrors.capacity = 'Nieprawidłowa pojemność silnika';
         }
 
-        if (formData.cylinders && (isNaN(formData.cylinders) || parseInt(formData.cylinders) < 1)) {
-          newErrors.cylinders = 'Liczba cylindrów musi być liczbą większą od 0';
+        // Walidacja liczby cylindrów (wymagane)
+        if (!formData.cylinders) {
+          newErrors.cylinders = 'Liczba cylindrów jest wymagana';
+        } else if (isNaN(formData.cylinders)) {
+          newErrors.cylinders = 'Liczba cylindrów musi być liczbą';
+        } else if (parseInt(formData.cylinders) <= 0) {
+          newErrors.cylinders = 'Liczba cylindrów musi być większa od 0';
+        } else if (parseInt(formData.cylinders) > 1000000) {
+          newErrors.cylinders = 'Liczba cylindrów nie może przekraczać 1 000 000';
+        }
+
+        // Walidacja momentu obrotowego (wymagane)
+        if (!formData.torque) {
+          newErrors.torque = 'Moment obrotowy musi być większy od 0';
+        } else if (isNaN(formData.torque)) {
+          newErrors.torque = 'Moment obrotowy musi być liczbą';
+        } else if (parseInt(formData.torque) <= 0) {
+          newErrors.torque = 'Moment obrotowy musi być większy od 0';
+        } else if (parseInt(formData.torque) > 1000000) {
+          newErrors.torque = 'Moment obrotowy nie może przekraczać 1 000 000 Nm';
+        }
+
+        // Walidacja skrzyni biegów (wymagane)
+        if (!formData.transmission) {
+          newErrors.transmission = 'Rodzaj skrzyni biegów jest wymagany.';
+        } else if (formData.transmission.length > 255) {
+          newErrors.transmission = 'Rodzaj skrzyni biegów nie może przekraczać 255 znaków';
+        }
+
+        // Walidacja liczby biegów (wymagane)
+        if (!formData.gears) {
+          newErrors.gears = 'Liczba biegów jest wymagana';
+        } else if (isNaN(formData.gears)) {
+          newErrors.gears = 'Liczba biegów musi być liczbą';
+        } else if (parseInt(formData.gears) <= 0) {
+          newErrors.gears = 'Liczba biegów musi być większa od 0';
+        } else if (parseInt(formData.gears) > 1000000) {
+          newErrors.gears = 'Liczba biegów nie może przekraczać 1 000 000';
+        }
+
+        // Walidacja typu napędu (wymagane)
+        if (!formData.driveType) {
+          newErrors.driveType = 'Typ napędu jest wymagany.';
+        } else if (!['FWD', 'RWD', 'AWD'].includes(formData.driveType)) {
+          newErrors.driveType = 'Nieprawidłowy typ napędu.';
+        }
+
+        // Walidacja zużycia paliwa (wymagane)
+        if (!formData.fuelConsumption) {
+          newErrors.fuelConsumption = 'Zużycie paliwa jest wymagane';
+        } else if (isNaN(formData.fuelConsumption)) {
+          newErrors.fuelConsumption = 'Zużycie paliwa musi być liczbą';
+        } else if (parseFloat(formData.fuelConsumption) <= 0) {
+          newErrors.fuelConsumption = 'Zużycie paliwa musi być większe od 0';
+        } else if (parseFloat(formData.fuelConsumption) > 1000000) {
+          newErrors.fuelConsumption = 'Zużycie paliwa nie może przekraczać 1 000 000';
+        }
+
+        // Walidacja emisji CO2 (wymagane)
+        if (!formData.co2Emission) {
+          newErrors.co2Emission = 'Emisja CO2 jest wymagana';
+        } else if (isNaN(formData.co2Emission)) {
+          newErrors.co2Emission = 'Emisja CO2 musi być liczbą';
+        } else if (parseInt(formData.co2Emission) <= 0) {
+          newErrors.co2Emission = 'Emisja CO2 musi być większa od 0';
+        } else if (parseInt(formData.co2Emission) > 1000000) {
+          newErrors.co2Emission = 'Emisja CO2 nie może przekraczać 1 000 000';
+        }
+
+        // Walidacja opisu (opcjonalne)
+        if (formData.description && formData.description.length > 800) {
+          newErrors.description = 'Opis nie może przekraczać 800 znaków';
         }
         break;
 
@@ -339,6 +436,8 @@ const CarAdminPanel = () => {
 
         if (!formData.name.trim()) {
           newErrors.name = 'Nazwa akcesoria jest wymagana';
+        } else if (formData.name.length > 255) {
+          newErrors.name = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
         }
 
         if (!formData.category) {
@@ -351,10 +450,68 @@ const CarAdminPanel = () => {
 
         if (!formData.price || isNaN(formData.price) || parseFloat(formData.price) < 0) {
           newErrors.price = 'Cena musi być liczbą większą lub równą 0';
+        } else if (parseFloat(formData.price) > 1000000) {
+          newErrors.price = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
         }
 
         if (!formData.stockQuantity || isNaN(formData.stockQuantity) || parseInt(formData.stockQuantity) < 0) {
           newErrors.stockQuantity = 'Ilość w magazynie musi być liczbą większą lub równą 0';
+        } else if (parseInt(formData.stockQuantity) > 1000000) {
+          newErrors.stockQuantity = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (!formData.partNumber.trim()) {
+          newErrors.partNumber = 'Numer części jest wymagany.';
+        } else if (formData.partNumber.length > 255) {
+          newErrors.partNumber = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (formData.pattern && formData.pattern.length > 255) {
+          newErrors.pattern = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (formData.ageGroup && formData.ageGroup.length > 255) {
+          newErrors.ageGroup = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (formData.capacity && parseFloat(formData.capacity) > 1000000) {
+          newErrors.capacity = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (formData.maxLoad && parseFloat(formData.maxLoad) > 1000000) {
+          newErrors.maxLoad = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (!formData.manufacturer.trim()) {
+          newErrors.manufacturer = 'Pole producent jest wymagane.';
+        } else if (formData.manufacturer.length > 255) {
+          newErrors.manufacturer = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (formData.size && formData.size.length > 255) {
+          newErrors.size = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (formData.color && formData.color.length > 255) {
+          newErrors.color = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (formData.material && formData.material.length > 255) {
+          newErrors.material = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (!formData.compatibility.trim()) {
+          newErrors.compatibility = 'Pole kompatybilność jest wymagane.';
+        } else if (formData.compatibility.length > 255) {
+          newErrors.compatibility = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (formData.warranty && formData.warranty.length > 255) {
+          newErrors.warranty = 'Przekroczono dozwoloną długość tekstu lub wartość liczbową.';
+        }
+
+        if (formData.description && formData.description.length > 800) {
+          newErrors.description = 'Opis nie może przekraczać 800 znaków';
         }
         break;
 
@@ -369,29 +526,26 @@ const CarAdminPanel = () => {
 
         if (!formData.value.trim()) {
           newErrors.value = 'Wartość jest wymagana';
+        } else if (formData.value.length > 255) {
+          newErrors.value = 'Przekroczono dozwoloną liczbę znaków lub wartość liczbową.';
         }
 
         if (!formData.additionalPrice || isNaN(formData.additionalPrice) || parseFloat(formData.additionalPrice) < 0) {
           newErrors.additionalPrice = 'Cena dodatkowa jest wymagana i musi być liczbą większą lub równą 0';
+        } else if (parseFloat(formData.additionalPrice) > 1000000) {
+          newErrors.additionalPrice = 'Przekroczono dozwoloną liczbę znaków lub wartość liczbową.';
         }
 
-        // Walidacja specyficzna dla typu
-        if (formData.type === 'SeatColor' || formData.type === 'AmbientLighting') {
-          if (!formData.colorCode || !/^#[0-9A-Fa-f]{6}$/.test(formData.colorCode)) {
-            newErrors.colorCode = 'Kod koloru jest wymagany w formacie #RRGGBB';
-          }
-        }
-
-        if (formData.type === 'AmbientLighting') {
-          if (!formData.intensity || isNaN(formData.intensity) || parseInt(formData.intensity) < 1 || parseInt(formData.intensity) > 10) {
-            newErrors.intensity = 'Intensywność musi być liczbą od 1 do 10';
-          }
-        }
+        // Walidacja specyficzna dla typu - pola colorCode i intensity zostały usunięte
 
         if (formData.type === 'CruiseControl') {
           if (!formData.controlType) {
             newErrors.controlType = 'Typ sterowania jest wymagany dla tempomatu';
           }
+        }
+
+        if (formData.description && formData.description.length > 800) {
+          newErrors.description = 'Opis nie może przekraczać 800 znaków';
         }
         break;
 
@@ -542,7 +696,7 @@ const CarAdminPanel = () => {
         case 'engines':
           const engineData = {
             ...formData,
-            capacity: formData.capacity ? parseInt(formData.capacity) : null,
+            capacity: formData.capacity ? parseFloat(formData.capacity) : null,
             power: parseInt(formData.power) || 0,
             torque: parseInt(formData.torque) || 0,
             cylinders: formData.cylinders ? parseInt(formData.cylinders) : null,
@@ -735,8 +889,6 @@ const CarAdminPanel = () => {
       description: interior.description,
       additionalPrice: interior.additionalPrice?.toString() || '',
       isDefault: interior.isDefault || false,
-      colorCode: interior.colorCode || '',
-      intensity: interior.intensity?.toString() || '',
       hasNavigation: interior.hasNavigation || false,
       hasPremiumSound: interior.hasPremiumSound || false,
       controlType: interior.controlType || ''
@@ -1184,6 +1336,7 @@ const CarAdminPanel = () => {
             value={formData.name}
             onChange={handleInputChange}
             className={errors.name ? styles.errorInput : ''}
+            maxLength={255}
           />
           {errors.name && <span className={styles.errorText}>{errors.name}</span>}
         </div>
@@ -1207,17 +1360,24 @@ const CarAdminPanel = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Pojemność (cm³)</label>
-          <input
-            type="number"
+          <label>Pojemność *</label>
+          <select
             name="capacity"
             value={formData.capacity}
             onChange={handleInputChange}
-            min="0"
-            step="100"
-            placeholder="np. 2000 dla 2.0L"
             className={errors.capacity ? styles.errorInput : ''}
-          />
+          >
+            <option value="">Wybierz pojemność</option>
+            <option value="1000">1.0L (1000 cm³)</option>
+            <option value="1600">1.6L (1600 cm³)</option>
+            <option value="1800">1.8L (1800 cm³)</option>
+            <option value="1900">1.9L (1900 cm³)</option>
+            <option value="2000">2.0L (2000 cm³)</option>
+            <option value="2500">2.5L (2500 cm³)</option>
+            <option value="3000">3.0L (3000 cm³)</option>
+            <option value="4000">4.0L (4000 cm³)</option>
+            <option value="5000">5.0L (5000 cm³)</option>
+          </select>
           {errors.capacity && <span className={styles.errorText}>{errors.capacity}</span>}
         </div>
 
@@ -1235,13 +1395,13 @@ const CarAdminPanel = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Moment obrotowy (Nm)</label>
+          <label>Moment obrotowy (Nm) *</label>
           <input
             type="number"
             name="torque"
             value={formData.torque}
             onChange={handleInputChange}
-            min="0"
+            min="1"
             className={errors.torque ? styles.errorInput : ''}
           />
           {errors.torque && <span className={styles.errorText}>{errors.torque}</span>}
@@ -1268,7 +1428,7 @@ const CarAdminPanel = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Liczba cylindrów</label>
+          <label>Liczba cylindrów *</label>
           <input
             type="number"
             name="cylinders"
@@ -1282,7 +1442,7 @@ const CarAdminPanel = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Skrzynia biegów</label>
+          <label>Skrzynia biegów *</label>
           <select
             name="transmission"
             value={formData.transmission}
@@ -1299,7 +1459,7 @@ const CarAdminPanel = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Liczba biegów</label>
+          <label>Liczba biegów *</label>
           <input
             type="number"
             name="gears"
@@ -1313,7 +1473,7 @@ const CarAdminPanel = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Napęd</label>
+          <label>Napęd *</label>
           <select
             name="driveType"
             value={formData.driveType}
@@ -1329,13 +1489,14 @@ const CarAdminPanel = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Zużycie paliwa (l/100km)</label>
+          <label>Zużycie paliwa (l/100km) *</label>
           <input
             type="number"
             name="fuelConsumption"
             value={formData.fuelConsumption}
             onChange={handleInputChange}
-            min="0"
+            min="1"
+            max="1000000"
             step="0.1"
             className={errors.fuelConsumption ? styles.errorInput : ''}
           />
@@ -1343,18 +1504,20 @@ const CarAdminPanel = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Emisja CO2 (g/km)</label>
+          <label>Emisja CO2 (g/km) *</label>
           <input
             type="number"
             name="co2Emission"
             value={formData.co2Emission}
             onChange={handleInputChange}
-            min="0"
+            min="1"
+            max="1000000"
             className={errors.co2Emission ? styles.errorInput : ''}
           />
           {errors.co2Emission && <span className={styles.errorText}>{errors.co2Emission}</span>}
         </div>
       </div>
+
 
       <div className={styles.formGroup}>
         <label>Opis</label>
@@ -1467,25 +1630,27 @@ const CarAdminPanel = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Producent</label>
+          <label>Producent *</label>
           <input
             type="text"
             name="manufacturer"
             value={formData.manufacturer}
             onChange={handleInputChange}
             className={errors.manufacturer ? styles.errorInput : ''}
+            maxLength={255}
           />
           {errors.manufacturer && <span className={styles.errorText}>{errors.manufacturer}</span>}
         </div>
 
         <div className={styles.formGroup}>
-          <label>Numer części</label>
+          <label>Numer części *</label>
           <input
             type="text"
             name="partNumber"
             value={formData.partNumber}
             onChange={handleInputChange}
             className={errors.partNumber ? styles.errorInput : ''}
+            maxLength={255}
           />
           {errors.partNumber && <span className={styles.errorText}>{errors.partNumber}</span>}
         </div>
@@ -1504,13 +1669,14 @@ const CarAdminPanel = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Kompatybilność</label>
+          <label>Kompatybilność *</label>
           <input
             type="text"
             name="compatibility"
             value={formData.compatibility}
             onChange={handleInputChange}
             className={errors.compatibility ? styles.errorInput : ''}
+            maxLength={255}
           />
           {errors.compatibility && <span className={styles.errorText}>{errors.compatibility}</span>}
         </div>
@@ -1713,8 +1879,8 @@ const CarAdminPanel = () => {
           >
             <option value="">Wybierz typ</option>
             {[
-              'SeatColor', 'SeatHeating', 'AdjustableHeadrests', 'MultifunctionSteeringWheel',
-              'RadioType', 'AmbientLighting', 'CruiseControl', 'ElectricMirrors'
+              'SeatHeating', 'AdjustableHeadrests', 'MultifunctionSteeringWheel',
+              'RadioType', 'CruiseControl', 'ElectricMirrors'
             ].map(type => (
               <option key={type} value={type}>{translateInteriorEquipmentType(type)}</option>
             ))}
@@ -1742,43 +1908,13 @@ const CarAdminPanel = () => {
             value={formData.additionalPrice}
             onChange={handleInputChange}
             min="0"
+            max="1000000"
             step="100"
             className={errors.additionalPrice ? styles.errorInput : ''}
           />
           {errors.additionalPrice && <span className={styles.errorText}>{errors.additionalPrice}</span>}
         </div>
 
-        {/* Pole koloru dla SeatColor i AmbientLighting */}
-        {(formData.type === 'SeatColor' || formData.type === 'AmbientLighting') && (
-          <div className={styles.formGroup}>
-            <label>Kod koloru *</label>
-            <input
-              type="color"
-              name="colorCode"
-              value={formData.colorCode}
-              onChange={handleInputChange}
-              className={errors.colorCode ? styles.errorInput : ''}
-            />
-            {errors.colorCode && <span className={styles.errorText}>{errors.colorCode}</span>}
-          </div>
-        )}
-
-        {/* Pole intensywności dla AmbientLighting */}
-        {formData.type === 'AmbientLighting' && (
-          <div className={styles.formGroup}>
-            <label>Intensywność (1-10) *</label>
-            <input
-              type="number"
-              name="intensity"
-              value={formData.intensity}
-              onChange={handleInputChange}
-              min="1"
-              max="10"
-              className={errors.intensity ? styles.errorInput : ''}
-            />
-            {errors.intensity && <span className={styles.errorText}>{errors.intensity}</span>}
-          </div>
-        )}
 
         {/* Pola dla RadioType */}
         {formData.type === 'RadioType' && (
