@@ -16,9 +16,9 @@ export default function Contact() {
   
   // Konfiguracja EmailJS
   const emailJSConfig = {
-    serviceId: 'service_y4kkqtb',  // Zaktualizowane ID
-    templateId: 'template_9jl4y8l', // Zaktualizowane ID
-    publicKey: 'CiHbW6-1RGLf5oeMm'
+    serviceId: 'Konfigurator',  // Zaktualizowane ID
+    templateId: 'template_6btbzs2', // Zaktualizowane ID
+    publicKey: 'EhTnACi248sTCiJ2U'
   };
 
   // Funkcja wysyłania przez EmailJS

@@ -41,21 +41,38 @@ export default function Home() {
       const data = response.data;
       
       // Mapowanie danych z API na format używany w komponencie
-      const mappedModels = data.map(model => ({
-        id: model.id,
-        name: model.name,
-        category: mapBodyTypeToCategory(model.bodyType),
-        image: model.imageUrl ? adminApiService.getImageUrl(model.imageUrl) : '/api/placeholder/300/180',
-        basePrice: model.basePrice,
-        engineOptions: [], // Będzie pobierane osobno jeśli potrzebne
-        description: model.description || 'Opis modelu',
-        features: [], // Można rozszerzyć o dodatkowe cechy
-        popularity: Math.floor(Math.random() * 5) + 1, // Tymczasowo losowa popularność
-        new: new Date().getFullYear() - model.productionYear <= 1,
-        electric: model.bodyType?.toLowerCase().includes('electric') || false,
-        manufacturer: model.manufacturer,
-        productionYear: model.productionYear,
-        isActive: model.isActive
+      const mappedModels = await Promise.all(data.map(async (model) => {
+        // Pobierz silniki dla każdego modelu
+        let engineNames = [];
+        try {
+          const engineResponse = await axiosInstance.get(`/api/car-models/${model.id}/engines`);
+          if (engineResponse.data && Array.isArray(engineResponse.data)) {
+            engineNames = engineResponse.data.map(engine => engine.engineName);
+            console.log(`Pobrano ${engineNames.length} silników dla modelu ${model.name}: [${engineNames.join(', ')}]`);
+          } else {
+            console.log(`Brak silników dla modelu ${model.name}`);
+          }
+        } catch (err) {
+          console.log(`Błąd pobierania silników dla modelu ${model.id}:`, err);
+        }
+
+        return {
+          id: model.id,
+          name: model.name,
+          category: mapBodyTypeToCategory(model.bodyType),
+          image: model.imageUrl ? adminApiService.getImageUrl(model.imageUrl) : '/api/placeholder/300/180',
+          basePrice: model.basePrice,
+          engineOptions: engineNames,
+          description: model.description || 'Opis modelu',
+          features: [], // Można rozszerzyć o dodatkowe cechy
+          popularity: Math.floor(Math.random() * 5) + 1, // Tymczasowo losowa popularność
+          new: new Date().getFullYear() - model.productionYear <= 1,
+          electric: model.isElectric || false,
+          has4x4: model.has4x4 || false,
+          manufacturer: model.manufacturer,
+          productionYear: model.productionYear,
+          isActive: model.isActive
+        };
       }));
 
       // Filtrowanie tylko aktywnych modeli
@@ -133,23 +150,39 @@ export default function Home() {
 
       const data = response.data;
       
-      let mappedModels = data.map(model => ({
-        id: model.id,
-        name: model.name,
-        category: mapBodyTypeToCategory(model.bodyType),
-        image: model.imageUrl ? adminApiService.getImageUrl(model.imageUrl) : '/api/placeholder/300/180',
-        basePrice: model.basePrice,
-        engineOptions: [],
-        description: model.description || 'Opis modelu',
-        features: [],
-        popularity: Math.floor(Math.random() * 5) + 1,
-        new: new Date().getFullYear() - model.productionYear <= 1,
-        // ✅ Używamy prawdziwych pól z bazy danych
-        electric: model.isElectric || false,
-        has4x4: model.has4x4 || false,
-        manufacturer: model.manufacturer,
-        productionYear: model.productionYear,
-        isActive: model.isActive
+      let mappedModels = await Promise.all(data.map(async (model) => {
+        // Pobierz silniki dla każdego modelu
+        let engineNames = [];
+        try {
+          const engineResponse = await axiosInstance.get(`/api/car-models/${model.id}/engines`);
+          if (engineResponse.data && Array.isArray(engineResponse.data)) {
+            engineNames = engineResponse.data.map(engine => engine.engineName);
+            console.log(`Pobrano ${engineNames.length} silników dla modelu ${model.name}: [${engineNames.join(', ')}]`);
+          } else {
+            console.log(`Brak silników dla modelu ${model.name}`);
+          }
+        } catch (err) {
+          console.log(`Błąd pobierania silników dla modelu ${model.id}:`, err);
+        }
+
+        return {
+          id: model.id,
+          name: model.name,
+          category: mapBodyTypeToCategory(model.bodyType),
+          image: model.imageUrl ? adminApiService.getImageUrl(model.imageUrl) : '/api/placeholder/300/180',
+          basePrice: model.basePrice,
+          engineOptions: engineNames,
+          description: model.description || 'Opis modelu',
+          features: [],
+          popularity: Math.floor(Math.random() * 5) + 1,
+          new: new Date().getFullYear() - model.productionYear <= 1,
+          // ✅ Używamy prawdziwych pól z bazy danych
+          electric: model.isElectric || false,
+          has4x4: model.has4x4 || false,
+          manufacturer: model.manufacturer,
+          productionYear: model.productionYear,
+          isActive: model.isActive
+        };
       }));
 
       // Filtrowanie tylko aktywnych modeli
@@ -181,14 +214,7 @@ export default function Home() {
   // Mapowanie typów nadwozia na kategorie
   const mapBodyTypeToCategory = (bodyType) => {
     if (!bodyType) return 'all';
-    const type = bodyType.toLowerCase();
-    if (type.includes('sedan')) return 'sedan';
-    if (type.includes('suv')) return 'suv';
-    if (type.includes('electric')) return 'electric';
-    if (type.includes('sport')) return 'sport';
-    if (type.includes('hybrid')) return 'hybrid';
-    if (type.includes('compact')) return 'compact';
-    return 'all';
+    return bodyType.toLowerCase();
   };
 
   // Pobieranie danych przy pierwszym załadowaniu

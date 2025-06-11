@@ -32,13 +32,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         p.id::TEXT as Id,
                         p.model as Name,
                         EXTRACT(YEAR FROM NOW()) as ProductionYear,
-                        CASE
-                            WHEN p.model ILIKE '%suv%' THEN 'SUV'
-                            WHEN p.model ILIKE '%sedan%' THEN 'Sedan'
-                            WHEN p.model ILIKE '%coupe%' THEN 'Coupe'
-                            WHEN p.model ILIKE '%kombi%' THEN 'Kombi'
-                            ELSE 'Sedan'
-                        END as BodyType,
+                        p.typnadwozia as BodyType,
                         CASE
                             WHEN p.model ILIKE '%bmw%' THEN 'BMW'
                             WHEN p.model ILIKE '%toyota%' THEN 'Toyota'
@@ -62,9 +56,10 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                                 ELSE '/images/models/default.jpg'
                             END
                         ) as ImageUrl,
-                        TRUE as IsActive,
+                        isactive as IsActive,
                         p.ma4x4 as Has4x4,
                         p.jestelektryczny as IsElectric,
+                        p.typnadwozia as BodyTypeValue,
                         NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
                         NULL as UpdatedAt
                     FROM 
@@ -88,13 +83,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         p.id::TEXT as Id,
                         p.model as Name,
                         EXTRACT(YEAR FROM NOW()) as ProductionYear,
-                        CASE
-                            WHEN p.model ILIKE '%suv%' THEN 'SUV'
-                            WHEN p.model ILIKE '%sedan%' THEN 'Sedan'
-                            WHEN p.model ILIKE '%coupe%' THEN 'Coupe'
-                            WHEN p.model ILIKE '%kombi%' THEN 'Kombi'
-                            ELSE 'Sedan'
-                        END as BodyType,
+                        p.typnadwozia as BodyType,
                         CASE
                             WHEN p.model ILIKE '%bmw%' THEN 'BMW'
                             WHEN p.model ILIKE '%toyota%' THEN 'Toyota'
@@ -116,7 +105,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                             WHEN p.model ILIKE '%tesla%' THEN '/images/models/tesla.jpg'
                             ELSE '/images/models/default.jpg'
                         END as ImageUrl,
-                        TRUE as IsActive,
+                        isactive as IsActive,
                         NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
                         NULL as UpdatedAt
                     FROM 
@@ -149,13 +138,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         p.id::TEXT as Id,
                         p.model as Name,
                         EXTRACT(YEAR FROM NOW()) as ProductionYear,
-                        CASE
-                            WHEN p.model ILIKE '%suv%' THEN 'SUV'
-                            WHEN p.model ILIKE '%sedan%' THEN 'Sedan'
-                            WHEN p.model ILIKE '%coupe%' THEN 'Coupe'
-                            WHEN p.model ILIKE '%kombi%' THEN 'Kombi'
-                            ELSE 'Sedan'
-                        END as BodyType,
+                        p.typnadwozia as BodyType,
                         CASE
                             WHEN p.model ILIKE '%bmw%' THEN 'BMW'
                             WHEN p.model ILIKE '%toyota%' THEN 'Toyota'
@@ -177,7 +160,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                             WHEN p.model ILIKE '%tesla%' THEN '/images/models/tesla.jpg'
                             ELSE '/images/models/default.jpg'
                         END as ImageUrl,
-                        TRUE as IsActive,
+                        isactive as IsActive,
                         NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
                         NULL as UpdatedAt
                     FROM 
@@ -227,9 +210,9 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     parameters.Add("MaxYear", filter.MaxYear.Value);
                 }
 
-                if (!string.IsNullOrEmpty(filter.BodyType))  // ✅ To jest poprawne
+                if (!string.IsNullOrEmpty(filter.BodyType))
                 {
-                    queryBuilder.Append(" AND CASE WHEN p.model ILIKE '%suv%' THEN 'SUV' WHEN p.model ILIKE '%sedan%' THEN 'Sedan' WHEN p.model ILIKE '%coupe%' THEN 'Coupe' WHEN p.model ILIKE '%kombi%' THEN 'Kombi' ELSE 'Sedan' END = @BodyType");
+                    queryBuilder.Append(" AND COALESCE(p.typnadwozia, CASE WHEN p.model ILIKE '%suv%' THEN 'SUV' WHEN p.model ILIKE '%sedan%' THEN 'Sedan' WHEN p.model ILIKE '%coupe%' THEN 'Coupe' WHEN p.model ILIKE '%kombi%' THEN 'Kombi' ELSE 'Sedan' END) = @BodyType");
                     parameters.Add("BodyType", filter.BodyType);
                 }
 
@@ -302,6 +285,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     INSERT INTO pojazd (
                         model,
                         kolornadwozia,
+                        typnadwozia,
                         wyposazeniewnetrza,
                         cena,
                         opis,
@@ -312,7 +296,8 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     )
                     VALUES (
                         @Name, 
-                        'Biały', 
+                        'Biały',
+                        @BodyType, 
                         'Standardowe', 
                         @BasePrice, 
                         @Description, 
@@ -325,13 +310,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         id::TEXT as Id,
                         model as Name,
                         EXTRACT(YEAR FROM NOW()) as ProductionYear,
-                        CASE
-                            WHEN model ILIKE '%suv%' THEN 'SUV'
-                            WHEN model ILIKE '%sedan%' THEN 'Sedan'
-                            WHEN model ILIKE '%coupe%' THEN 'Coupe'
-                            WHEN model ILIKE '%kombi%' THEN 'Kombi'
-                            ELSE @BodyType
-                        END as BodyType,
+                        typnadwozia as BodyType,
                         CASE
                             WHEN model ILIKE '%bmw%' THEN 'BMW'
                             WHEN model ILIKE '%toyota%' THEN 'Toyota'
@@ -355,7 +334,9 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                                 ELSE '/images/models/default.jpg'
                             END
                         ) as ImageUrl,
-                        TRUE as IsActive,
+                        COALESCE(isactive, true) as IsActive,
+                        ma4x4 as Has4x4,
+                        jestelektryczny as IsElectric,
                         NOW() as CreatedAt,
                         NULL as UpdatedAt";
 
@@ -397,24 +378,20 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 var query = @"
                     UPDATE pojazd SET
                         model = @Name,
+                        typnadwozia = @BodyType,
                         cena = @BasePrice,
                         opis = @Description,
                         ma4x4 = @Has4x4,
                         jestelektryczny = @IsElectric,
-                        imageurl = @ImageUrl
+                        imageurl = @ImageUrl,
+                        isactive = @IsActive
                     WHERE 
                         id = @Id::integer
                     RETURNING
                         id::TEXT as Id,
                         model as Name,
                         EXTRACT(YEAR FROM NOW()) as ProductionYear,
-                        CASE
-                            WHEN model ILIKE '%suv%' THEN 'SUV'
-                            WHEN model ILIKE '%sedan%' THEN 'Sedan'
-                            WHEN model ILIKE '%coupe%' THEN 'Coupe'
-                            WHEN model ILIKE '%kombi%' THEN 'Kombi'
-                            ELSE @BodyType
-                        END as BodyType,
+                        typnadwozia as BodyType,
                         CASE
                             WHEN model ILIKE '%bmw%' THEN 'BMW'
                             WHEN model ILIKE '%toyota%' THEN 'Toyota'
@@ -430,10 +407,13 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         END as Segment,
                         cena as BasePrice,
                         opis as Description,
-                        @ImageUrl as ImageUrl,
-                        TRUE as IsActive,
+                        COALESCE(imageurl, '/images/models/default.jpg') as ImageUrl,
+                        COALESCE(isactive, true) as IsActive,
+                        ma4x4 as Has4x4,
+                        jestelektryczny as IsElectric,
                         NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
                         NOW() as UpdatedAt";
+                    
 
                 var parameters = new
                 {

@@ -103,7 +103,7 @@
 
 .selectedModelInfo {
   background-color: var(--color-bg-secondary);
-  padding: 16px 24px;
+  padding: 20px 24px;
   border-radius: 8px;
   margin-bottom: 20px;
   text-align: center;
@@ -111,13 +111,56 @@
 }
 
 .selectedModelInfo h2 {
-  margin: 0 0 8px 0;
+  margin: 0 0 12px 0;
   font-size: 24px;
   color: var(--color-text-primary);
 }
 
-.selectedModelInfo p {
-  margin: 0;
-  font-size: 18px;
+.modelDescription {
+  margin: 0 0 12px 0 !important;
+  font-size: 16px;
   color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.basePrice {
+  margin: 0 0 16px 0 !important;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.availableEngines {
+  margin-top: 16px;
+  text-align: left;
+}
+
+.availableEngines h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+.enginesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.engineItem {
+  display: flex;
+  padding: 8px 12px;
+  background-color: var(--color-bg-primary);
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  justify-content: center;
+  align-items: center;
+}
+
+.engineName {
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-align: center;
+  margin: 0;
 }

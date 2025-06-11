@@ -1,8 +1,13 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using KonfiguratorSamochodowy.Api.Common.Services;
 using KonfiguratorSamochodowy.Api.Dtos;
 using KonfiguratorSamochodowy.Api.Extensions;
 using KonfiguratorSamochodowy.Api.Requests;
 using KonfiguratorSamochodowy.Api.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
+using Microsoft.IdentityModel.Tokens;
 
 namespace KonfiguratorSamochodowy.Api.Endpoints
 {
@@ -14,11 +19,27 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 .WithTags("Modele samochodów");
 
             // Pobieranie wszystkich modeli
-            group.MapGet("/", async ([FromServices] ICarModelService service) =>
+            group.MapGet("/", async ([FromServices] ICarModelService service, HttpContext context, [FromServices] IJwtService jwtService) =>
             {
+                bool isAdmin = false;
+
+                if (context.Request.Headers.TryGetValue("Authorization", out StringValues authorizationValue)) 
+                    {
+                        var token = authorizationValue.ToString().Replace("Bearer ", string.Empty);
+                        jwtService.ValidateToken(authorizationValue.ToString().Replace("Bearer ", string.Empty));
+                        
+                        if (jwtService.ValidateToken(authorizationValue.ToString().Replace("Bearer ", string.Empty)))
+                            {
+                                var handler = new JwtSecurityTokenHandler();
+                                var jsonToken = handler.ReadJwtToken(token);
+                                var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(jsonToken.Claims.Select(c => new Claim(c.Type, c.Value))));
+                                var role = claimsPrincipal.FindFirst(c => c.Type == ClaimTypes.Role)?.Value;
+                                isAdmin = role == "Administrator";
+                                }
+                    }
                 var result = await service.GetAllAsync();
                 return result.IsSuccess 
-                    ? Results.Ok(result.Value) 
+                    ? Results.Ok(result.Value.Where(e => isAdmin? true : e.IsActive)) 
                     : Results.Problem(result.Error.Message, statusCode: 500);
             })
             .WithName("GetAllCarModels")

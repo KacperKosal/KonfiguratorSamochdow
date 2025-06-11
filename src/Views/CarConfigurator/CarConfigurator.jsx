@@ -53,6 +53,7 @@ const CarConfigurator = () => {
         }
         
         if (selectedModel) {
+          console.log('Wybrany model samochodu:', selectedModel);
           setSelectedCarModel(selectedModel);
           
           // Pobierz dostępne kolory dla modelu
@@ -95,13 +96,18 @@ const CarConfigurator = () => {
           }
           
           // Pobierz silniki dla wybranego modelu
+          console.log(`Pobieranie silników dla modelu: ${selectedModel.id}`);
           const enginesResponse = await fetch(`${apiUrl}/api/car-models/${selectedModel.id}/engines`);
           if (enginesResponse.ok) {
             const enginesData = await enginesResponse.json();
+            console.log('Otrzymane silniki:', enginesData);
             setEngines(enginesData);
             if (enginesData.length > 0) {
               setSelectedEngine(enginesData[0]);
+              console.log('Wybrany domyślny silnik:', enginesData[0]);
             }
+          } else {
+            console.error('Błąd pobierania silników:', enginesResponse.status, enginesResponse.statusText);
           }
           
           // Pobierz akcesoria
@@ -345,13 +351,6 @@ const CarConfigurator = () => {
     <div className={styles.configurator}>
       <h1 className={styles.configuratorTitle}>Konfigurator samochodu</h1>
       
-      {/* Wyświetlanie wybranego modelu */}
-      {selectedCarModel && (
-        <div className={styles.selectedModelInfo}>
-          <h2>{selectedCarModel.name}</h2>
-          <p>Cena bazowa: {selectedCarModel.basePrice?.toLocaleString()} zł</p>
-        </div>
-      )}
       
       <div className={styles.configuratorContent}>
         <div className={styles.configuratorLeftPanel}>

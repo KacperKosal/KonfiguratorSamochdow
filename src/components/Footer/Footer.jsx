@@ -24,28 +24,13 @@ const Footer = () => {
         <div>
           <h3 className={styles.footerTitle}>Kontakt</h3>
           <ul className={styles.footerText}>
-            <li>info@autokonfigurator.pl</li>
+            <li>konfiguratorsamochodwy@gmail.com</li>
             <li>+48 123 456 789</li>
             <li>ul. Motoryzacyjna 10</li>
             <li>00-001 Warszawa</li>
           </ul>
         </div>
-        <div>
-          <h3 className={styles.footerTitle}>Newsletter</h3>
-          <p className={styles.footerText}>
-            Zapisz się, aby otrzymywać najnowsze oferty i aktualizacje.
-          </p>
-          <div className={styles.newsletterForm}>
-            <input
-              type="email"
-              placeholder="Twój e-mail"
-              className={styles.newsletterInput}
-            />
-            <button className={styles.newsletterButton}>
-              Zapisz się
-            </button>
-          </div>
-        </div>
+        
       </div>
       <div className={styles.footerBottom}>
         © 2025 AutoKonfigurator. Wszelkie prawa zastrzeżone.

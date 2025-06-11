@@ -206,90 +206,90 @@ WHERE CarModelId = @CarModelId AND EngineId = @EngineId;
 SELECT
     CONCAT(s.ID, '-', p.ID) AS Id,
     CAST(p.ID AS VARCHAR) AS CarModelId,
-    CAST(s.ID AS VARCHAR) AS EngineId,
+    CAST(s.id AS VARCHAR) AS EngineId,
     0 AS AdditionalPrice,
-    CASE WHEN ROW_NUMBER() OVER (PARTITION BY p.ID ORDER BY s.Moc DESC) = 1 THEN TRUE ELSE FALSE END AS IsDefault,
+    CASE WHEN ROW_NUMBER() OVER (PARTITION BY p.id ORDER BY s.moc DESC) = 1 THEN TRUE ELSE FALSE END AS IsDefault,
     CASE
-        WHEN s.Moc > 200 THEN 240
-        WHEN s.Moc > 150 THEN 220
-        WHEN s.Moc > 100 THEN 200
+        WHEN s.moc > 200 THEN 240
+        WHEN s.moc > 150 THEN 220
+        WHEN s.moc > 100 THEN 200
         ELSE 180
     END AS TopSpeed,
     CASE
-        WHEN s.Moc > 200 THEN 6.0
-        WHEN s.Moc > 150 THEN 8.0
-        WHEN s.Moc > 100 THEN 10.0
+        WHEN s.moc > 200 THEN 6.0
+        WHEN s.moc > 150 THEN 8.0
+        WHEN s.moc > 100 THEN 10.0
         ELSE 12.0
     END AS Acceleration0To100,
     NOW() AS AvailabilityDate,
     TRUE AS IsAvailable,
     NOW() - INTERVAL '60 days' * RANDOM() AS CreatedAt,
     NULL AS UpdatedAt
-FROM Silnik s
-JOIN Pojazd p ON s.PojazdID = p.ID
-ORDER BY p.ID, s.Moc DESC;
+FROM silnik s
+JOIN pojazd p ON s.pojazdid = p.id
+ORDER BY p.id, s.moc DESC;
 
 -- Legacy GetByIdAsync: Get engine and vehicle mapping by ID (constructed ID)
 SELECT
     CONCAT(s.ID, '-', p.ID) AS Id,
     CAST(p.ID AS VARCHAR) AS CarModelId,
-    CAST(s.ID AS VARCHAR) AS EngineId,
+    CAST(s.id AS VARCHAR) AS EngineId,
     0 AS AdditionalPrice,
-    CASE WHEN ROW_NUMBER() OVER (PARTITION BY p.ID ORDER BY s.Moc DESC) = 1 THEN TRUE ELSE FALSE END AS IsDefault,
+    CASE WHEN ROW_NUMBER() OVER (PARTITION BY p.id ORDER BY s.moc DESC) = 1 THEN TRUE ELSE FALSE END AS IsDefault,
     CASE
-        WHEN s.Moc > 200 THEN 240
-        WHEN s.Moc > 150 THEN 220
-        WHEN s.Moc > 100 THEN 200
+        WHEN s.moc > 200 THEN 240
+        WHEN s.moc > 150 THEN 220
+        WHEN s.moc > 100 THEN 200
         ELSE 180
     END AS TopSpeed,
     CASE
-        WHEN s.Moc > 200 THEN 6.0
-        WHEN s.Moc > 150 THEN 8.0
-        WHEN s.Moc > 100 THEN 10.0
+        WHEN s.moc > 200 THEN 6.0
+        WHEN s.moc > 150 THEN 8.0
+        WHEN s.moc > 100 THEN 10.0
         ELSE 12.0
     END AS Acceleration0To100,
     NOW() AS AvailabilityDate,
     TRUE AS IsAvailable,
     NOW() - INTERVAL '60 days' * RANDOM() AS CreatedAt,
     NULL AS UpdatedAt
-FROM Silnik s
-JOIN Pojazd p ON s.PojazdID = p.ID
+FROM silnik s
+JOIN pojazd p ON s.pojazdid = p.id
 WHERE CONCAT(s.ID, '-', p.ID) = @Id;
 
 -- Legacy GetByCarModelIdAsync: Get all engines for a car model
 SELECT
     CONCAT(s.ID, '-', p.ID) AS Id,
     CAST(p.ID AS VARCHAR) AS CarModelId,
-    CAST(s.ID AS VARCHAR) AS EngineId,
+    CAST(s.id AS VARCHAR) AS EngineId,
     0 AS AdditionalPrice,
-    CASE WHEN ROW_NUMBER() OVER (PARTITION BY p.ID ORDER BY s.Moc DESC) = 1 THEN TRUE ELSE FALSE END AS IsDefault,
+    CASE WHEN ROW_NUMBER() OVER (PARTITION BY p.id ORDER BY s.moc DESC) = 1 THEN TRUE ELSE FALSE END AS IsDefault,
     CASE
-        WHEN s.Moc > 200 THEN 240
-        WHEN s.Moc > 150 THEN 220
-        WHEN s.Moc > 100 THEN 200
+        WHEN s.moc > 200 THEN 240
+        WHEN s.moc > 150 THEN 220
+        WHEN s.moc > 100 THEN 200
         ELSE 180
     END AS TopSpeed,
     CASE
-        WHEN s.Moc > 200 THEN 6.0
-        WHEN s.Moc > 150 THEN 8.0
-        WHEN s.Moc > 100 THEN 10.0
+        WHEN s.moc > 200 THEN 6.0
+        WHEN s.moc > 150 THEN 8.0
+        WHEN s.moc > 100 THEN 10.0
         ELSE 12.0
     END AS Acceleration0To100,
     NOW() AS AvailabilityDate,
     TRUE AS IsAvailable,
     NOW() - INTERVAL '60 days' * RANDOM() AS CreatedAt,
     NULL AS UpdatedAt
-FROM Silnik s
-JOIN Pojazd p ON s.PojazdID = p.ID
-WHERE p.ID = @CarModelId
-ORDER BY s.Moc DESC;
+FROM silnik s
+JOIN pojazd p ON s.pojazdid = p.id
+WHERE p.id = @CarModelId
+ORDER BY s.moc DESC;
 
 -- Legacy CreateAsync: Insert a new engine for a car model
-INSERT INTO Silnik (PojazdID, Pojemnosc, Typ, Moc)
+INSERT INTO silnik (pojazdid, pojemnosc, typ, moc)
 VALUES (@CarModelId::INTEGER, '2.0L', 'benzyna', 150)
 RETURNING
-    CONCAT(ID, '-', PojazdID) AS Id,
-    CAST(PojazdID AS VARCHAR) AS CarModelId,
+    CONCAT(id, '-', pojazdid) AS Id,
+    CAST(pojazdid AS VARCHAR) AS CarModelId,
     CAST(ID AS VARCHAR) AS EngineId,
     0 AS AdditionalPrice,
     TRUE AS IsDefault,

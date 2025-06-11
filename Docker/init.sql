@@ -19,6 +19,7 @@ CREATE TABLE Pojazd (
     ID SERIAL PRIMARY KEY,
     Model VARCHAR(50),
     KolorNadwozia VARCHAR(30),
+    TypNadwozia VARCHAR(50),
     WyposazenieWnetrza TEXT,
     Cena INT,
     Opis TEXT,
@@ -120,10 +121,10 @@ INSERT INTO Uzytkownik (ImieNazwisko, Email, Haslo, Rola) VALUES
   ('Piotr Zieliński', 'piotr.zielinski@example.com', 'hashedpwd3', 'Uzytkownik');
 
 -- 2. Pojazdy
-INSERT INTO Pojazd (Model, KolorNadwozia, WyposazenieWnetrza, Cena, Opis, Ma4x4, JestElektryczny, Akcesoria) VALUES
-  ('Toyota Corolla', 'Czarny', 'Skórzana tapicerka, Klimatyzacja',  80000, 'Ekonomiczny i niezawodny kompakt',          FALSE, FALSE, 'Nawigacja, Hak'),
-  ('BMW X5',         'Biały',  'Welur, Podgrzewane fotele',         250000,'Komfortowy SUV z napędem 4×4',            TRUE,  FALSE, 'Hak, Dachowy bagażnik'),
-  ('Tesla Model 3',  'Czerwony','Skórzana tapicerka, Autopilot',     200000,'Bezpieczeństwo i zero emisji',            FALSE, TRUE,  'Ładowarka, Dywaniki gumowe');
+INSERT INTO Pojazd (Model, KolorNadwozia, TypNadwozia, WyposazenieWnetrza, Cena, Opis, Ma4x4, JestElektryczny, Akcesoria) VALUES
+  ('Toyota Corolla', 'Czarny', 'Sedan', 'Skórzana tapicerka, Klimatyzacja',  80000, 'Ekonomiczny i niezawodny kompakt',          FALSE, FALSE, 'Nawigacja, Hak'),
+  ('BMW X5',         'Biały',  'SUV', 'Welur, Podgrzewane fotele',         250000,'Komfortowy SUV z napędem 4×4',            TRUE,  FALSE, 'Hak, Dachowy bagażnik'),
+  ('Tesla Model 3',  'Czerwony','Sedan','Skórzana tapicerka, Autopilot',     200000,'Bezpieczeństwo i zero emisji',            FALSE, TRUE,  'Ładowarka, Dywaniki gumowe');
 
 -- 3. Silniki
 INSERT INTO Silnik (PojazdID, Pojemnosc, Typ, Moc) VALUES
@@ -245,9 +246,19 @@ BEGIN
     END IF;
 END $$;
 
+-- Migracja: Dodanie kolumny TypNadwozia do tabeli Pojazd
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'pojazd' AND column_name = 'typnadwozia') THEN
+        ALTER TABLE pojazd ADD COLUMN typnadwozia VARCHAR(50);
+        UPDATE pojazd SET typnadwozia = 'Sedan' WHERE typnadwozia IS NULL;
+    END IF;
+END $$;
+
 -- Tworzenie tabel z małymi literami dla zgodności z Entity Framework
 CREATE TABLE IF NOT EXISTS pojazd AS SELECT 
-    id, model, kolornadwozia, wyposazeniewetrza, cena, opis, ma4x4, jestelektryczny, akcesoria, zdjecie, imageurl 
+    id, model, kolornadwozia, typnadwozia, wyposazeniewetrza, cena, opis, ma4x4, jestelektryczny, akcesoria, zdjecie, imageurl 
     FROM Pojazd;
     
 CREATE TABLE IF NOT EXISTS silnik AS SELECT 

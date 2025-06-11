@@ -6,13 +6,15 @@ SELECT
     CAST(p.ID AS VARCHAR) AS Id,
     p.Model AS Name,
     EXTRACT(YEAR FROM NOW()) AS ProductionYear,
-    CASE
-        WHEN p.Model ILIKE '%suv%' THEN 'SUV'
-        WHEN p.Model ILIKE '%sedan%' THEN 'Sedan'
-        WHEN p.Model ILIKE '%coupe%' THEN 'Coupe'
-        WHEN p.Model ILIKE '%kombi%' THEN 'Kombi'
-        ELSE 'Sedan'
-    END AS BodyType,
+    COALESCE(p.TypNadwozia, 
+        CASE
+            WHEN p.Model ILIKE '%suv%' THEN 'SUV'
+            WHEN p.Model ILIKE '%sedan%' THEN 'Sedan'
+            WHEN p.Model ILIKE '%coupe%' THEN 'Coupe'
+            WHEN p.Model ILIKE '%kombi%' THEN 'Kombi'
+            ELSE 'Sedan'
+        END
+    ) AS BodyType,
     CASE
         WHEN p.Model ILIKE '%bmw%' THEN 'BMW'
         WHEN p.Model ILIKE '%toyota%' THEN 'Toyota'
@@ -28,16 +30,20 @@ SELECT
     END AS Segment,
     p.Cena AS BasePrice,
     p.Opis AS Description,
-    CASE
-        WHEN p.Model ILIKE '%bmw%' THEN '/images/models/bmw.jpg'
-        WHEN p.Model ILIKE '%toyota%' THEN '/images/models/toyota.jpg'
-        WHEN p.Model ILIKE '%tesla%' THEN '/images/models/tesla.jpg'
-        ELSE '/images/models/default.jpg'
-    END AS ImageUrl,
+    COALESCE(p.ImageUrl,
+        CASE
+            WHEN p.Model ILIKE '%bmw%' THEN '/images/models/bmw.jpg'
+            WHEN p.Model ILIKE '%toyota%' THEN '/images/models/toyota.jpg'
+            WHEN p.Model ILIKE '%tesla%' THEN '/images/models/tesla.jpg'
+            ELSE '/images/models/default.jpg'
+        END
+    ) AS ImageUrl,
+    p.Ma4x4 AS Has4x4,
+    p.JestElektryczny AS IsElectric,
     TRUE AS IsActive,
     NOW() - INTERVAL '30 days' * RANDOM() AS CreatedAt,
     NULL AS UpdatedAt
-FROM Pojazd p
+FROM pojazd p
 ORDER BY p.Cena DESC;
 
 -- GetByIdAsync: Get car model by ID
@@ -134,70 +140,106 @@ ORDER BY p.Cena DESC;
 */
 
 -- CreateAsync: Insert new car model
-INSERT INTO Pojazd (Model, KolorNadwozia, WyposazenieWnetrza, Cena, Opis, Ma4x4, JestElektryczny, Akcesoria)
+INSERT INTO pojazd (model, kolornadwozia, typnadwozia, wyposazeniewnetrza, cena, opis, ma4x4, jestelektryczny, akcesoria, imageurl)
 VALUES (
     @Name, 
-    'Biały', 
+    'Biały',
+    @BodyType, 
     'Standardowe', 
     @BasePrice, 
     @Description, 
-    @BodyType = 'SUV', 
-    @Segment = 'Premium', 
-    'Brak'
+    @Has4x4, 
+    @IsElectric, 
+    'Brak',
+    @ImageUrl
 )
 RETURNING
-    CAST(ID AS VARCHAR) AS Id,
-    Model AS Name,
+    CAST(id AS VARCHAR) AS Id,
+    model AS Name,
     EXTRACT(YEAR FROM NOW()) AS ProductionYear,
+    COALESCE(typnadwozia, 
+        CASE
+            WHEN model ILIKE '%suv%' THEN 'SUV'
+            WHEN model ILIKE '%sedan%' THEN 'Sedan'
+            WHEN model ILIKE '%coupe%' THEN 'Coupe'
+            WHEN model ILIKE '%kombi%' THEN 'Kombi'
+            ELSE 'Sedan'
+        END
+    ) AS BodyType,
     CASE
-        WHEN Model ILIKE '%suv%' THEN 'SUV'
-        WHEN Model ILIKE '%sedan%' THEN 'Sedan'
-        WHEN Model ILIKE '%coupe%' THEN 'Coupe'
-        WHEN Model ILIKE '%kombi%' THEN 'Kombi'
-        ELSE @BodyType
-    END AS BodyType,
-    @Manufacturer AS Manufacturer,
-    @Segment AS Segment,
-    Cena AS BasePrice,
-    Opis AS Description,
-    @ImageUrl AS ImageUrl,
+        WHEN model ILIKE '%bmw%' THEN 'BMW'
+        WHEN model ILIKE '%toyota%' THEN 'Toyota'
+        WHEN model ILIKE '%tesla%' THEN 'Tesla'
+        ELSE SPLIT_PART(model, ' ', 1)
+    END AS Manufacturer,
+    CASE
+        WHEN cena > 200000 THEN 'Premium'
+        WHEN cena > 150000 THEN 'E'
+        WHEN cena > 100000 THEN 'D'
+        WHEN cena > 70000 THEN 'C'
+        ELSE 'B'
+    END AS Segment,
+    cena AS BasePrice,
+    opis AS Description,
+    COALESCE(imageurl, '/images/models/default.jpg') AS ImageUrl,
+    ma4x4 AS Has4x4,
+    jestelektryczny AS IsElectric,
     TRUE AS IsActive,
     NOW() AS CreatedAt,
     NULL AS UpdatedAt;
 
 -- UpdateAsync: Update car model
-UPDATE Pojazd
+UPDATE pojazd
 SET
-    Model = @Name,
-    Cena = @BasePrice,
-    Opis = @Description
-WHERE ID = @Id
+    model = @Name,
+    typnadwozia = @BodyType,
+    cena = @BasePrice,
+    opis = @Description,
+    ma4x4 = @Has4x4,
+    jestelektryczny = @IsElectric,
+    imageurl = @ImageUrl
+WHERE id = @Id::integer
 RETURNING
-    CAST(ID AS VARCHAR) AS Id,
-    Model AS Name,
+    CAST(id AS VARCHAR) AS Id,
+    model AS Name,
     EXTRACT(YEAR FROM NOW()) AS ProductionYear,
+    COALESCE(typnadwozia, 
+        CASE
+            WHEN model ILIKE '%suv%' THEN 'SUV'
+            WHEN model ILIKE '%sedan%' THEN 'Sedan'
+            WHEN model ILIKE '%coupe%' THEN 'Coupe'
+            WHEN model ILIKE '%kombi%' THEN 'Kombi'
+            ELSE 'Sedan'
+        END
+    ) AS BodyType,
     CASE
-        WHEN Model ILIKE '%suv%' THEN 'SUV'
-        WHEN Model ILIKE '%sedan%' THEN 'Sedan'
-        WHEN Model ILIKE '%coupe%' THEN 'Coupe'
-        WHEN Model ILIKE '%kombi%' THEN 'Kombi'
-        ELSE @BodyType
-    END AS BodyType,
-    @Manufacturer AS Manufacturer,
-    @Segment AS Segment,
-    Cena AS BasePrice,
-    Opis AS Description,
-    @ImageUrl AS ImageUrl,
+        WHEN model ILIKE '%bmw%' THEN 'BMW'
+        WHEN model ILIKE '%toyota%' THEN 'Toyota'
+        WHEN model ILIKE '%tesla%' THEN 'Tesla'
+        ELSE SPLIT_PART(model, ' ', 1)
+    END AS Manufacturer,
+    CASE
+        WHEN cena > 200000 THEN 'Premium'
+        WHEN cena > 150000 THEN 'E'
+        WHEN cena > 100000 THEN 'D'
+        WHEN cena > 70000 THEN 'C'
+        ELSE 'B'
+    END AS Segment,
+    cena AS BasePrice,
+    opis AS Description,
+    COALESCE(imageurl, '/images/models/default.jpg') AS ImageUrl,
+    ma4x4 AS Has4x4,
+    jestelektryczny AS IsElectric,
     TRUE AS IsActive,
     NOW() - INTERVAL '30 days' * RANDOM() AS CreatedAt,
     NOW() AS UpdatedAt;
 
 -- DeleteAsync: Delete car model
 -- First check if car model is referenced in other tables
-SELECT COUNT(*) AS ConfigurationCount FROM Konfiguracja WHERE IDPojazdu = @Id;
-SELECT COUNT(*) AS EngineCount FROM Silnik WHERE PojazdID = @Id;
-SELECT COUNT(*) AS EquipmentOptionCount FROM OpcjaWyposazenia WHERE IDPojazdu = @Id;
+SELECT COUNT(*) AS ConfigurationCount FROM konfiguracja WHERE idpojazdu = @Id::integer;
+SELECT COUNT(*) AS EngineCount FROM silnik WHERE pojazdid = @Id::integer;
+SELECT COUNT(*) AS ModelEngineCount FROM modelsilnik WHERE modelid = @Id::integer;
 
 -- If no references exist, delete the car model
-DELETE FROM Pojazd
-WHERE ID = @Id;
+DELETE FROM pojazd
+WHERE id = @Id::integer;

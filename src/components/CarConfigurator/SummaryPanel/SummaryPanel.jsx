@@ -116,9 +116,6 @@ const SummaryPanel = ({
           <ShoppingCart size={20} />
           Zapisz konfigurację
         </button>
-        <button className={`${styles.actionButton} ${styles.availability}`}>
-          Sprawdź dostępność
-        </button>
       </div>
     </div>
   );

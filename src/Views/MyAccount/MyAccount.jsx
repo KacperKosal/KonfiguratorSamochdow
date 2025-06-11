@@ -420,8 +420,7 @@ const MyAccount = () => {
           
           {configurations.length === 0 ? (
             <div className={styles.noConfigurations}>
-              <p>Nie masz jeszcze żadnych zapisanych konfiguracji.</p>
-              <p>Przejdź do <a href="/car-configurator">konfiguratora</a>, aby stworzyć swoją pierwszą konfigurację!</p>
+              <p>Nie masz jeszcze żadnych zapisanych konfiguracji. Przejdź do <a href="/home">modeli</a>, aby wybrać i stworzyć swoją pierwszą konfigurację!</p>
             </div>
           ) : (
             <div className={styles.configurationsGrid}>
