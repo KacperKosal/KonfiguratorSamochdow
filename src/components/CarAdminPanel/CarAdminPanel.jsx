@@ -44,7 +44,6 @@ const CarAdminPanel = () => {
       case 'engines':
         return {
           name: '',
-          type: '',
           capacity: '',
           power: '',
           torque: '',
@@ -121,7 +120,7 @@ const CarAdminPanel = () => {
   const [imageLoadedSuccessfully, setImageLoadedSuccessfully] = useState(false);
 
   // Opcje dla select-ów
-  const bodyTypes = ['Sedan', 'Hatchback', 'SUV', 'Combi', 'Coupe', 'Cabrio'];
+  const bodyTypes = ['Sedan', 'Hatchback', 'SUV', 'Combi', 'Coupe'];
   const manufacturers = ['Toyota', 'BMW', 'Mercedes', 'Audi', 'Volkswagen', 'Ford', 'Opel', 'Peugeot'];
 
   // Ładowanie danych z API
@@ -323,10 +322,6 @@ const CarAdminPanel = () => {
           newErrors.name = 'Nazwa silnika nie może przekraczać 255 znaków';
         }
 
-        // Walidacja typu silnika
-        if (!formData.type) {
-          newErrors.type = 'Typ silnika jest wymagany';
-        }
 
         // Walidacja rodzaju paliwa
         if (!formData.fuelType) {
@@ -340,14 +335,14 @@ const CarAdminPanel = () => {
           newErrors.power = 'Moc silnika jest wymagana';
         } else if (isNaN(formData.power)) {
           newErrors.power = 'Moc musi być liczbą';
-        } else if (parseInt(formData.power) <= 0) {
-          newErrors.power = 'Moc musi być liczbą większą od 0';
-        } else if (parseInt(formData.power) > 1000000) {
-          newErrors.power = 'Moc nie może przekraczać 1 000 000 KM';
+        } else if (parseInt(formData.power) < 70) {
+          newErrors.power = 'Moc musi być co najmniej 70 KM';
+        } else if (parseInt(formData.power) > 5000) {
+          newErrors.power = 'Moc nie może przekraczać 5000 KM';
         }
 
         // Sprawdź czy silnik jest elektryczny
-        const isElectricEngine = formData.type === 'Electric' || formData.fuelType === 'Electric' || formData.fuelType === 'elektryczny';
+        const isElectricEngine = formData.fuelType === 'Electric';
 
         // Walidacja pojemności (wymagane)
         const allowedCapacities = ['1000', '1600', '1800', '1900', '2000', '2500', '3000', '4000', '5000'];
@@ -357,44 +352,50 @@ const CarAdminPanel = () => {
           newErrors.capacity = 'Nieprawidłowa pojemność silnika';
         }
 
-        // Walidacja liczby cylindrów (wymagane)
-        if (!formData.cylinders) {
-          newErrors.cylinders = 'Liczba cylindrów jest wymagana';
-        } else if (isNaN(formData.cylinders)) {
-          newErrors.cylinders = 'Liczba cylindrów musi być liczbą';
-        } else if (parseInt(formData.cylinders) <= 0) {
-          newErrors.cylinders = 'Liczba cylindrów musi być większa od 0';
-        } else if (parseInt(formData.cylinders) > 1000000) {
-          newErrors.cylinders = 'Liczba cylindrów nie może przekraczać 1 000 000';
+        // Walidacja liczby cylindrów (wymagane tylko dla silników nieelektrycznych)
+        if (!isElectricEngine) {
+          if (!formData.cylinders) {
+            newErrors.cylinders = 'Liczba cylindrów jest wymagana';
+          } else if (isNaN(formData.cylinders)) {
+            newErrors.cylinders = 'Liczba cylindrów musi być liczbą';
+          } else if (parseInt(formData.cylinders) <= 0) {
+            newErrors.cylinders = 'Liczba cylindrów musi być większa od 0';
+          } else if (parseInt(formData.cylinders) > 1000000) {
+            newErrors.cylinders = 'Liczba cylindrów nie może przekraczać 1 000 000';
+          }
         }
 
         // Walidacja momentu obrotowego (wymagane)
         if (!formData.torque) {
-          newErrors.torque = 'Moment obrotowy musi być większy od 0';
+          newErrors.torque = 'Moment obrotowy jest wymagany';
         } else if (isNaN(formData.torque)) {
           newErrors.torque = 'Moment obrotowy musi być liczbą';
-        } else if (parseInt(formData.torque) <= 0) {
-          newErrors.torque = 'Moment obrotowy musi być większy od 0';
-        } else if (parseInt(formData.torque) > 1000000) {
-          newErrors.torque = 'Moment obrotowy nie może przekraczać 1 000 000 Nm';
+        } else if (parseInt(formData.torque) < 50) {
+          newErrors.torque = 'Moment obrotowy musi być co najmniej 50 Nm';
+        } else if (parseInt(formData.torque) > 10000) {
+          newErrors.torque = 'Moment obrotowy nie może przekraczać 10000 Nm';
         }
 
-        // Walidacja skrzyni biegów (wymagane)
-        if (!formData.transmission) {
-          newErrors.transmission = 'Rodzaj skrzyni biegów jest wymagany.';
-        } else if (formData.transmission.length > 255) {
-          newErrors.transmission = 'Rodzaj skrzyni biegów nie może przekraczać 255 znaków';
+        // Walidacja skrzyni biegów (wymagane tylko dla silników nieelektrycznych)
+        if (!isElectricEngine) {
+          if (!formData.transmission) {
+            newErrors.transmission = 'Rodzaj skrzyni biegów jest wymagany.';
+          } else if (formData.transmission.length > 255) {
+            newErrors.transmission = 'Rodzaj skrzyni biegów nie może przekraczać 255 znaków';
+          }
         }
 
-        // Walidacja liczby biegów (wymagane)
-        if (!formData.gears) {
-          newErrors.gears = 'Liczba biegów jest wymagana';
-        } else if (isNaN(formData.gears)) {
-          newErrors.gears = 'Liczba biegów musi być liczbą';
-        } else if (parseInt(formData.gears) <= 0) {
-          newErrors.gears = 'Liczba biegów musi być większa od 0';
-        } else if (parseInt(formData.gears) > 1000000) {
-          newErrors.gears = 'Liczba biegów nie może przekraczać 1 000 000';
+        // Walidacja liczby biegów (wymagane tylko dla silników nieelektrycznych)
+        if (!isElectricEngine) {
+          if (!formData.gears) {
+            newErrors.gears = 'Liczba biegów jest wymagana';
+          } else if (isNaN(formData.gears)) {
+            newErrors.gears = 'Liczba biegów musi być liczbą';
+          } else if (parseInt(formData.gears) <= 0) {
+            newErrors.gears = 'Liczba biegów musi być większa od 0';
+          } else if (parseInt(formData.gears) > 1000000) {
+            newErrors.gears = 'Liczba biegów nie może przekraczać 1 000 000';
+          }
         }
 
         // Walidacja typu napędu (wymagane)
@@ -404,26 +405,30 @@ const CarAdminPanel = () => {
           newErrors.driveType = 'Nieprawidłowy typ napędu.';
         }
 
-        // Walidacja zużycia paliwa (wymagane)
-        if (!formData.fuelConsumption) {
-          newErrors.fuelConsumption = 'Zużycie paliwa jest wymagane';
-        } else if (isNaN(formData.fuelConsumption)) {
-          newErrors.fuelConsumption = 'Zużycie paliwa musi być liczbą';
-        } else if (parseFloat(formData.fuelConsumption) <= 0) {
-          newErrors.fuelConsumption = 'Zużycie paliwa musi być większe od 0';
-        } else if (parseFloat(formData.fuelConsumption) > 1000000) {
-          newErrors.fuelConsumption = 'Zużycie paliwa nie może przekraczać 1 000 000';
+        // Walidacja zużycia paliwa (wymagane tylko dla silników nieelektrycznych)
+        if (!isElectricEngine) {
+          if (!formData.fuelConsumption) {
+            newErrors.fuelConsumption = 'Zużycie paliwa jest wymagane';
+          } else if (isNaN(formData.fuelConsumption)) {
+            newErrors.fuelConsumption = 'Zużycie paliwa musi być liczbą';
+          } else if (parseFloat(formData.fuelConsumption) < 0) {
+            newErrors.fuelConsumption = 'Zużycie paliwa nie może być ujemne';
+          } else if (parseFloat(formData.fuelConsumption) > 500) {
+            newErrors.fuelConsumption = 'Zużycie paliwa nie może przekraczać 500 l/100km';
+          }
         }
 
-        // Walidacja emisji CO2 (wymagane)
-        if (!formData.co2Emission) {
-          newErrors.co2Emission = 'Emisja CO2 jest wymagana';
-        } else if (isNaN(formData.co2Emission)) {
-          newErrors.co2Emission = 'Emisja CO2 musi być liczbą';
-        } else if (parseInt(formData.co2Emission) <= 0) {
-          newErrors.co2Emission = 'Emisja CO2 musi być większa od 0';
-        } else if (parseInt(formData.co2Emission) > 1000000) {
-          newErrors.co2Emission = 'Emisja CO2 nie może przekraczać 1 000 000';
+        // Walidacja emisji CO2 (wymagane tylko dla silników nieelektrycznych)
+        if (!isElectricEngine) {
+          if (!formData.co2Emission) {
+            newErrors.co2Emission = 'Emisja CO2 jest wymagana';
+          } else if (isNaN(formData.co2Emission)) {
+            newErrors.co2Emission = 'Emisja CO2 musi być liczbą';
+          } else if (parseInt(formData.co2Emission) < 0) {
+            newErrors.co2Emission = 'Emisja CO2 nie może być ujemna';
+          } else if (parseInt(formData.co2Emission) > 20) {
+            newErrors.co2Emission = 'Emisja CO2 nie może przekraczać 20 g/km';
+          }
         }
 
         // Walidacja opisu (opcjonalne)
@@ -707,15 +712,30 @@ const CarAdminPanel = () => {
           await loadCarModels();
           break;
         case 'engines':
+          // Mapuj type na podstawie fuelType
+          const typeMapping = {
+            'Petrol': 'Petrol',
+            'Diesel': 'Diesel',
+            'Electric': 'Electric',
+            'Hybrid': 'Hybrid',
+            'PlugInHybrid': 'PlugInHybrid',
+            'CNG': 'Petrol',
+            'LPG': 'Petrol'
+          };
+          
+          const isElectric = formData.fuelType === 'Electric';
+          
           const engineData = {
             ...formData,
+            type: typeMapping[formData.fuelType] || formData.fuelType,
             capacity: formData.capacity ? parseFloat(formData.capacity) : null,
             power: parseInt(formData.power) || 0,
             torque: parseInt(formData.torque) || 0,
-            cylinders: formData.cylinders ? parseInt(formData.cylinders) : null,
-            gears: parseInt(formData.gears) || 0,
-            fuelConsumption: formData.fuelConsumption ? parseFloat(formData.fuelConsumption) : 0,
-            co2Emission: formData.co2Emission ? parseInt(formData.co2Emission) : 0
+            cylinders: isElectric ? null : (formData.cylinders ? parseInt(formData.cylinders) : null),
+            gears: isElectric ? 0 : (parseInt(formData.gears) || 0),
+            transmission: isElectric ? '' : formData.transmission,
+            fuelConsumption: isElectric ? 0 : (formData.fuelConsumption ? parseFloat(formData.fuelConsumption) : 0),
+            co2Emission: isElectric ? 0 : (formData.co2Emission ? parseInt(formData.co2Emission) : 0)
           };
           if (isEditing) {
             console.log('Updating engine with editingId:', editingId, 'and data:', engineData);
@@ -802,7 +822,6 @@ const CarAdminPanel = () => {
     console.log('Engine ID:', engine.id);
     setFormData({
       name: engine.name,
-      type: engine.type,
       capacity: engine.capacity?.toString() || '',
       power: engine.power?.toString() || '',
       torque: engine.torque?.toString() || '',
@@ -1348,225 +1367,226 @@ const CarAdminPanel = () => {
     </>
   );
 
-  const renderEnginesForm = () => (
-    <>
-      <div className={styles.formGrid}>
+  const renderEnginesForm = () => {
+    const isElectricEngine = formData.fuelType === 'Electric';
+    
+    return (
+      <>
+        <div className={styles.formGrid}>
+          <div className={styles.formGroup}>
+            <label>Nazwa silnika *</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className={errors.name ? styles.errorInput : ''}
+              maxLength={255}
+            />
+            {errors.name && <span className={styles.errorText}>{errors.name}</span>}
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Pojemność *</label>
+            <select
+              name="capacity"
+              value={formData.capacity}
+              onChange={handleInputChange}
+              className={errors.capacity ? styles.errorInput : ''}
+            >
+              <option value="">Wybierz pojemność</option>
+              <option value="1000">1.0L (1000 cm³)</option>
+              <option value="1600">1.6L (1600 cm³)</option>
+              <option value="1800">1.8L (1800 cm³)</option>
+              <option value="1900">1.9L (1900 cm³)</option>
+              <option value="2000">2.0L (2000 cm³)</option>
+              <option value="2500">2.5L (2500 cm³)</option>
+              <option value="3000">3.0L (3000 cm³)</option>
+              <option value="4000">4.0L (4000 cm³)</option>
+              <option value="5000">5.0L (5000 cm³)</option>
+            </select>
+            {errors.capacity && <span className={styles.errorText}>{errors.capacity}</span>}
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Moc (KM) *</label>
+            <input
+              type="number"
+              name="power"
+              value={formData.power}
+              onChange={handleInputChange}
+              min="70"
+              max="5000"
+              className={errors.power ? styles.errorInput : ''}
+            />
+            {errors.power && <span className={styles.errorText}>{errors.power}</span>}
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Moment obrotowy (Nm) *</label>
+            <input
+              type="number"
+              name="torque"
+              value={formData.torque}
+              onChange={handleInputChange}
+              min="50"
+              max="10000"
+              className={errors.torque ? styles.errorInput : ''}
+            />
+            {errors.torque && <span className={styles.errorText}>{errors.torque}</span>}
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Rodzaj paliwa *</label>
+            <select
+              name="fuelType"
+              value={formData.fuelType}
+              onChange={handleInputChange}
+              className={errors.fuelType ? styles.errorInput : ''}
+            >
+              <option value="">Wybierz rodzaj paliwa</option>
+              {isElectricEngine ? (
+                <option value="Electric">Elektryczny</option>
+              ) : (
+                <>
+                  <option value="Petrol">Benzyna</option>
+                  <option value="Diesel">Diesel</option>
+                  <option value="Electric">Elektryczny</option>
+                  <option value="Hybrid">Hybryda</option>
+                  <option value="PlugInHybrid">Hybryda Plug-in</option>
+                  <option value="CNG">CNG</option>
+                  <option value="LPG">LPG</option>
+                </>
+              )}
+            </select>
+            {errors.fuelType && <span className={styles.errorText}>{errors.fuelType}</span>}
+          </div>
+
+          {!isElectricEngine && (
+            <>
+              <div className={styles.formGroup}>
+                <label>Liczba cylindrów *</label>
+                <input
+                  type="number"
+                  name="cylinders"
+                  value={formData.cylinders}
+                  onChange={handleInputChange}
+                  min="1"
+                  max="16"
+                  className={errors.cylinders ? styles.errorInput : ''}
+                />
+                {errors.cylinders && <span className={styles.errorText}>{errors.cylinders}</span>}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Skrzynia biegów *</label>
+                <select
+                  name="transmission"
+                  value={formData.transmission}
+                  onChange={handleInputChange}
+                  className={errors.transmission ? styles.errorInput : ''}
+                >
+                  <option value="">Wybierz skrzynię</option>
+                  <option value="Manualna">Manualna</option>
+                  <option value="Automatyczna">Automatyczna</option>
+                  <option value="CVT">CVT</option>
+                  <option value="DSG">DSG</option>
+                </select>
+                {errors.transmission && <span className={styles.errorText}>{errors.transmission}</span>}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Liczba biegów *</label>
+                <input
+                  type="number"
+                  name="gears"
+                  value={formData.gears}
+                  onChange={handleInputChange}
+                  min="1"
+                  max="10"
+                  className={errors.gears ? styles.errorInput : ''}
+                />
+                {errors.gears && <span className={styles.errorText}>{errors.gears}</span>}
+              </div>
+            </>
+          )}
+
+          <div className={styles.formGroup}>
+            <label>Napęd *</label>
+            <select
+              name="driveType"
+              value={formData.driveType}
+              onChange={handleInputChange}
+              className={errors.driveType ? styles.errorInput : ''}
+            >
+              <option value="">Wybierz napęd</option>
+              <option value="FWD">Przedni (FWD)</option>
+              <option value="RWD">Tylni (RWD)</option>
+              <option value="AWD">4x4 (AWD)</option>
+            </select>
+            {errors.driveType && <span className={styles.errorText}>{errors.driveType}</span>}
+          </div>
+
+          {!isElectricEngine && (
+            <>
+              <div className={styles.formGroup}>
+                <label>Zużycie paliwa (l/100km) *</label>
+                <input
+                  type="number"
+                  name="fuelConsumption"
+                  value={formData.fuelConsumption}
+                  onChange={handleInputChange}
+                  min="0"
+                  max="500"
+                  step="0.1"
+                  className={errors.fuelConsumption ? styles.errorInput : ''}
+                />
+                {errors.fuelConsumption && <span className={styles.errorText}>{errors.fuelConsumption}</span>}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label>Emisja CO2 (g/km) *</label>
+                <input
+                  type="number"
+                  name="co2Emission"
+                  value={formData.co2Emission}
+                  onChange={handleInputChange}
+                  min="0"
+                  max="20"
+                  className={errors.co2Emission ? styles.errorInput : ''}
+                />
+                {errors.co2Emission && <span className={styles.errorText}>{errors.co2Emission}</span>}
+              </div>
+            </>
+          )}
+        </div>
+
         <div className={styles.formGroup}>
-          <label>Nazwa silnika *</label>
-          <input
-            type="text"
-            name="name"
-            value={formData.name}
+          <label>Opis</label>
+          <textarea
+            name="description"
+            value={formData.description}
             onChange={handleInputChange}
-            className={errors.name ? styles.errorInput : ''}
-            maxLength={255}
+            rows="4"
+            className={errors.description ? styles.errorInput : ''}
           />
-          {errors.name && <span className={styles.errorText}>{errors.name}</span>}
+          {errors.description && <span className={styles.errorText}>{errors.description}</span>}
         </div>
 
         <div className={styles.formGroup}>
-          <label>Typ silnika *</label>
-          <select
-            name="type"
-            value={formData.type}
-            onChange={handleInputChange}
-            className={errors.type ? styles.errorInput : ''}
-          >
-            <option value="">Wybierz typ</option>
-            <option value="Petrol">Benzyna</option>
-            <option value="Diesel">Diesel</option>
-            <option value="Electric">Elektryczny</option>
-            <option value="Hybrid">Hybryda</option>
-            <option value="PlugInHybrid">Hybryda Plug-in</option>
-          </select>
-          {errors.type && <span className={styles.errorText}>{errors.type}</span>}
+          <label className={styles.checkboxLabel}>
+            <input
+              type="checkbox"
+              name="isActive"
+              checked={formData.isActive}
+              onChange={handleInputChange}
+            />
+            Silnik aktywny
+          </label>
         </div>
-
-        <div className={styles.formGroup}>
-          <label>Pojemność *</label>
-          <select
-            name="capacity"
-            value={formData.capacity}
-            onChange={handleInputChange}
-            className={errors.capacity ? styles.errorInput : ''}
-          >
-            <option value="">Wybierz pojemność</option>
-            <option value="1000">1.0L (1000 cm³)</option>
-            <option value="1600">1.6L (1600 cm³)</option>
-            <option value="1800">1.8L (1800 cm³)</option>
-            <option value="1900">1.9L (1900 cm³)</option>
-            <option value="2000">2.0L (2000 cm³)</option>
-            <option value="2500">2.5L (2500 cm³)</option>
-            <option value="3000">3.0L (3000 cm³)</option>
-            <option value="4000">4.0L (4000 cm³)</option>
-            <option value="5000">5.0L (5000 cm³)</option>
-          </select>
-          {errors.capacity && <span className={styles.errorText}>{errors.capacity}</span>}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Moc (KM) *</label>
-          <input
-            type="number"
-            name="power"
-            value={formData.power}
-            onChange={handleInputChange}
-            min="0"
-            className={errors.power ? styles.errorInput : ''}
-          />
-          {errors.power && <span className={styles.errorText}>{errors.power}</span>}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Moment obrotowy (Nm) *</label>
-          <input
-            type="number"
-            name="torque"
-            value={formData.torque}
-            onChange={handleInputChange}
-            min="1"
-            className={errors.torque ? styles.errorInput : ''}
-          />
-          {errors.torque && <span className={styles.errorText}>{errors.torque}</span>}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Rodzaj paliwa *</label>
-          <select
-            name="fuelType"
-            value={formData.fuelType}
-            onChange={handleInputChange}
-            className={errors.fuelType ? styles.errorInput : ''}
-          >
-            <option value="">Wybierz rodzaj paliwa</option>
-            <option value="Petrol">Benzyna</option>
-            <option value="Diesel">Diesel</option>
-            <option value="Electric">Elektryczny</option>
-            <option value="Hybrid">Hybryda</option>
-            <option value="PlugInHybrid">Hybryda Plug-in</option>
-            <option value="CNG">CNG</option>
-            <option value="LPG">LPG</option>
-          </select>
-          {errors.fuelType && <span className={styles.errorText}>{errors.fuelType}</span>}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Liczba cylindrów *</label>
-          <input
-            type="number"
-            name="cylinders"
-            value={formData.cylinders}
-            onChange={handleInputChange}
-            min="1"
-            max="16"
-            className={errors.cylinders ? styles.errorInput : ''}
-          />
-          {errors.cylinders && <span className={styles.errorText}>{errors.cylinders}</span>}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Skrzynia biegów *</label>
-          <select
-            name="transmission"
-            value={formData.transmission}
-            onChange={handleInputChange}
-            className={errors.transmission ? styles.errorInput : ''}
-          >
-            <option value="">Wybierz skrzynię</option>
-            <option value="Manualna">Manualna</option>
-            <option value="Automatyczna">Automatyczna</option>
-            <option value="CVT">CVT</option>
-            <option value="DSG">DSG</option>
-          </select>
-          {errors.transmission && <span className={styles.errorText}>{errors.transmission}</span>}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Liczba biegów *</label>
-          <input
-            type="number"
-            name="gears"
-            value={formData.gears}
-            onChange={handleInputChange}
-            min="1"
-            max="10"
-            className={errors.gears ? styles.errorInput : ''}
-          />
-          {errors.gears && <span className={styles.errorText}>{errors.gears}</span>}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Napęd *</label>
-          <select
-            name="driveType"
-            value={formData.driveType}
-            onChange={handleInputChange}
-            className={errors.driveType ? styles.errorInput : ''}
-          >
-            <option value="">Wybierz napęd</option>
-            <option value="FWD">Przedni (FWD)</option>
-            <option value="RWD">Tylni (RWD)</option>
-            <option value="AWD">4x4 (AWD)</option>
-          </select>
-          {errors.driveType && <span className={styles.errorText}>{errors.driveType}</span>}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Zużycie paliwa (l/100km) *</label>
-          <input
-            type="number"
-            name="fuelConsumption"
-            value={formData.fuelConsumption}
-            onChange={handleInputChange}
-            min="1"
-            max="1000000"
-            step="0.1"
-            className={errors.fuelConsumption ? styles.errorInput : ''}
-          />
-          {errors.fuelConsumption && <span className={styles.errorText}>{errors.fuelConsumption}</span>}
-        </div>
-
-        <div className={styles.formGroup}>
-          <label>Emisja CO2 (g/km) *</label>
-          <input
-            type="number"
-            name="co2Emission"
-            value={formData.co2Emission}
-            onChange={handleInputChange}
-            min="1"
-            max="1000000"
-            className={errors.co2Emission ? styles.errorInput : ''}
-          />
-          {errors.co2Emission && <span className={styles.errorText}>{errors.co2Emission}</span>}
-        </div>
-      </div>
-
-
-      <div className={styles.formGroup}>
-        <label>Opis</label>
-        <textarea
-          name="description"
-          value={formData.description}
-          onChange={handleInputChange}
-          rows="4"
-          className={errors.description ? styles.errorInput : ''}
-        />
-        {errors.description && <span className={styles.errorText}>{errors.description}</span>}
-      </div>
-
-      <div className={styles.formGroup}>
-        <label className={styles.checkboxLabel}>
-          <input
-            type="checkbox"
-            name="isActive"
-            checked={formData.isActive}
-            onChange={handleInputChange}
-          />
-          Silnik aktywny
-        </label>
-      </div>
-    </>
-  );
+      </>
+    );
+  };
 
   const renderAccessoriesForm = () => (
     <>

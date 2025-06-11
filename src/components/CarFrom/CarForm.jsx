@@ -148,7 +148,6 @@ const CarForm = ({
             <option value="SUV">SUV</option>
             <option value="kombi">Kombi</option>
             <option value="coupe">Coupe</option>
-            <option value="cabrio">Cabrio</option>
             <option value="pickup">Pickup</option>
             <option value="van">Van</option>
           </select>

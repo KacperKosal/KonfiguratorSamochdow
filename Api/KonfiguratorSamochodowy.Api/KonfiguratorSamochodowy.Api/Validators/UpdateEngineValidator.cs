@@ -13,10 +13,7 @@ namespace KonfiguratorSamochodowy.Api.Validators
                     .MaximumLength(255).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
             });
             
-            When(x => !string.IsNullOrEmpty(x.Type), () => {
-                RuleFor(x => x.Type)
-                    .Must(BeValidEngineType).WithMessage("Nieprawidłowy typ silnika");
-            });
+            // Pole Type nie jest już używane - usunąć z walidacji
             
             When(x => x.Capacity.HasValue, () => {
                 RuleFor(x => x.Capacity)
@@ -25,23 +22,25 @@ namespace KonfiguratorSamochodowy.Api.Validators
             
             When(x => x.Power.HasValue, () => {
                 RuleFor(x => x.Power.Value)
-                    .GreaterThan(0).WithMessage("Moc silnika musi być większa od 0")
-                    .LessThanOrEqualTo(1000000).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
+                    .GreaterThanOrEqualTo(70).WithMessage("Moc silnika musi być co najmniej 70 KM")
+                    .LessThanOrEqualTo(5000).WithMessage("Moc silnika nie może przekraczać 5000 KM");
             });
             
             When(x => x.Torque.HasValue, () => {
                 RuleFor(x => x.Torque.Value)
-                    .GreaterThan(0).WithMessage("Moment obrotowy musi być większy od 0")
-                    .LessThanOrEqualTo(1000000).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
+                    .GreaterThanOrEqualTo(50).WithMessage("Moment obrotowy musi być co najmniej 50 Nm")
+                    .LessThanOrEqualTo(10000).WithMessage("Moment obrotowy nie może przekraczać 10000 Nm");
             });
             
-            When(x => x.Cylinders.HasValue, () => {
+            // Walidacja liczby cylindrów - tylko dla silników nieelektrycznych
+            When(x => x.Cylinders.HasValue && x.FuelType != "Electric", () => {
                 RuleFor(x => x.Cylinders.Value)
                     .GreaterThan(0).WithMessage("Liczba cylindrów musi być większa od 0")
                     .LessThanOrEqualTo(1000000).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
             });
             
-            When(x => x.Gears.HasValue, () => {
+            // Walidacja liczby biegów - tylko dla silników nieelektrycznych
+            When(x => x.Gears.HasValue && x.FuelType != "Electric", () => {
                 RuleFor(x => x.Gears.Value)
                     .GreaterThan(0).WithMessage("Liczba biegów musi być większa od 0")
                     .LessThanOrEqualTo(1000000).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
@@ -50,6 +49,20 @@ namespace KonfiguratorSamochodowy.Api.Validators
             When(x => !string.IsNullOrEmpty(x.DriveType), () => {
                 RuleFor(x => x.DriveType)
                     .Must(BeValidDriveType).WithMessage("Nieprawidłowy typ napędu");
+            });
+            
+            // Walidacja zużycia paliwa - tylko dla silników nieelektrycznych
+            When(x => x.FuelConsumption.HasValue && x.FuelType != "Electric", () => {
+                RuleFor(x => x.FuelConsumption.Value)
+                    .GreaterThanOrEqualTo(0).WithMessage("Zużycie paliwa nie może być ujemne")
+                    .LessThanOrEqualTo(500).WithMessage("Zużycie paliwa nie może przekraczać 500 l/100km");
+            });
+            
+            // Walidacja emisji CO2 - tylko dla silników nieelektrycznych
+            When(x => x.CO2Emission.HasValue && x.FuelType != "Electric", () => {
+                RuleFor(x => x.CO2Emission.Value)
+                    .GreaterThanOrEqualTo(0).WithMessage("Emisja CO2 nie może być ujemna")
+                    .LessThanOrEqualTo(20).WithMessage("Emisja CO2 nie może przekraczać 20 g/km");
             });
             
             When(x => !string.IsNullOrEmpty(x.Description), () => {
