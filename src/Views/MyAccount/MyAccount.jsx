@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import axiosInstance from '../../services/axiosConfig';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff } from 'lucide-react';
 import styles from './MyAccount.module.css';
 
 const MyAccount = () => {
@@ -18,6 +19,11 @@ const MyAccount = () => {
   });
   const [passwordError, setPasswordError] = useState(null);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [showPasswords, setShowPasswords] = useState({
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false
+  });
 
   const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7001';
 
@@ -153,6 +159,11 @@ const MyAccount = () => {
         newPassword: '',
         confirmPassword: ''
       });
+      setShowPasswords({
+        currentPassword: false,
+        newPassword: false,
+        confirmPassword: false
+      });
     } catch (err) {
       console.error('Błąd zmiany hasła:', err);
       
@@ -214,6 +225,13 @@ const MyAccount = () => {
       [field]: value
     }));
     setPasswordError(null);
+  };
+
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords(prev => ({
+      ...prev,
+      [field]: !prev[field]
+    }));
   };
 
   if (loading) {
@@ -288,43 +306,79 @@ const MyAccount = () => {
               
               <div className={styles.inputGroup}>
                 <label htmlFor="currentPassword">Obecne hasło:</label>
-                <input
-                  type="password"
-                  id="currentPassword"
-                  value={passwordData.currentPassword}
-                  onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
-                  required
-                  disabled={passwordLoading}
-                />
+                <div className={styles.passwordInputWrapper}>
+                  <input
+                    type={showPasswords.currentPassword ? "text" : "password"}
+                    id="currentPassword"
+                    value={passwordData.currentPassword}
+                    onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                    required
+                    disabled={passwordLoading}
+                    className={styles.passwordInput}
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => togglePasswordVisibility('currentPassword')}
+                    disabled={passwordLoading}
+                    title={showPasswords.currentPassword ? "Ukryj hasło" : "Pokaż hasło"}
+                  >
+                    {showPasswords.currentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
 
               <div className={styles.inputGroup}>
                 <label htmlFor="newPassword">Nowe hasło:</label>
-                <input
-                  type="password"
-                  id="newPassword"
-                  value={passwordData.newPassword}
-                  onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
-                  required
-                  disabled={passwordLoading}
-                  minLength="6"
-                  maxLength="128"
-                  placeholder="Minimum 6 znaków, zawierać wielką literę, cyfrę i znak specjalny"
-                />
+                <div className={styles.passwordInputWrapper}>
+                  <input
+                    type={showPasswords.newPassword ? "text" : "password"}
+                    id="newPassword"
+                    value={passwordData.newPassword}
+                    onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                    required
+                    disabled={passwordLoading}
+                    minLength="6"
+                    maxLength="128"
+                    placeholder="Minimum 6 znaków"
+                    className={styles.passwordInput}
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => togglePasswordVisibility('newPassword')}
+                    disabled={passwordLoading}
+                    title={showPasswords.newPassword ? "Ukryj hasło" : "Pokaż hasło"}
+                  >
+                    {showPasswords.newPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
 
               <div className={styles.inputGroup}>
                 <label htmlFor="confirmPassword">Potwierdź nowe hasło:</label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  value={passwordData.confirmPassword}
-                  onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
-                  required
-                  disabled={passwordLoading}
-                  minLength="6"
-                  maxLength="128"
-                />
+                <div className={styles.passwordInputWrapper}>
+                  <input
+                    type={showPasswords.confirmPassword ? "text" : "password"}
+                    id="confirmPassword"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                    required
+                    disabled={passwordLoading}
+                    minLength="6"
+                    maxLength="128"
+                    className={styles.passwordInput}
+                  />
+                  <button
+                    type="button"
+                    className={styles.passwordToggle}
+                    onClick={() => togglePasswordVisibility('confirmPassword')}
+                    disabled={passwordLoading}
+                    title={showPasswords.confirmPassword ? "Ukryj hasło" : "Pokaż hasło"}
+                  >
+                    {showPasswords.confirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
               </div>
 
               <div className={styles.passwordFormActions}>
@@ -338,6 +392,11 @@ const MyAccount = () => {
                       confirmPassword: ''
                     });
                     setPasswordError(null);
+                    setShowPasswords({
+                      currentPassword: false,
+                      newPassword: false,
+                      confirmPassword: false
+                    });
                   }}
                   className={styles.cancelButton}
                   disabled={passwordLoading}

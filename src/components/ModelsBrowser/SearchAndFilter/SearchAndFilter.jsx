@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Sliders, ChevronDown, Filter, X, Check } from 'lucide-react';
 import styles from './SearchAndFilter.module.css';
 
@@ -14,16 +14,33 @@ const SearchAndFilter = ({
   formatPrice,
   manufacturers = [],
   bodyTypes = [],
-  segments = [],
-  onFilter
+  selectedManufacturer,
+  setSelectedManufacturer,
+  selectedBodyType,
+  setSelectedBodyType,
+  onlyNew,
+  setOnlyNew,
+  onlyElectric,
+  setOnlyElectric,
+  only4x4,
+  setOnly4x4,
+  onFilter,
+  onClearFilters
 }) => {
-  const [selectedManufacturer, setSelectedManufacturer] = useState('');
-  const [selectedBodyType, setSelectedBodyType] = useState('');
-  const [selectedSegment, setSelectedSegment] = useState('');
-  const [onlyNew, setOnlyNew] = useState(false);
-  const [onlyElectric, setOnlyElectric] = useState(false);
-  const [only4x4, setOnly4x4] = useState(false);
   const [activeFiltersCount, setActiveFiltersCount] = useState(0);
+
+  // Update active filters count when filter values change
+  useEffect(() => {
+    let count = 0;
+    if (selectedManufacturer) count++;
+    if (selectedBodyType) count++;
+    if (onlyNew) count++;
+    if (onlyElectric) count++;
+    if (only4x4) count++;
+    if (priceRange[0] > 0 || priceRange[1] < 1000000) count++;
+    
+    setActiveFiltersCount(count);
+  }, [selectedManufacturer, selectedBodyType, onlyNew, onlyElectric, only4x4, priceRange]);
 
   const sortOptions = [
     { value: 'popularity', label: 'Popularność', icon: '🔥' },
@@ -42,7 +59,6 @@ const SearchAndFilter = ({
     const filters = {
       manufacturer: selectedManufacturer,
       bodyType: selectedBodyType,
-      segment: selectedSegment,
       minPrice: priceRange[0],
       maxPrice: priceRange[1],
       // Dodanie obsługi dodatkowych filtrów
@@ -52,18 +68,6 @@ const SearchAndFilter = ({
       onlyElectric,
       only4x4
     };
-    
-    // Liczenie aktywnych filtrów
-    let count = 0;
-    if (selectedManufacturer) count++;
-    if (selectedBodyType) count++;
-    if (selectedSegment) count++;
-    if (onlyNew) count++;
-    if (onlyElectric) count++;
-    if (only4x4) count++;
-    if (priceRange[0] > 50000 || priceRange[1] < 500000) count++;
-    
-    setActiveFiltersCount(count);
     
     // Sprawdzenie czy funkcja onFilter istnieje przed wywołaniem
     if (onFilter && typeof onFilter === 'function') {
@@ -83,14 +87,9 @@ const SearchAndFilter = ({
       e.preventDefault();
     }
     
-    setSelectedManufacturer('');
-    setSelectedBodyType('');
-    setSelectedSegment('');
-    setOnlyNew(false);
-    setOnlyElectric(false);
-    setOnly4x4(false);
-    setPriceRange([50000, 500000]);
-    setActiveFiltersCount(0);
+    if (onClearFilters && typeof onClearFilters === 'function') {
+      onClearFilters();
+    }
   };
 
   const handleSearchClear = () => {
@@ -183,8 +182,16 @@ const SearchAndFilter = ({
                     <label>Od:</label>
                     <input 
                       type="number" 
+                      min="0"
+                      max="1000000"
                       value={priceRange[0]}
-                      onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 0;
+                        const clampedValue = Math.max(0, Math.min(1000000, value));
+                        if (clampedValue <= priceRange[1]) {
+                          setPriceRange([clampedValue, priceRange[1]]);
+                        }
+                      }}
                       className={styles.numberInput}
                     />
                   </div>
@@ -192,8 +199,16 @@ const SearchAndFilter = ({
                     <label>Do:</label>
                     <input 
                       type="number" 
+                      min="0"
+                      max="1000000"
                       value={priceRange[1]}
-                      onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || 500000])}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1000000;
+                        const clampedValue = Math.max(0, Math.min(1000000, value));
+                        if (clampedValue >= priceRange[0]) {
+                          setPriceRange([priceRange[0], clampedValue]);
+                        }
+                      }}
                       className={styles.numberInput}
                     />
                   </div>
@@ -201,20 +216,30 @@ const SearchAndFilter = ({
                 <div className={styles.rangeSlider}>
                   <input 
                     type="range" 
-                    min="50000" 
-                    max="500000" 
+                    min="0" 
+                    max="1000000" 
                     step="10000"
                     value={priceRange[0]}
-                    onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (value <= priceRange[1]) {
+                        setPriceRange([value, priceRange[1]]);
+                      }
+                    }}
                     className={styles.rangeInput}
                   />
                   <input 
                     type="range" 
-                    min="50000" 
-                    max="500000" 
+                    min="0" 
+                    max="1000000" 
                     step="10000"
                     value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value);
+                      if (value >= priceRange[0]) {
+                        setPriceRange([priceRange[0], value]);
+                      }
+                    }}
                     className={styles.rangeInput}
                   />
                 </div>
@@ -267,26 +292,6 @@ const SearchAndFilter = ({
               </div>
             )}
 
-            {/* Segment */}
-            {segments.length > 0 && (
-              <div className={styles.filterGroup}>
-                <h4 className={styles.filterTitle}>
-                  📊 Segment
-                </h4>
-                <select 
-                  className={styles.filterSelect}
-                  value={selectedSegment}
-                  onChange={(e) => setSelectedSegment(e.target.value)}
-                >
-                  <option value="">Wszystkie segmenty</option>
-                  {segments.map(segment => (
-                    <option key={segment} value={segment}>
-                      {segment}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
 
             {/* Dodatkowe opcje */}
             <div className={styles.filterGroup}>

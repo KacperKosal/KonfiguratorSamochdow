@@ -235,6 +235,16 @@ BEGIN
     END IF;
 END $$;
 
+-- Migracja: Dodanie kolumny IsActive do tabeli Pojazd
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                   WHERE table_name = 'pojazd' AND column_name = 'isactive') THEN
+        ALTER TABLE pojazd ADD COLUMN isactive BOOLEAN DEFAULT true;
+        UPDATE pojazd SET isactive = true WHERE isactive IS NULL;
+    END IF;
+END $$;
+
 -- Tworzenie tabel z małymi literami dla zgodności z Entity Framework
 CREATE TABLE IF NOT EXISTS pojazd AS SELECT 
     id, model, kolornadwozia, wyposazeniewetrza, cena, opis, ma4x4, jestelektryczny, akcesoria, zdjecie, imageurl 

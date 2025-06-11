@@ -34,11 +34,12 @@ const CarAdminPanel = () => {
           productionYear: new Date().getFullYear(),
           bodyType: '',
           manufacturer: '',
-          segment: '',
           basePrice: '',
           description: '',
           imageUrl: '',
-          isActive: true
+          isActive: true,
+          has4x4: false,
+          isElectric: false
         };
       case 'engines':
         return {
@@ -101,11 +102,12 @@ const CarAdminPanel = () => {
           productionYear: new Date().getFullYear(),
           bodyType: '',
           manufacturer: '',
-          segment: '',
           basePrice: '',
           description: '',
           imageUrl: '',
-          isActive: true
+          isActive: true,
+          has4x4: false,
+          isElectric: false
         };
     }
   };
@@ -120,7 +122,6 @@ const CarAdminPanel = () => {
 
   // Opcje dla select-ów
   const bodyTypes = ['Sedan', 'Hatchback', 'SUV', 'Combi', 'Coupe', 'Cabrio'];
-  const segments = ['A', 'B', 'C', 'D', 'E', 'F'];
   const manufacturers = ['Toyota', 'BMW', 'Mercedes', 'Audi', 'Volkswagen', 'Ford', 'Opel', 'Peugeot'];
 
   // Ładowanie danych z API
@@ -286,9 +287,6 @@ const CarAdminPanel = () => {
           newErrors.bodyType = 'Typ nadwozia jest wymagany';
         }
 
-        if (!formData.segment) {
-          newErrors.segment = 'Segment jest wymagany';
-        }
 
         if (!formData.basePrice) {
           newErrors.basePrice = 'Cena bazowa jest wymagana';
@@ -638,11 +636,12 @@ const CarAdminPanel = () => {
       productionYear: car.productionYear,
       bodyType: car.bodyType,
       manufacturer: car.manufacturer,
-      segment: car.segment,
       basePrice: car.basePrice.toString(),
       description: car.description,
       imageUrl: car.imageUrl || '',
-      isActive: car.isActive
+      isActive: car.isActive,
+      has4x4: car.has4x4 || false,
+      isElectric: car.isElectric || false
     });
     setIsEditing(true);
     setEditingId(car.id);
@@ -1208,21 +1207,6 @@ const CarAdminPanel = () => {
           {errors.bodyType && <span className={styles.errorText}>{errors.bodyType}</span>}
         </div>
 
-        <div className={styles.formGroup}>
-          <label>Segment *</label>
-          <select
-            name="segment"
-            value={formData.segment}
-            onChange={handleInputChange}
-            className={errors.segment ? styles.errorInput : ''}
-          >
-            <option value="">Wybierz segment</option>
-            {segments.map(segment => (
-              <option key={segment} value={segment}>{segment}</option>
-            ))}
-          </select>
-          {errors.segment && <span className={styles.errorText}>{errors.segment}</span>}
-        </div>
 
         <div className={styles.formGroup}>
           <label>Rok produkcji *</label>
@@ -1335,6 +1319,30 @@ const CarAdminPanel = () => {
             onChange={handleInputChange}
           />
           Model aktywny
+        </label>
+      </div>
+
+      <div className={styles.formGroup}>
+        <label className={styles.checkboxLabel}>
+          <input
+            type="checkbox"
+            name="has4x4"
+            checked={formData.has4x4}
+            onChange={handleInputChange}
+          />
+          Napęd 4x4
+        </label>
+      </div>
+
+      <div className={styles.formGroup}>
+        <label className={styles.checkboxLabel}>
+          <input
+            type="checkbox"
+            name="isElectric"
+            checked={formData.isElectric}
+            onChange={handleInputChange}
+          />
+          Samochód elektryczny
         </label>
       </div>
     </>
@@ -2137,7 +2145,6 @@ const CarAdminPanel = () => {
                 <div><strong>Nazwa:</strong> {selectedCar.name}</div>
                 <div><strong>Producent:</strong> {selectedCar.manufacturer}</div>
                 <div><strong>Typ nadwozia:</strong> {selectedCar.bodyType}</div>
-                <div><strong>Segment:</strong> {selectedCar.segment}</div>
                 <div><strong>Rok produkcji:</strong> {selectedCar.productionYear}</div>
                 <div><strong>Cena bazowa:</strong> {selectedCar.basePrice?.toLocaleString('pl-PL')} PLN</div>
                 <div><strong>Status:</strong> {selectedCar.isActive ? 'Aktywny' : 'Nieaktywny'}</div>

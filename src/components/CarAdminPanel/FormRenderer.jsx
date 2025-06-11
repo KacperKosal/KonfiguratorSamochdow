@@ -9,7 +9,6 @@ const FormRenderer = ({
   errors,
   manufacturers,
   bodyTypes,
-  segments,
   imagePreview,
   formData: { imageUrl },
   imageLoadedSuccessfully,
@@ -66,21 +65,6 @@ const FormRenderer = ({
           {errors.bodyType && <span className={styles.errorText}>{errors.bodyType}</span>}
         </div>
 
-        <div className={styles.formGroup}>
-          <label>Segment *</label>
-          <select
-            name="segment"
-            value={formData.segment}
-            onChange={handleInputChange}
-            className={errors.segment ? styles.errorInput : ''}
-          >
-            <option value="">Wybierz segment</option>
-            {segments.map(segment => (
-              <option key={segment} value={segment}>{segment}</option>
-            ))}
-          </select>
-          {errors.segment && <span className={styles.errorText}>{errors.segment}</span>}
-        </div>
 
         <div className={styles.formGroup}>
           <label>Rok produkcji *</label>
@@ -142,6 +126,30 @@ const FormRenderer = ({
             onChange={handleInputChange}
           />
           Model aktywny
+        </label>
+      </div>
+
+      <div className={styles.formGroup}>
+        <label className={styles.checkboxLabel}>
+          <input
+            type="checkbox"
+            name="has4x4"
+            checked={formData.has4x4}
+            onChange={handleInputChange}
+          />
+          Napęd 4x4
+        </label>
+      </div>
+
+      <div className={styles.formGroup}>
+        <label className={styles.checkboxLabel}>
+          <input
+            type="checkbox"
+            name="isElectric"
+            checked={formData.isElectric}
+            onChange={handleInputChange}
+          />
+          Samochód elektryczny
         </label>
       </div>
     </>

@@ -11,7 +11,7 @@ import adminApiService from '../../services/adminApiService';
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [sortOption, setSortOption] = useState('popularity');
-  const [priceRange, setPriceRange] = useState([100000, 500000]);
+  const [priceRange, setPriceRange] = useState([0, 1000000]);
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [carModels, setCarModels] = useState([]);
@@ -19,9 +19,15 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [manufacturers, setManufacturers] = useState([]);
   const [bodyTypes, setBodyTypes] = useState([]);
-  const [segments, setSegments] = useState([]);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
+  
+  // Filter states
+  const [selectedManufacturer, setSelectedManufacturer] = useState('');
+  const [selectedBodyType, setSelectedBodyType] = useState('');
+  const [onlyNew, setOnlyNew] = useState(false);
+  const [onlyElectric, setOnlyElectric] = useState(false);
+  const [only4x4, setOnly4x4] = useState(false);
 
   // Pobieranie wszystkich modeli z API
   const fetchCarModels = async (showLoading = true) => {
@@ -48,7 +54,6 @@ export default function Home() {
         new: new Date().getFullYear() - model.productionYear <= 1,
         electric: model.bodyType?.toLowerCase().includes('electric') || false,
         manufacturer: model.manufacturer,
-        segment: model.segment,
         productionYear: model.productionYear,
         isActive: model.isActive
       }));
@@ -60,11 +65,9 @@ export default function Home() {
       // Wyciąganie unikalnych wartości dla filtrów
       const uniqueManufacturers = [...new Set(data.map(m => m.manufacturer).filter(Boolean))];
       const uniqueBodyTypes = [...new Set(data.map(m => m.bodyType).filter(Boolean))];
-      const uniqueSegments = [...new Set(data.map(m => m.segment).filter(Boolean))];
       
       setManufacturers(uniqueManufacturers);
       setBodyTypes(uniqueBodyTypes);
-      setSegments(uniqueSegments);
       setLastRefresh(new Date());
       
     } catch (err) {
@@ -81,6 +84,16 @@ export default function Home() {
     }
   };
 
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedManufacturer('');
+    setSelectedBodyType('');
+    setOnlyNew(false);
+    setOnlyElectric(false);
+    setOnly4x4(false);
+    setPriceRange([0, 1000000]);
+  };
+
   // Filtrowanie modeli z użyciem API
   const fetchFilteredModels = async (filters) => {
     try {
@@ -88,8 +101,9 @@ export default function Home() {
       setError(null);
       
       // Sprawdź czy są jakiekolwiek filtry
-      const hasFilters = filters.manufacturer || filters.bodyType || filters.segment || 
-                      filters.minPrice || filters.maxPrice || filters.minYear || filters.maxYear;
+      const hasFilters = filters.manufacturer || filters.bodyType || 
+                      filters.minPrice || filters.maxPrice || filters.minYear || filters.maxYear ||
+                      filters.onlyElectric || filters.only4x4;
       
       let response;
       
@@ -100,13 +114,15 @@ export default function Home() {
         // API wymaga tych parametrów jako obowiązkowych
         queryParams.append('Manufacturer', filters.manufacturer || '');
         queryParams.append('BodyType', filters.bodyType || '');
-        queryParams.append('Segment', filters.segment || '');
+        queryParams.append('Segment', '');
         
         // Opcjonalne parametry
         if (filters.minPrice) queryParams.append('MinPrice', filters.minPrice);
         if (filters.maxPrice) queryParams.append('MaxPrice', filters.maxPrice);
         if (filters.minYear) queryParams.append('MinProductionYear', filters.minYear);
         if (filters.maxYear) queryParams.append('MaxProductionYear', filters.maxYear);
+        if (filters.onlyElectric) queryParams.append('IsElectric', 'true');
+        if (filters.only4x4) queryParams.append('Has4x4', 'true');
         queryParams.append('IsActive', 'true');
 
         response = await axiosInstance.get(`/api/car-models/filter?${queryParams}`);
@@ -128,18 +144,10 @@ export default function Home() {
         features: [],
         popularity: Math.floor(Math.random() * 5) + 1,
         new: new Date().getFullYear() - model.productionYear <= 1,
-        // ✅ Poprawiona logika dla elektrycznych
-        electric: model.name?.toLowerCase().includes('tesla') || 
-                 model.name?.toLowerCase().includes('electric') ||
-                 model.description?.toLowerCase().includes('electric') ||
-                 model.bodyType?.toLowerCase().includes('electric'),
-        // ✅ Dodana właściwość dla 4x4
-        has4x4: model.name?.toLowerCase().includes('4x4') ||
-               model.description?.toLowerCase().includes('4x4') ||
-               model.name?.toLowerCase().includes('suv') ||
-               model.bodyType?.toLowerCase().includes('suv'),
+        // ✅ Używamy prawdziwych pól z bazy danych
+        electric: model.isElectric || false,
+        has4x4: model.has4x4 || false,
         manufacturer: model.manufacturer,
-        segment: model.segment,
         productionYear: model.productionYear,
         isActive: model.isActive
       }));
@@ -147,19 +155,14 @@ export default function Home() {
       // Filtrowanie tylko aktywnych modeli
       mappedModels = mappedModels.filter(model => model.isActive);
 
-      // Dodatkowe filtrowanie po stronie klienta
-      if (filters.onlyElectric) {
-        mappedModels = mappedModels.filter(model => model.electric);
-      }
-      
-      if (filters.only4x4) {
-        mappedModels = mappedModels.filter(model => model.has4x4);
-      }
+      // Filtrowanie only po stronie klienta (jeśli API nie obsługuje tych filtrów)
+      // API już filtruje po IsElectric i Has4x4, więc te filtry nie są potrzebne tutaj
 
       // ✅ Dodaj filtr "Tylko nowe modele"
       if (filters.onlyNew) {
         mappedModels = mappedModels.filter(model => model.new);
       }
+      
       setCarModels(mappedModels);
       setLastRefresh(new Date());
       
@@ -332,8 +335,18 @@ export default function Home() {
                 formatPrice={formatPrice}
                 manufacturers={manufacturers}
                 bodyTypes={bodyTypes}
-                segments={segments}
+                selectedManufacturer={selectedManufacturer}
+                setSelectedManufacturer={setSelectedManufacturer}
+                selectedBodyType={selectedBodyType}
+                setSelectedBodyType={setSelectedBodyType}
+                onlyNew={onlyNew}
+                setOnlyNew={setOnlyNew}
+                onlyElectric={onlyElectric}
+                setOnlyElectric={setOnlyElectric}
+                only4x4={only4x4}
+                setOnly4x4={setOnly4x4}
                 onFilter={fetchFilteredModels}
+                onClearFilters={clearAllFilters}
               />
               <CategoryTabs 
                 categories={categories} 

@@ -88,7 +88,9 @@ namespace KonfiguratorSamochodowy.Api.Services
                 BasePrice = request.BasePrice,
                 Description = request.Description,
                 ImageUrl = request.ImageUrl,
-                IsActive = request.IsActive
+                IsActive = request.IsActive,
+                Has4x4 = request.Has4x4,
+                IsElectric = request.IsElectric
             };
             
             var result = await _repository.CreateAsync(carModel);
@@ -141,6 +143,12 @@ namespace KonfiguratorSamochodowy.Api.Services
                 
             if (request.IsActive.HasValue)
                 existingCarModel.IsActive = request.IsActive.Value;
+                
+            if (request.Has4x4.HasValue)
+                existingCarModel.Has4x4 = request.Has4x4.Value;
+                
+            if (request.IsElectric.HasValue)
+                existingCarModel.IsElectric = request.IsElectric.Value;
             
             var result = await _repository.UpdateAsync(id, existingCarModel);
             if (!result.IsSuccess)
@@ -167,7 +175,9 @@ namespace KonfiguratorSamochodowy.Api.Services
                 BasePrice = carModel.BasePrice,
                 Description = carModel.Description,
                 ImageUrl = carModel.ImageUrl,
-                IsActive = carModel.IsActive
+                IsActive = carModel.IsActive,
+                Has4x4 = carModel.Has4x4,
+                IsElectric = carModel.IsElectric
             };
         }
     }

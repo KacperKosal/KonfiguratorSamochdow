@@ -233,6 +233,27 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     parameters.Add("BodyType", filter.BodyType);
                 }
 
+                // Filter by IsElectric
+                if (filter.IsElectric.HasValue)
+                {
+                    queryBuilder.Append(" AND p.jestelektryczny = @IsElectric");
+                    parameters.Add("IsElectric", filter.IsElectric.Value);
+                }
+
+                // Filter by Has4x4
+                if (filter.Has4x4.HasValue)
+                {
+                    queryBuilder.Append(" AND p.ma4x4 = @Has4x4");
+                    parameters.Add("Has4x4", filter.Has4x4.Value);
+                }
+
+                // Filter by IsActive - temporarily disabled until column exists
+                // if (filter.IsActive.HasValue)
+                // {
+                //     queryBuilder.Append(" AND COALESCE(p.isactive, TRUE) = @IsActive");
+                //     parameters.Add("IsActive", filter.IsActive.Value);
+                // }
+
                 // Apply sorting
                 queryBuilder.Append(" ORDER BY ");
                 
@@ -295,8 +316,8 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         'Standardowe', 
                         @BasePrice, 
                         @Description, 
-                        CASE WHEN @BodyType = 'SUV' THEN true ELSE false END, 
-                        CASE WHEN @Manufacturer = 'Tesla' OR @Segment = 'Electric' THEN true ELSE false END,
+                        @Has4x4, 
+                        @IsElectric,
                         'Brak',
                         @ImageUrl
                     )
@@ -348,7 +369,10 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     Segment = carModel.Segment,
                     BasePrice = carModel.BasePrice,
                     Description = carModel.Description,
-                    ImageUrl = carModel.ImageUrl
+                    ImageUrl = carModel.ImageUrl,
+                    Has4x4 = carModel.Has4x4,
+                    IsElectric = carModel.IsElectric,
+                    IsActive = carModel.IsActive
                 };
 
                 var result = await _connection.QueryFirstOrDefaultAsync<CarModel>(query, parameters);
@@ -375,8 +399,8 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         model = @Name,
                         cena = @BasePrice,
                         opis = @Description,
-                        ma4x4 = @BodyType = 'SUV',
-                        jestelektryczny = @Manufacturer = 'Tesla',
+                        ma4x4 = @Has4x4,
+                        jestelektryczny = @IsElectric,
                         imageurl = @ImageUrl
                     WHERE 
                         id = @Id::integer
@@ -420,7 +444,10 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     Manufacturer = carModel.Manufacturer,
                     BasePrice = carModel.BasePrice,
                     Description = carModel.Description,
-                    ImageUrl = carModel.ImageUrl
+                    ImageUrl = carModel.ImageUrl,
+                    Has4x4 = carModel.Has4x4,
+                    IsElectric = carModel.IsElectric,
+                    IsActive = carModel.IsActive
                 };
 
                 var result = await _connection.QueryFirstOrDefaultAsync<CarModel>(query, parameters);
