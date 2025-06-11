@@ -937,3 +937,164 @@
   background: #7c3aed;
   transform: translateY(-1px);
 }
+
+/* Price section styles */
+.priceSection {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+}
+
+.priceLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.priceLabel label {
+  margin: 0;
+}
+
+.required {
+  color: #dc2626;
+  font-weight: bold;
+}
+
+.priceInputGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.priceInput {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.priceInput:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.priceInput.inputError {
+  border-color: #dc2626;
+}
+
+.priceInput.inputError:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.currency {
+  color: #6b7280;
+  font-weight: 500;
+  min-width: 1.5rem;
+}
+
+.savePriceButton {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.savePriceButton:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+.savePriceButton:active {
+  transform: translateY(0);
+}
+
+.priceInfo {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.75rem;
+}
+
+.errorText {
+  margin: 0;
+  color: #dc2626;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Active tab price section styles */
+.activeTabPriceSection {
+  margin: 1.5rem 0;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 0.75rem;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.priceHeader {
+  margin-bottom: 1rem;
+}
+
+.priceHeader h4 {
+  margin: 0;
+  color: #1e293b;
+  font-size: 1.125rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.priceHeader h4::before {
+  content: "💰";
+  font-size: 1.25rem;
+}
+
+.savePriceButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Tab content styles */
+.tabContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tabLabel {
+  font-weight: 500;
+}
+
+.tabPrice {
+  font-size: 0.75rem;
+  color: #059669;
+  font-weight: 600;
+  background: rgba(5, 150, 105, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  min-width: fit-content;
+}
+
+.tab.activeTab .tabPrice {
+  color: #065f46;
+  background: rgba(5, 150, 105, 0.2);
+}

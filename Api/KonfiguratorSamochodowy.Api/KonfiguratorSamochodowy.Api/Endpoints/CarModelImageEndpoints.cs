@@ -34,6 +34,10 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 .WithName("SetMainImage")
                 .WithOpenApi()
                 .RequiredAuthenticatedUser();
+
+            group.MapGet("/{carModelId}/available-colors", GetAvailableColors)
+                .WithName("GetAvailableColors")
+                .WithOpenApi();
         }
 
         private static async Task<IResult> GetCarModelImages(
@@ -140,6 +144,20 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
             }
 
             return Results.Ok();
+        }
+
+        private static async Task<IResult> GetAvailableColors(
+            string carModelId,
+            ICarModelImageService carModelImageService)
+        {
+            var result = await carModelImageService.GetAvailableColorsForModelAsync(carModelId);
+
+            if (!result.IsSuccess)
+            {
+                return Results.BadRequest(new { error = result.Error.Message });
+            }
+
+            return Results.Ok(result.Value);
         }
     }
 

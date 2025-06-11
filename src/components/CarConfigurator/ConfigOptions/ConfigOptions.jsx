@@ -1,12 +1,11 @@
 import React from 'react';
 import styles from './ConfigOptions.module.css';
-import { translateInteriorEquipmentType, translateAccessoryCategory } from '../../../utils/translations';
+import { translateInteriorEquipmentType } from '../../../utils/translations';
 
 const ConfigOptions = ({
   activeTab,
   exteriorColors,
   accessories,
-  selectedAccessories,
   onAccessoryToggle,
   interiorEquipment,
   selectedInteriorEquipment,
@@ -63,6 +62,17 @@ const ConfigOptions = ({
 
   // Nadwozie
   if (activeTab === 'exterior') {
+    if (!exteriorColors || exteriorColors.length === 0) {
+      return (
+        <div className={styles.textCenter}>
+          <p>Brak dostępnych kolorów dla tego modelu.</p>
+          <p style={{fontSize: '12px', color: '#666', marginTop: '8px'}}>
+            Dodaj zdjęcia dla różnych kolorów w panelu administratora, aby wyświetlić kolory tutaj.
+          </p>
+        </div>
+      );
+    }
+
     return (
       <div className={styles.configGrid}>
         {exteriorColors.map((color) => (

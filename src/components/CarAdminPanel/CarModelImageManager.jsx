@@ -10,32 +10,59 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
   const [uploading, setUploading] = useState(false);
   const [selectedColor, setSelectedColor] = useState('');
   const [activeTab, setActiveTab] = useState('');
+  const [colorPrices, setColorPrices] = useState({});
+  const [colorPrice, setColorPrice] = useState('');
+  const [priceError, setPriceError] = useState('');
+  const [tempColorPrices, setTempColorPrices] = useState({});
+  const [priceErrors, setPriceErrors] = useState({});
+  const [savingPrice, setSavingPrice] = useState('');
   const [availableColors] = useState([
-    { value: 'white', label: 'Biały' },
-    { value: 'black', label: 'Czarny' },
-    { value: 'silver', label: 'Srebrny' },
-    { value: 'gray', label: 'Szary' },
-    { value: 'red', label: 'Czerwony' },
-    { value: 'blue', label: 'Niebieski' },
-    { value: 'green', label: 'Zielony' },
-    { value: 'yellow', label: 'Żółty' },
-    { value: 'orange', label: 'Pomarańczowy' },
-    { value: 'brown', label: 'Brązowy' },
-    { value: 'beige', label: 'Beżowy' },
-    { value: 'gold', label: 'Złoty' },
-    { value: 'navy', label: 'Granatowy' },
-    { value: 'purple', label: 'Fioletowy' }
+    { value: 'Biały', label: 'Biały' },
+    { value: 'Czarny', label: 'Czarny' },
+    { value: 'Srebrny', label: 'Srebrny' },
+    { value: 'Szary', label: 'Szary' },
+    { value: 'Czerwony', label: 'Czerwony' },
+    { value: 'Niebieski', label: 'Niebieski' },
+    { value: 'Zielony', label: 'Zielony' },
+    { value: 'Żółty', label: 'Żółty' },
+    { value: 'Pomarańczowy', label: 'Pomarańczowy' },
+    { value: 'Brązowy', label: 'Brązowy' },
+    { value: 'Beżowy', label: 'Beżowy' },
+    { value: 'Złoty', label: 'Złoty' },
+    { value: 'Granatowy', label: 'Granatowy' },
+    { value: 'Fioletowy', label: 'Fioletowy' }
   ]);
 
   useEffect(() => {
     console.log('CarModelImageManager: carModelId received:', carModelId, 'type:', typeof carModelId);
     if (carModelId) {
       loadImages();
+      loadColorPrices();
     } else {
       console.error('CarModelImageManager: carModelId is empty or invalid');
       setError('Nieprawidłowy identyfikator modelu pojazdu');
     }
   }, [carModelId]);
+
+  // Auto-save price after 2 seconds of no changes
+  useEffect(() => {
+    if (!activeTab || !tempColorPrices[activeTab]) return;
+    
+    const timer = setTimeout(() => {
+      const currentPrice = tempColorPrices[activeTab];
+      const originalPrice = colorPrices[activeTab];
+      
+      // Only save if price has changed
+      if (currentPrice !== originalPrice && currentPrice !== '') {
+        const error = validateColorPrice(currentPrice);
+        if (!error) {
+          saveTabColorPrice(activeTab);
+        }
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [tempColorPrices, activeTab]);
 
   const loadImages = async () => {
     try {
@@ -54,6 +81,16 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
       setImages([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadColorPrices = async () => {
+    try {
+      const prices = await adminApiService.getColorPricesForModel(carModelId);
+      setColorPrices(prices);
+      setTempColorPrices(prices);
+    } catch (err) {
+      console.log('Błąd pobierania cen kolorów:', err);
     }
   };
 
@@ -103,6 +140,121 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
       console.error('Error uploading image:', err);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleColorChange = (color) => {
+    setSelectedColor(color);
+    setColorPrice(colorPrices[color] || '');
+    setPriceError('');
+  };
+
+  const handleColorPriceChange = (e) => {
+    const value = e.target.value;
+    setColorPrice(value);
+    setPriceError('');
+  };
+
+  const validateAndSaveColorPrice = async () => {
+    if (!selectedColor) {
+      setPriceError('Wybierz kolor');
+      return;
+    }
+
+    if (colorPrice === '') {
+      setPriceError('Cena za kolor jest wymagana.');
+      return;
+    }
+
+    const price = parseInt(colorPrice);
+    if (isNaN(price) || price < 0 || price > 60000) {
+      setPriceError('Cena musi być liczbą od 0 do 60 000.');
+      return;
+    }
+
+    try {
+      await adminApiService.setColorPrice(carModelId, selectedColor, price);
+      setColorPrices(prev => ({ ...prev, [selectedColor]: price }));
+      setPriceError('');
+      console.log(`Zapisano cenę ${price} dla koloru ${selectedColor}`);
+    } catch (err) {
+      setPriceError(err.message || 'Nie udało się zapisać ceny koloru');
+      console.error('Error saving color price:', err);
+    }
+  };
+
+  const handleTabColorPriceChange = (colorName, value) => {
+    setTempColorPrices(prev => ({ ...prev, [colorName]: value }));
+    
+    // Clear error for this color
+    setPriceErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[colorName];
+      return newErrors;
+    });
+  };
+
+  const validateColorPrice = (price) => {
+    if (price === '' || price === null || price === undefined) {
+      return 'Cena za kolor jest wymagana.';
+    }
+    
+    const numPrice = parseInt(price);
+    if (isNaN(numPrice) || numPrice < 0 || numPrice > 60000) {
+      return 'Cena musi być liczbą całkowitą od 0 do 60 000.';
+    }
+    
+    return null;
+  };
+
+  const saveTabColorPrice = async (colorName) => {
+    const price = tempColorPrices[colorName];
+    const error = validateColorPrice(price);
+    
+    if (error) {
+      setPriceErrors(prev => ({ ...prev, [colorName]: error }));
+      return;
+    }
+
+    try {
+      setSavingPrice(colorName);
+      await adminApiService.setColorPrice(carModelId, colorName, parseInt(price));
+      
+      // Update actual prices
+      setColorPrices(prev => ({ ...prev, [colorName]: parseInt(price) }));
+      
+      // Clear errors
+      setPriceErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[colorName];
+        return newErrors;
+      });
+      
+      console.log(`Zapisano cenę ${price} dla koloru ${colorName}`);
+    } catch (err) {
+      setPriceErrors(prev => ({ ...prev, [colorName]: err.message || 'Nie udało się zapisać ceny koloru' }));
+      console.error('Error saving color price:', err);
+    } finally {
+      setSavingPrice('');
+    }
+  };
+
+  const handleTabChange = (colorName) => {
+    setActiveTab(colorName);
+    
+    // Load price for this color if not already loaded
+    if (!(colorName in tempColorPrices)) {
+      loadColorPriceForTab(colorName);
+    }
+  };
+
+  const loadColorPriceForTab = async (colorName) => {
+    try {
+      const price = await adminApiService.getColorPrice(carModelId, colorName);
+      setTempColorPrices(prev => ({ ...prev, [colorName]: price || '' }));
+      setColorPrices(prev => ({ ...prev, [colorName]: price || 0 }));
+    } catch (err) {
+      console.log('Błąd pobierania ceny koloru:', err);
     }
   };
 
@@ -180,7 +332,7 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
                 id="colorSelect"
                 value={selectedColor}
                 onChange={(e) => {
-                  setSelectedColor(e.target.value);
+                  handleColorChange(e.target.value);
                   if (e.target.value && !colorsWithImages.includes(e.target.value)) {
                     setActiveTab(e.target.value);
                   }
@@ -198,6 +350,43 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
                 })}
               </select>
             </div>
+            
+            {/* Color price input */}
+            {selectedColor && (
+              <div className={styles.priceSection}>
+                <div className={styles.priceLabel}>
+                  <label htmlFor="colorPrice">Cena za kolor lakieru ({selectedColor}):</label>
+                  <span className={styles.required}>*</span>
+                </div>
+                <div className={styles.priceInputGroup}>
+                  <input
+                    id="colorPrice"
+                    type="number"
+                    min="0"
+                    max="60000"
+                    step="1"
+                    value={colorPrice}
+                    onChange={handleColorPriceChange}
+                    placeholder="Wprowadź cenę (0-60000)"
+                    className={`${styles.priceInput} ${priceError ? styles.inputError : ''}`}
+                  />
+                  <span className={styles.currency}>zł</span>
+                  <button
+                    type="button"
+                    onClick={validateAndSaveColorPrice}
+                    className={styles.savePriceButton}
+                  >
+                    Zapisz cenę
+                  </button>
+                </div>
+                {priceError && (
+                  <p className={styles.errorText}>{priceError}</p>
+                )}
+                <p className={styles.priceInfo}>
+                  Wprowadź cenę za kolor lakieru (zakres: 0 – 60 000 zł)
+                </p>
+              </div>
+            )}
             
             <label htmlFor="imageUpload" className={styles.uploadButton}>
               <Upload size={20} />
@@ -229,17 +418,67 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
                 {colorsWithImages.map(color => {
                   const colorInfo = availableColors.find(c => c.value === color);
                   const count = images.filter(img => img.color === color).length;
+                  const price = colorPrices[color];
                   return (
                     <button
                       key={color}
-                      onClick={() => setActiveTab(color)}
+                      onClick={() => handleTabChange(color)}
                       className={`${styles.tab} ${activeTab === color ? styles.activeTab : ''}`}
                     >
-                      {colorInfo?.label || color} ({count})
+                      <div className={styles.tabContent}>
+                        <span className={styles.tabLabel}>
+                          {colorInfo?.label || color} ({count})
+                        </span>
+                        {price !== undefined && (
+                          <span className={styles.tabPrice}>
+                            {price.toLocaleString()} zł
+                          </span>
+                        )}
+                      </div>
                     </button>
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {/* Color price section for active tab */}
+          {activeTab && (
+            <div className={styles.activeTabPriceSection}>
+              <div className={styles.priceHeader}>
+                <h4>Cena za kolor lakieru: {activeTab}</h4>
+              </div>
+              <div className={styles.priceInputGroup}>
+                <input
+                  type="number"
+                  min="0"
+                  max="60000"
+                  step="1"
+                  value={tempColorPrices[activeTab] || ''}
+                  onChange={(e) => handleTabColorPriceChange(activeTab, e.target.value)}
+                  placeholder="Wprowadź cenę (0-60000)"
+                  className={`${styles.priceInput} ${priceErrors[activeTab] ? styles.inputError : ''}`}
+                />
+                <span className={styles.currency}>zł</span>
+                <button
+                  type="button"
+                  onClick={() => saveTabColorPrice(activeTab)}
+                  disabled={savingPrice === activeTab}
+                  className={styles.savePriceButton}
+                >
+                  {savingPrice === activeTab ? 'Zapisywanie...' : 'Zapisz'}
+                </button>
+              </div>
+              {priceErrors[activeTab] && (
+                <p className={styles.errorText}>{priceErrors[activeTab]}</p>
+              )}
+              <p className={styles.priceInfo}>
+                Wprowadź cenę za kolor lakieru (zakres: 0 – 60 000 zł)
+                <br />
+                <small style={{color: '#6b7280', fontSize: '0.75rem'}}>
+                  Cena zapisuje się automatycznie po 2 sekundach lub kliknij "Zapisz"
+                </small>
+              </p>
             </div>
           )}
 

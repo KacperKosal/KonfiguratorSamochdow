@@ -207,6 +207,18 @@ namespace KonfiguratorSamochodowy.Api.Services
             return await _carModelImageRepository.SetMainImageAsync(carModelId, imageId);
         }
 
+        public async Task<Result<List<string>>> GetAvailableColorsForModelAsync(string carModelId)
+        {
+            if (string.IsNullOrEmpty(carModelId))
+            {
+                return Result<List<string>>.Failure(
+                    new Error("VALIDATION_ERROR", "Car model ID cannot be empty")
+                );
+            }
+
+            return await _carModelImageRepository.GetAvailableColorsForModelAsync(carModelId);
+        }
+
         private Result<bool> ValidateImageFile(IFormFile file)
         {
             if (file == null || file.Length == 0)

@@ -10,5 +10,6 @@ namespace KonfiguratorSamochodowy.Api.Services
         Task<Result<bool>> DeleteImageAsync(string imageId);
         Task<Result<bool>> UpdateImageOrderAsync(string imageId, int newOrder);
         Task<Result<bool>> SetMainImageAsync(string carModelId, string imageId);
+        Task<Result<List<string>>> GetAvailableColorsForModelAsync(string carModelId);
     }
 }

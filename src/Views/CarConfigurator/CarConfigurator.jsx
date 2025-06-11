@@ -5,6 +5,7 @@ import CarViewer from '../../components/CarConfigurator/CarViewer/CarViewer';
 import ConfigTabs from '../../components/CarConfigurator/ConfigTabs/ConfigTabs';
 import ConfigOptions from '../../components/CarConfigurator/ConfigOptions/ConfigOptions';
 import SummaryPanel from '../../components/CarConfigurator/SummaryPanel/SummaryPanel';
+import adminApiService from '../../services/adminApiService';
 
 const CarConfigurator = () => {
   const location = useLocation();
@@ -22,6 +23,8 @@ const CarConfigurator = () => {
   const [selectedAccessories, setSelectedAccessories] = useState([]);
   const [interiorEquipment, setInteriorEquipment] = useState([]);
   const [selectedInteriorEquipment, setSelectedInteriorEquipment] = useState([]);
+  const [availableColors, setAvailableColors] = useState([]);
+  const [colorPrices, setColorPrices] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -51,6 +54,45 @@ const CarConfigurator = () => {
         
         if (selectedModel) {
           setSelectedCarModel(selectedModel);
+          
+          // Pobierz dostępne kolory dla modelu
+          try {
+            console.log(`Pobieranie dostępnych kolorów dla modelu: ${selectedModel.id}`);
+            const availableColorsData = await adminApiService.getAvailableColorsForModel(selectedModel.id);
+            console.log('Otrzymane dostępne kolory:', availableColorsData);
+            setAvailableColors(availableColorsData || []);
+            
+            // Pobierz ceny kolorów
+            try {
+              const colorPricesData = await adminApiService.getColorPricesForModel(selectedModel.id);
+              console.log('Otrzymane ceny kolorów:', colorPricesData);
+              setColorPrices(colorPricesData || {});
+            } catch (err) {
+              console.log('Błąd pobierania cen kolorów:', err);
+              setColorPrices({});
+            }
+            
+            // Ustaw domyślny kolor jeśli dostępne
+            if (availableColorsData && availableColorsData.length > 0) {
+              const defaultColorName = availableColorsData[0];
+              console.log(`Ustawianie domyślnego koloru: ${defaultColorName}`);
+              const staticColor = staticExteriorColors.find(c => c.name === defaultColorName);
+              console.log('Znaleziony statyczny kolor:', staticColor);
+              if (staticColor) {
+                setCarColor(staticColor.value);
+                console.log(`Ustawiono kolor samochodu na: ${staticColor.value}`);
+              }
+            } else {
+              console.log('Brak dostępnych kolorów dla tego modelu');
+              // Jeśli brak kolorów i aktywna jest zakładka exterior, przełącz na engine
+              if (activeTab === 'exterior') {
+                setActiveTab('engine');
+              }
+            }
+          } catch (err) {
+            console.error('Błąd pobierania dostępnych kolorów:', err);
+            setAvailableColors([]);
+          }
           
           // Pobierz silniki dla wybranego modelu
           const enginesResponse = await fetch(`${apiUrl}/api/car-models/${selectedModel.id}/engines`);
@@ -100,29 +142,6 @@ const CarConfigurator = () => {
     fetchData();
   }, [apiUrl, modelFromNavigation]);
 
-  // Funkcja do zmiany modelu samochodu
-  const handleCarModelChange = async (modelId) => {
-    try {
-      const selectedModel = carModels.find(model => model.id === modelId);
-      setSelectedCarModel(selectedModel);
-      
-      // Pobierz silniki dla nowego modelu
-      const enginesResponse = await fetch(`${apiUrl}/api/car-models/${modelId}/engines`);
-      if (enginesResponse.ok) {
-        const enginesData = await enginesResponse.json();
-        setEngines(enginesData);
-        setSelectedEngine(enginesData.length > 0 ? enginesData[0] : null);
-      }
-      
-      // Zresetuj wybrane akcesoria i wyposażenie
-      setSelectedAccessories([]);
-      setSelectedInteriorEquipment([]);
-      setAccessories(prev => prev.map(acc => ({ ...acc, selected: false })));
-      setInteriorEquipment(prev => prev.map(eq => ({ ...eq, selected: false })));
-    } catch (err) {
-      console.error('Błąd zmiany modelu:', err);
-    }
-  };
 
   // Funkcja do obsługi zmiany silnika
   const handleEngineChange = (engine) => {
@@ -209,7 +228,8 @@ const CarConfigurator = () => {
     
     try {
       // Przygotuj dane konfiguracji
-      const exteriorColorInfo = exteriorColors.find(c => c.value === carColor);
+      const exteriorColorInfo = exteriorColors.find(c => c.value === carColor) || 
+                                staticExteriorColors.find(c => c.value === carColor);
       const configurationData = {
         configurationName: configurationName.trim(),
         carModelId: selectedCarModel.id,
@@ -249,13 +269,45 @@ const CarConfigurator = () => {
     }
   };
 
-  const exteriorColors = [
+  const staticExteriorColors = [
     { name: 'Czarny', value: '#000000', price: 0 },
     { name: 'Biały', value: '#ffffff', price: 0 },
     { name: 'Srebrny', value: '#c0c0c0', price: 2000 },
+    { name: 'Szary', value: '#808080', price: 1500 },
     { name: 'Niebieski', value: '#0000ff', price: 3000 },
     { name: 'Czerwony', value: '#ff0000', price: 3000 },
+    { name: 'Zielony', value: '#008000', price: 3000 },
+    { name: 'Żółty', value: '#ffff00', price: 3500 },
+    { name: 'Pomarańczowy', value: '#ffa500', price: 3500 },
+    { name: 'Brązowy', value: '#8b4513', price: 2500 },
+    { name: 'Beżowy', value: '#f5f5dc', price: 1500 },
+    { name: 'Złoty', value: '#ffd700', price: 4000 },
+    { name: 'Granatowy', value: '#000080', price: 2500 },
+    { name: 'Fioletowy', value: '#800080', price: 3500 },
   ];
+
+  // Filtruj kolory na podstawie dostępnych kolorów dla modelu
+  const exteriorColors = useMemo(() => {
+    console.log('Filtrowanie kolorów - dostępne kolory:', availableColors);
+    console.log('Filtrowanie kolorów - ceny kolorów:', colorPrices);
+    console.log('Filtrowanie kolorów - statyczne kolory:', staticExteriorColors);
+    
+    if (availableColors.length === 0) {
+      console.log('Brak dostępnych kolorów - zwracanie pustej listy');
+      return [];
+    }
+    
+    const filtered = staticExteriorColors.filter(color => 
+      availableColors.includes(color.name)
+    ).map(color => ({
+      ...color,
+      // Użyj ceny z API jeśli dostępna, w przeciwnym razie użyj ceny domyślnej
+      price: colorPrices[color.name] ?? color.price
+    }));
+    
+    console.log('Przefiltrowane kolory z cenami z API:', filtered);
+    return filtered;
+  }, [availableColors, colorPrices]);
 
 
 
@@ -266,10 +318,12 @@ const CarConfigurator = () => {
     const enginePrice = selectedEngine?.additionalPrice || 0;
     const accessoriesPrice = selectedAccessories.reduce((sum, acc) => sum + (acc?.price || 0), 0);
     const interiorEquipmentPrice = selectedInteriorEquipment.reduce((sum, eq) => sum + (eq?.additionalPrice || 0), 0);
+    
+    // Użyj ceny koloru z exteriorColors (która już zawiera ceny z API)
     const exteriorColorPrice = exteriorColors.find(c => c.value === carColor)?.price || 0;
     
     return basePrice + enginePrice + accessoriesPrice + interiorEquipmentPrice + exteriorColorPrice;
-  }, [selectedCarModel, selectedEngine, selectedAccessories, selectedInteriorEquipment, exteriorColors, carColor]);
+  }, [selectedCarModel, selectedEngine, selectedAccessories, selectedInteriorEquipment, carColor, exteriorColors]);
 
   if (loading) {
     return (
@@ -305,7 +359,11 @@ const CarConfigurator = () => {
             selectedCarModel={selectedCarModel}
             carColor={carColor}
           />
-          <ConfigTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+          <ConfigTabs 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab} 
+            availableColors={availableColors}
+          />
           <ConfigOptions
             activeTab={activeTab}
             exteriorColors={exteriorColors}
