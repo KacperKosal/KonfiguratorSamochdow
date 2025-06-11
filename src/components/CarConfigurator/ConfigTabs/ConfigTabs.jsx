@@ -1,7 +1,9 @@
 import React from 'react';
 import styles from './ConfigTabs.module.css';
 
-const ConfigTabs = ({ activeTab, setActiveTab }) => {
+const ConfigTabs = ({ activeTab, setActiveTab, availableColors = [] }) => {
+  const hasColors = availableColors && availableColors.length > 0;
+
   return (
     <div className={styles.tabs}>
       <button
@@ -10,12 +12,14 @@ const ConfigTabs = ({ activeTab, setActiveTab }) => {
       >
         🔧 Silnik
       </button>
-      <button
-        onClick={() => setActiveTab('exterior')}
-        className={`${styles.tabButton} ${activeTab === 'exterior' ? styles.active : ''}`}
-      >
-        Nadwozie
-      </button>
+      {hasColors && (
+        <button
+          onClick={() => setActiveTab('exterior')}
+          className={`${styles.tabButton} ${activeTab === 'exterior' ? styles.active : ''}`}
+        >
+          Nadwozie
+        </button>
+      )}
       <button
         onClick={() => setActiveTab('wheels')}
         className={`${styles.tabButton} ${activeTab === 'wheels' ? styles.active : ''}`}

@@ -13,5 +13,6 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Interfaces
         Task<Result<bool>> SetMainImageAsync(string carModelId, string imageId);
         Task<Result<int>> GetImageCountByCarModelIdAsync(string carModelId);
         Task<Result<int>> GetImageCountByCarModelIdAndColorAsync(string carModelId, string color);
+        Task<Result<List<string>>> GetAvailableColorsForModelAsync(string carModelId);
     }
 }

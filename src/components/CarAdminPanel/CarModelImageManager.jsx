@@ -10,32 +10,46 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
   const [uploading, setUploading] = useState(false);
   const [selectedColor, setSelectedColor] = useState('');
   const [activeTab, setActiveTab] = useState('');
+  const [colorPrices, setColorPrices] = useState({});
+  const [tempColorPrices, setTempColorPrices] = useState({});
+  const [priceErrors, setPriceErrors] = useState({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [availableColors] = useState([
-    { value: 'white', label: 'Biały' },
-    { value: 'black', label: 'Czarny' },
-    { value: 'silver', label: 'Srebrny' },
-    { value: 'gray', label: 'Szary' },
-    { value: 'red', label: 'Czerwony' },
-    { value: 'blue', label: 'Niebieski' },
-    { value: 'green', label: 'Zielony' },
-    { value: 'yellow', label: 'Żółty' },
-    { value: 'orange', label: 'Pomarańczowy' },
-    { value: 'brown', label: 'Brązowy' },
-    { value: 'beige', label: 'Beżowy' },
-    { value: 'gold', label: 'Złoty' },
-    { value: 'navy', label: 'Granatowy' },
-    { value: 'purple', label: 'Fioletowy' }
+    { value: 'Biały', label: 'Biały' },
+    { value: 'Czarny', label: 'Czarny' },
+    { value: 'Srebrny', label: 'Srebrny' },
+    { value: 'Szary', label: 'Szary' },
+    { value: 'Czerwony', label: 'Czerwony' },
+    { value: 'Niebieski', label: 'Niebieski' },
+    { value: 'Zielony', label: 'Zielony' },
+    { value: 'Żółty', label: 'Żółty' },
+    { value: 'Pomarańczowy', label: 'Pomarańczowy' },
+    { value: 'Brązowy', label: 'Brązowy' },
+    { value: 'Beżowy', label: 'Beżowy' },
+    { value: 'Złoty', label: 'Złoty' },
+    { value: 'Granatowy', label: 'Granatowy' },
+    { value: 'Fioletowy', label: 'Fioletowy' }
   ]);
 
   useEffect(() => {
     console.log('CarModelImageManager: carModelId received:', carModelId, 'type:', typeof carModelId);
     if (carModelId) {
       loadImages();
+      loadColorPrices();
     } else {
       console.error('CarModelImageManager: carModelId is empty or invalid');
       setError('Nieprawidłowy identyfikator modelu pojazdu');
     }
   }, [carModelId]);
+
+  // Check for unsaved changes
+  useEffect(() => {
+    const hasChanges = Object.keys(tempColorPrices).some(colorName => 
+      tempColorPrices[colorName] !== (colorPrices[colorName] || '')
+    );
+    setHasUnsavedChanges(hasChanges);
+  }, [tempColorPrices, colorPrices]);
 
   const loadImages = async () => {
     try {
@@ -54,6 +68,16 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
       setImages([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadColorPrices = async () => {
+    try {
+      const prices = await adminApiService.getColorPricesForModel(carModelId);
+      setColorPrices(prices);
+      setTempColorPrices(prices);
+    } catch (err) {
+      console.log('Błąd pobierania cen kolorów:', err);
     }
   };
 
@@ -103,6 +127,99 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
       console.error('Error uploading image:', err);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleColorChange = (color) => {
+    setSelectedColor(color);
+  };
+
+  const handleTabColorPriceChange = (colorName, value) => {
+    setTempColorPrices(prev => ({ ...prev, [colorName]: value }));
+    
+    // Clear error for this color
+    setPriceErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors[colorName];
+      return newErrors;
+    });
+  };
+
+  const validateColorPrice = (price) => {
+    if (price === '' || price === null || price === undefined) {
+      return 'Cena za kolor jest wymagana.';
+    }
+    
+    const numPrice = parseInt(price);
+    if (isNaN(numPrice) || numPrice < 0 || numPrice > 60000) {
+      return 'Cena musi być liczbą całkowitą od 0 do 60 000.';
+    }
+    
+    return null;
+  };
+
+  const saveAllChanges = async () => {
+    setIsSaving(true);
+    setPriceErrors({});
+    
+    try {
+      // Validate all prices first
+      const validationErrors = {};
+      for (const [colorName, price] of Object.entries(tempColorPrices)) {
+        if (price !== (colorPrices[colorName] || '')) {
+          const error = validateColorPrice(price);
+          if (error) {
+            validationErrors[colorName] = error;
+          }
+        }
+      }
+      
+      if (Object.keys(validationErrors).length > 0) {
+        setPriceErrors(validationErrors);
+        return;
+      }
+      
+      // Save all changed prices
+      const savePromises = [];
+      for (const [colorName, price] of Object.entries(tempColorPrices)) {
+        if (price !== (colorPrices[colorName] || '') && price !== '') {
+          savePromises.push(
+            adminApiService.setColorPrice(carModelId, colorName, parseInt(price))
+          );
+        }
+      }
+      
+      await Promise.all(savePromises);
+      
+      // Update saved prices
+      setColorPrices({ ...tempColorPrices });
+      setHasUnsavedChanges(false);
+      
+      console.log('Wszystkie zmiany zostały zapisane');
+    } catch (err) {
+      setError('Nie udało się zapisać zmian: ' + (err.message || 'Nieznany błąd'));
+      console.error('Error saving changes:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleTabChange = (colorName) => {
+    setActiveTab(colorName);
+    
+    // Load price for this color if not already loaded
+    if (!(colorName in tempColorPrices)) {
+      loadColorPriceForTab(colorName);
+    }
+  };
+
+  const loadColorPriceForTab = async (colorName) => {
+    try {
+      const price = await adminApiService.getColorPrice(carModelId, colorName);
+      setTempColorPrices(prev => ({ ...prev, [colorName]: price || '' }));
+      setColorPrices(prev => ({ ...prev, [colorName]: price || 0 }));
+    } catch (err) {
+      console.log('Błąd pobierania ceny koloru:', err);
     }
   };
 
@@ -180,7 +297,7 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
                 id="colorSelect"
                 value={selectedColor}
                 onChange={(e) => {
-                  setSelectedColor(e.target.value);
+                  handleColorChange(e.target.value);
                   if (e.target.value && !colorsWithImages.includes(e.target.value)) {
                     setActiveTab(e.target.value);
                   }
@@ -198,6 +315,7 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
                 })}
               </select>
             </div>
+            
             
             <label htmlFor="imageUpload" className={styles.uploadButton}>
               <Upload size={20} />
@@ -221,6 +339,59 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
             </p>
           </div>
           
+          {/* Price management section */}
+          {availableColors.length > 0 && (
+            <div className={styles.priceManagementSection}>
+              <h4>Zarządzanie cenami kolorów:</h4>
+              {hasUnsavedChanges && (
+                <div className={styles.unsavedChangesWarning}>
+                  ⚠️ Masz niezapisane zmiany w cenach kolorów
+                </div>
+              )}
+              <div className={styles.colorPriceGrid}>
+                {availableColors.map(colorOption => {
+                  const hasImages = images.some(img => img.color === colorOption.value);
+                  const currentPrice = tempColorPrices[colorOption.value] ?? colorPrices[colorOption.value] ?? '';
+                  const hasError = priceErrors[colorOption.value];
+                  
+                  return (
+                    <div key={colorOption.value} className={styles.colorPriceItem}>
+                      <div className={styles.colorPriceHeader}>
+                        <span className={styles.colorName}>{colorOption.label}</span>
+                        {hasImages && <span className={styles.hasImagesIndicator}>📷</span>}
+                      </div>
+                      <div className={styles.priceInputGroup}>
+                        <input
+                          type="number"
+                          min="0"
+                          max="60000"
+                          step="1"
+                          value={currentPrice}
+                          onChange={(e) => handleTabColorPriceChange(colorOption.value, e.target.value)}
+                          placeholder="Cena (0-60000)"
+                          className={`${styles.priceInput} ${hasError ? styles.inputError : ''}`}
+                        />
+                        <span className={styles.currency}>zł</span>
+                      </div>
+                      {hasError && (
+                        <p className={styles.errorText}>{hasError}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className={styles.priceManagementActions}>
+                <button
+                  onClick={saveAllChanges}
+                  disabled={!hasUnsavedChanges || isSaving}
+                  className={styles.saveAllButton}
+                >
+                  {isSaving ? 'Zapisywanie...' : 'Zapisz zmiany'}
+                </button>
+              </div>
+            </div>
+          )}
+          
           {/* Color tabs */}
           {colorsWithImages.length > 0 && (
             <div className={styles.colorTabs}>
@@ -232,16 +403,21 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
                   return (
                     <button
                       key={color}
-                      onClick={() => setActiveTab(color)}
+                      onClick={() => handleTabChange(color)}
                       className={`${styles.tab} ${activeTab === color ? styles.activeTab : ''}`}
                     >
-                      {colorInfo?.label || color} ({count})
+                      <div className={styles.tabContent}>
+                        <span className={styles.tabLabel}>
+                          {colorInfo?.label || color} ({count})
+                        </span>
+                      </div>
                     </button>
                   );
                 })}
               </div>
             </div>
           )}
+
 
           {/* Images grid */}
           {loading ? (

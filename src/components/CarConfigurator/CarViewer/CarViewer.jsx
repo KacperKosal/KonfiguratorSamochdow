@@ -70,11 +70,20 @@ const CarViewer = ({
 
   // Map hex colors to color names for image file naming and display
   const colorMapping = {
-    '#000000': { name: 'black', display: 'Czarny' },
-    '#ffffff': { name: 'white', display: 'Biały' }, 
-    '#c0c0c0': { name: 'silver', display: 'Srebrny' },
-    '#0000ff': { name: 'blue', display: 'Niebieski' },
-    '#ff0000': { name: 'red', display: 'Czerwony' }
+    '#000000': { name: 'Czarny', display: 'Czarny' },
+    '#ffffff': { name: 'Biały', display: 'Biały' }, 
+    '#c0c0c0': { name: 'Srebrny', display: 'Srebrny' },
+    '#808080': { name: 'Szary', display: 'Szary' },
+    '#0000ff': { name: 'Niebieski', display: 'Niebieski' },
+    '#ff0000': { name: 'Czerwony', display: 'Czerwony' },
+    '#008000': { name: 'Zielony', display: 'Zielony' },
+    '#ffff00': { name: 'Żółty', display: 'Żółty' },
+    '#ffa500': { name: 'Pomarańczowy', display: 'Pomarańczowy' },
+    '#8b4513': { name: 'Brązowy', display: 'Brązowy' },
+    '#f5f5dc': { name: 'Beżowy', display: 'Beżowy' },
+    '#ffd700': { name: 'Złoty', display: 'Złoty' },
+    '#000080': { name: 'Granatowy', display: 'Granatowy' },
+    '#800080': { name: 'Fioletowy', display: 'Fioletowy' }
   };
 
   const getCarImageUrl = () => {

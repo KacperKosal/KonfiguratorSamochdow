@@ -363,6 +363,97 @@ class AdminApiService {
     const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7020';
     return `${apiUrl}${imageUrl}`;
   }
+
+  async getAvailableColorsForModel(carModelId) {
+    try {
+      console.log('adminApiService.getAvailableColorsForModel: carModelId:', carModelId);
+      
+      if (!carModelId || carModelId === 'undefined' || carModelId === 'null') {
+        throw new Error('Invalid car model ID');
+      }
+      
+      const response = await axiosInstance.get(`/api/car-model-images/${carModelId}/available-colors`);
+      console.log('Available colors for model:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching available colors:', error);
+      throw error;
+    }
+  }
+
+  // Car Model Colors Management
+  async getColorsByCarModelId(carModelId) {
+    try {
+      console.log('adminApiService.getColorsByCarModelId: carModelId:', carModelId);
+      
+      if (!carModelId || carModelId === 'undefined' || carModelId === 'null') {
+        throw new Error('Invalid car model ID');
+      }
+      
+      const response = await axiosInstance.get(`/api/car-model-colors/${carModelId}`);
+      console.log('Colors for model:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching colors:', error);
+      throw error;
+    }
+  }
+
+  async setColorPrice(carModelId, colorName, price) {
+    try {
+      console.log('adminApiService.setColorPrice:', { carModelId, colorName, price });
+      
+      if (!carModelId || carModelId === 'undefined' || carModelId === 'null') {
+        throw new Error('Invalid car model ID');
+      }
+      
+      const response = await axiosInstance.post(`/api/car-model-colors/${carModelId}/${colorName}/price`, {
+        price: price
+      });
+      console.log('Color price set:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error setting color price:', error);
+      
+      // Extract error message from response
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      } else if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      } else if (error.message) {
+        throw new Error(error.message);
+      } else {
+        throw new Error('Nie udało się ustawić ceny koloru');
+      }
+    }
+  }
+
+  async getColorPrice(carModelId, colorName) {
+    try {
+      const response = await axiosInstance.get(`/api/car-model-colors/${carModelId}/${colorName}/price`);
+      return response.data.price || 0;
+    } catch (error) {
+      console.error('Error fetching color price:', error);
+      return 0; // Default price if not found
+    }
+  }
+
+  async getColorPricesForModel(carModelId) {
+    try {
+      console.log('adminApiService.getColorPricesForModel: carModelId:', carModelId);
+      
+      if (!carModelId || carModelId === 'undefined' || carModelId === 'null') {
+        throw new Error('Invalid car model ID');
+      }
+      
+      const response = await axiosInstance.get(`/api/car-model-colors/${carModelId}/prices`);
+      console.log('Color prices for model:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching color prices:', error);
+      return {}; // Return empty object if no prices found
+    }
+  }
 }
 
 export default new AdminApiService();

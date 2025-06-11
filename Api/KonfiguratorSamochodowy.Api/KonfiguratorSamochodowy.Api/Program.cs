@@ -44,6 +44,7 @@ builder.Services.AddScoped<ICarConfigurationService, CarConfigurationService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUserConfigurationService, UserConfigurationService>();
 builder.Services.AddScoped<ICarModelImageService, CarModelImageService>();
+builder.Services.AddScoped<ICarModelColorService, CarModelColorService>();
 
 builder.Services.AddCors();
 
@@ -73,6 +74,7 @@ app.MapCarModelEngineEndpoints();
 app.MapCarConfigurationEndpoints();
 app.MapImageEndpoints();
 app.MapCarModelImageEndpoints();
+app.MapCarModelColorEndpoints();
 
 app.UseHttpsRedirection();
 
@@ -398,10 +400,116 @@ static async Task CreateCarModelImagesTable(NpgsqlConnection connection)
             }
         }
         Console.WriteLine("=== CreateCarModelImagesTable: Completed ===");
+        
+        // Migration: Update old English color names to Polish names
+        await MigrateColorNames(connection);
+        
+        // Create car model colors table
+        await CreateCarModelColorsTable(connection);
     }
     catch (Exception ex)
     {
         Console.WriteLine($"=== CreateCarModelImagesTable: ERROR - {ex.Message} ===");
         Console.WriteLine($"=== CreateCarModelImagesTable: FULL ERROR - {ex} ===");
+    }
+}
+
+static async Task MigrateColorNames(NpgsqlConnection connection)
+{
+    try
+    {
+        Console.WriteLine("=== MigrateColorNames: Starting color name migration ===");
+        
+        var colorMigrationMapping = new Dictionary<string, string>
+        {
+            { "white", "Biały" },
+            { "black", "Czarny" },
+            { "silver", "Srebrny" },
+            { "gray", "Szary" },
+            { "red", "Czerwony" },
+            { "blue", "Niebieski" },
+            { "green", "Zielony" },
+            { "yellow", "Żółty" },
+            { "orange", "Pomarańczowy" },
+            { "brown", "Brązowy" },
+            { "beige", "Beżowy" },
+            { "gold", "Złoty" },
+            { "navy", "Granatowy" },
+            { "purple", "Fioletowy" }
+        };
+        
+        foreach (var mapping in colorMigrationMapping)
+        {
+            var updateSql = @"
+                UPDATE pojazd_zdjecie 
+                SET ""Color"" = @NewColor 
+                WHERE ""Color"" = @OldColor";
+            
+            var rowsAffected = await connection.ExecuteAsync(updateSql, new { 
+                OldColor = mapping.Key, 
+                NewColor = mapping.Value 
+            });
+            
+            if (rowsAffected > 0)
+            {
+                Console.WriteLine($"=== MigrateColorNames: Updated {rowsAffected} rows from '{mapping.Key}' to '{mapping.Value}' ===");
+            }
+        }
+        
+        Console.WriteLine("=== MigrateColorNames: Color name migration completed ===");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"=== MigrateColorNames: ERROR - {ex.Message} ===");
+    }
+}
+
+static async Task CreateCarModelColorsTable(NpgsqlConnection connection)
+{
+    try
+    {
+        Console.WriteLine("=== CreateCarModelColorsTable: Starting ===");
+        var checkSql = @"
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' 
+                AND table_name = 'car_model_colors'
+            );";
+
+        var exists = await connection.ExecuteScalarAsync<bool>(checkSql);
+        Console.WriteLine($"=== CreateCarModelColorsTable: Table exists check returned: {exists} ===");
+
+        if (!exists)
+        {
+            Console.WriteLine("Creating car_model_colors table...");
+            
+            var createSql = @"
+                CREATE TABLE car_model_colors (
+                    ""Id"" VARCHAR(255) PRIMARY KEY,
+                    ""CarModelId"" VARCHAR(255) NOT NULL,
+                    ""ColorName"" VARCHAR(100) NOT NULL,
+                    ""Price"" INTEGER NOT NULL DEFAULT 0 CHECK (""Price"" >= 0 AND ""Price"" <= 60000),
+                    ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+                    ""UpdatedAt"" TIMESTAMP WITH TIME ZONE,
+                    CONSTRAINT unique_car_model_color UNIQUE (""CarModelId"", ""ColorName"")
+                );
+                
+                CREATE INDEX idx_car_model_colors_carmodelid ON car_model_colors(""CarModelId"");
+                CREATE INDEX idx_car_model_colors_colorname ON car_model_colors(""ColorName"");";
+            
+            await connection.ExecuteAsync(createSql);
+            Console.WriteLine("=== CreateCarModelColorsTable: Table created successfully ===");
+        }
+        else 
+        {
+            Console.WriteLine("=== CreateCarModelColorsTable: Table already exists ===");
+        }
+        
+        Console.WriteLine("=== CreateCarModelColorsTable: Completed ===");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"=== CreateCarModelColorsTable: ERROR - {ex.Message} ===");
+        Console.WriteLine($"=== CreateCarModelColorsTable: FULL ERROR - {ex} ===");
     }
 }
