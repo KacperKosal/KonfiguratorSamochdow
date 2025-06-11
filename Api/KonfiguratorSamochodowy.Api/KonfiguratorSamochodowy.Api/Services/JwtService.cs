@@ -17,13 +17,18 @@ internal class JwtService(IConfiguration configuration) : IJwtService
         return Convert.ToBase64String(randomNumber);
     }
 
-    public string GenerateToken(int userId, string role)
+    public string GenerateToken(int userId, string role, string? name = null)
     {
         List<Claim> claims =
         [
             new Claim(ClaimTypes.NameIdentifier, $"{userId}"),
             new Claim(ClaimTypes.Role, role),
         ];
+
+        if (!string.IsNullOrEmpty(name))
+        {
+            claims.Add(new Claim(ClaimTypes.Name, name));
+        }
 
         string? secretKey = configuration["JwtInformations:Key"];
 

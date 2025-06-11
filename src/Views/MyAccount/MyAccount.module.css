@@ -41,6 +41,28 @@
   margin: 0;
 }
 
+.userActions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.changePasswordButton {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.changePasswordButton:hover {
+  background: #2563eb;
+}
+
 .logoutButton {
   background: #dc2626;
   color: white;
@@ -55,6 +77,107 @@
 
 .logoutButton:hover {
   background: #b91c1c;
+}
+
+.changePasswordSection {
+  background: white;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.passwordForm {
+  max-width: 500px;
+}
+
+.inputGroup {
+  margin-bottom: 1.5rem;
+}
+
+.inputGroup label {
+  display: block;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.inputGroup input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+
+.inputGroup input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.inputGroup input:disabled {
+  background-color: #f9fafb;
+  cursor: not-allowed;
+}
+
+.passwordError {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #fecaca;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.passwordFormActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.cancelButton {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancelButton:hover {
+  background: #4b5563;
+}
+
+.cancelButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.submitButton {
+  background: #059669;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.submitButton:hover {
+  background: #047857;
+}
+
+.submitButton:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
 }
 
 .configurationsSection {
@@ -236,9 +359,26 @@
     gap: 1rem;
   }
   
-  .logoutButton {
+  .userActions {
+    flex-direction: column;
     align-self: stretch;
+    gap: 0.5rem;
+  }
+  
+  .changePasswordButton,
+  .logoutButton {
+    width: 100%;
     text-align: center;
+  }
+  
+  .passwordFormActions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .cancelButton,
+  .submitButton {
+    width: 100%;
   }
   
   .configurationsGrid {

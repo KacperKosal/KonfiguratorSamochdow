@@ -10,6 +10,14 @@ const MyAccount = () => {
   const [configurations, setConfigurations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState(null);
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7001';
 
@@ -80,6 +88,134 @@ const MyAccount = () => {
     navigate('/home');
   };
 
+  const validatePasswordData = () => {
+    const errors = [];
+    
+    if (!passwordData.currentPassword.trim()) {
+      errors.push('Obecne hasło jest wymagane');
+    }
+    
+    if (!passwordData.newPassword.trim()) {
+      errors.push('Nowe hasło jest wymagane');
+    }
+    
+    if (!passwordData.confirmPassword.trim()) {
+      errors.push('Potwierdzenie hasła jest wymagane');
+    }
+    
+    if (passwordData.newPassword.length < 6) {
+      errors.push('Nowe hasło musi mieć co najmniej 6 znaków');
+    }
+    
+    if (passwordData.newPassword.length > 128) {
+      errors.push('Nowe hasło nie może być dłuższe niż 128 znaków');
+    }
+    
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      errors.push('Nowe hasła nie są identyczne');
+    }
+    
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      errors.push('Nowe hasło musi być różne od obecnego hasła');
+    }
+    
+    // Sprawdzenie siły hasła
+    const passwordStrengthRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+    if (passwordData.newPassword.length >= 6 && !passwordStrengthRegex.test(passwordData.newPassword)) {
+      errors.push('Nowe hasło powinno zawierać co najmniej jedną małą literę, jedną wielką literę, jedną cyfrę i jeden znak specjalny');
+    }
+    
+    return errors;
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    
+    const validationErrors = validatePasswordData();
+    if (validationErrors.length > 0) {
+      setPasswordError(validationErrors.join('. '));
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+      setPasswordError(null);
+
+      await axiosInstance.post('/change-password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+
+      alert('Hasło zostało zmienione pomyślnie');
+      setShowChangePassword(false);
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (err) {
+      console.error('Błąd zmiany hasła:', err);
+      
+      let errorMessage = 'Wystąpił błąd podczas zmiany hasła';
+      
+      if (err.response?.data) {
+        // Jeśli API zwraca obiekt z errorMessage (błędy zmiany hasła)
+        if (err.response.data.errorMessage) {
+          errorMessage = err.response.data.errorMessage;
+        }
+        // Jeśli API zwraca JSON z message
+        else if (err.response.data.message) {
+          errorMessage = err.response.data.message;
+        }
+        // Jeśli API zwraca string JSON (potrzebuje parsowania)
+        else if (typeof err.response.data === 'string') {
+          try {
+            const parsed = JSON.parse(err.response.data);
+            if (parsed.errorMessage) {
+              errorMessage = parsed.errorMessage;
+            } else if (parsed.message) {
+              errorMessage = parsed.message;
+            } else {
+              errorMessage = err.response.data;
+            }
+          } catch {
+            errorMessage = err.response.data;
+          }
+        }
+        // Jeśli API zwraca obiekt z errors (walidacja)
+        else if (err.response.data.errors) {
+          const errors = Object.values(err.response.data.errors).flat();
+          errorMessage = errors.join('. ');
+        }
+        // Jeśli API zwraca array błędów walidacji
+        else if (Array.isArray(err.response.data)) {
+          const messages = err.response.data.map(error => error.Message || error.message || error.errorMessage).filter(Boolean);
+          if (messages.length > 0) {
+            errorMessage = messages.join('. ');
+          }
+        }
+      } 
+      // Fallback dla kodów statusu
+      else if (err.response?.status === 401) {
+        errorMessage = 'Sesja wygasła. Zaloguj się ponownie.';
+      } else if (err.response?.status === 400) {
+        errorMessage = 'Nieprawidłowe dane formularza';
+      }
+      
+      setPasswordError(errorMessage);
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const handlePasswordInputChange = (field, value) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    setPasswordError(null);
+  };
+
   if (loading) {
     return (
       <div className={styles.myAccount}>
@@ -122,13 +258,101 @@ const MyAccount = () => {
                 <h2>Witaj{user.name ? `, ${user.name}` : ''}!</h2>
                 {user.email && <p>Email: {user.email}</p>}
               </div>
-              <button 
-                onClick={handleLogout}
-                className={styles.logoutButton}
-              >
-                Wyloguj się
-              </button>
+              <div className={styles.userActions}>
+                <button 
+                  onClick={() => setShowChangePassword(!showChangePassword)}
+                  className={styles.changePasswordButton}
+                >
+                  Zmień hasło
+                </button>
+                <button 
+                  onClick={handleLogout}
+                  className={styles.logoutButton}
+                >
+                  Wyloguj się
+                </button>
+              </div>
             </div>
+          </div>
+        )}
+
+        {showChangePassword && (
+          <div className={styles.changePasswordSection}>
+            <h2 className={styles.sectionTitle}>Zmiana hasła</h2>
+            <form onSubmit={handlePasswordChange} className={styles.passwordForm}>
+              {passwordError && (
+                <div className={styles.passwordError}>
+                  {passwordError}
+                </div>
+              )}
+              
+              <div className={styles.inputGroup}>
+                <label htmlFor="currentPassword">Obecne hasło:</label>
+                <input
+                  type="password"
+                  id="currentPassword"
+                  value={passwordData.currentPassword}
+                  onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                  required
+                  disabled={passwordLoading}
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label htmlFor="newPassword">Nowe hasło:</label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  value={passwordData.newPassword}
+                  onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                  required
+                  disabled={passwordLoading}
+                  minLength="6"
+                  maxLength="128"
+                  placeholder="Minimum 6 znaków, zawierać wielką literę, cyfrę i znak specjalny"
+                />
+              </div>
+
+              <div className={styles.inputGroup}>
+                <label htmlFor="confirmPassword">Potwierdź nowe hasło:</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  value={passwordData.confirmPassword}
+                  onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                  required
+                  disabled={passwordLoading}
+                  minLength="6"
+                  maxLength="128"
+                />
+              </div>
+
+              <div className={styles.passwordFormActions}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowChangePassword(false);
+                    setPasswordData({
+                      currentPassword: '',
+                      newPassword: '',
+                      confirmPassword: ''
+                    });
+                    setPasswordError(null);
+                  }}
+                  className={styles.cancelButton}
+                  disabled={passwordLoading}
+                >
+                  Anuluj
+                </button>
+                <button
+                  type="submit"
+                  className={styles.submitButton}
+                  disabled={passwordLoading}
+                >
+                  {passwordLoading ? 'Zmieniam...' : 'Zmień hasło'}
+                </button>
+              </div>
+            </form>
           </div>
         )}
 

@@ -42,7 +42,7 @@ internal class LoginUserService(IUserRepository userRepository, IJwtService jwtS
             throw new LoginRequestInvalidPassword(nameof(ValidationErrorCodes.LoginRequestInvalidPassword),"Nieprawidłowe hasło.");
         }
 
-        var token = jwtService.GenerateToken(user.Id, user.Rola);
+        var token = jwtService.GenerateToken(user.Id, user.Rola, user.ImieNazwisko);
         var refreshToken = jwtService.GenerateRefreshToken();
 
         user.RefreshToken = refreshToken;
