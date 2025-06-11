@@ -11,11 +11,10 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
   const [selectedColor, setSelectedColor] = useState('');
   const [activeTab, setActiveTab] = useState('');
   const [colorPrices, setColorPrices] = useState({});
-  const [colorPrice, setColorPrice] = useState('');
-  const [priceError, setPriceError] = useState('');
   const [tempColorPrices, setTempColorPrices] = useState({});
   const [priceErrors, setPriceErrors] = useState({});
-  const [savingPrice, setSavingPrice] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [availableColors] = useState([
     { value: 'Biały', label: 'Biały' },
     { value: 'Czarny', label: 'Czarny' },
@@ -44,25 +43,13 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
     }
   }, [carModelId]);
 
-  // Auto-save price after 2 seconds of no changes
+  // Check for unsaved changes
   useEffect(() => {
-    if (!activeTab || !tempColorPrices[activeTab]) return;
-    
-    const timer = setTimeout(() => {
-      const currentPrice = tempColorPrices[activeTab];
-      const originalPrice = colorPrices[activeTab];
-      
-      // Only save if price has changed
-      if (currentPrice !== originalPrice && currentPrice !== '') {
-        const error = validateColorPrice(currentPrice);
-        if (!error) {
-          saveTabColorPrice(activeTab);
-        }
-      }
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [tempColorPrices, activeTab]);
+    const hasChanges = Object.keys(tempColorPrices).some(colorName => 
+      tempColorPrices[colorName] !== (colorPrices[colorName] || '')
+    );
+    setHasUnsavedChanges(hasChanges);
+  }, [tempColorPrices, colorPrices]);
 
   const loadImages = async () => {
     try {
@@ -145,42 +132,6 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
 
   const handleColorChange = (color) => {
     setSelectedColor(color);
-    setColorPrice(colorPrices[color] || '');
-    setPriceError('');
-  };
-
-  const handleColorPriceChange = (e) => {
-    const value = e.target.value;
-    setColorPrice(value);
-    setPriceError('');
-  };
-
-  const validateAndSaveColorPrice = async () => {
-    if (!selectedColor) {
-      setPriceError('Wybierz kolor');
-      return;
-    }
-
-    if (colorPrice === '') {
-      setPriceError('Cena za kolor jest wymagana.');
-      return;
-    }
-
-    const price = parseInt(colorPrice);
-    if (isNaN(price) || price < 0 || price > 60000) {
-      setPriceError('Cena musi być liczbą od 0 do 60 000.');
-      return;
-    }
-
-    try {
-      await adminApiService.setColorPrice(carModelId, selectedColor, price);
-      setColorPrices(prev => ({ ...prev, [selectedColor]: price }));
-      setPriceError('');
-      console.log(`Zapisano cenę ${price} dla koloru ${selectedColor}`);
-    } catch (err) {
-      setPriceError(err.message || 'Nie udało się zapisać ceny koloru');
-      console.error('Error saving color price:', err);
-    }
   };
 
   const handleTabColorPriceChange = (colorName, value) => {
@@ -207,35 +158,49 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
     return null;
   };
 
-  const saveTabColorPrice = async (colorName) => {
-    const price = tempColorPrices[colorName];
-    const error = validateColorPrice(price);
+  const saveAllChanges = async () => {
+    setIsSaving(true);
+    setPriceErrors({});
     
-    if (error) {
-      setPriceErrors(prev => ({ ...prev, [colorName]: error }));
-      return;
-    }
-
     try {
-      setSavingPrice(colorName);
-      await adminApiService.setColorPrice(carModelId, colorName, parseInt(price));
+      // Validate all prices first
+      const validationErrors = {};
+      for (const [colorName, price] of Object.entries(tempColorPrices)) {
+        if (price !== (colorPrices[colorName] || '')) {
+          const error = validateColorPrice(price);
+          if (error) {
+            validationErrors[colorName] = error;
+          }
+        }
+      }
       
-      // Update actual prices
-      setColorPrices(prev => ({ ...prev, [colorName]: parseInt(price) }));
+      if (Object.keys(validationErrors).length > 0) {
+        setPriceErrors(validationErrors);
+        return;
+      }
       
-      // Clear errors
-      setPriceErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[colorName];
-        return newErrors;
-      });
+      // Save all changed prices
+      const savePromises = [];
+      for (const [colorName, price] of Object.entries(tempColorPrices)) {
+        if (price !== (colorPrices[colorName] || '') && price !== '') {
+          savePromises.push(
+            adminApiService.setColorPrice(carModelId, colorName, parseInt(price))
+          );
+        }
+      }
       
-      console.log(`Zapisano cenę ${price} dla koloru ${colorName}`);
+      await Promise.all(savePromises);
+      
+      // Update saved prices
+      setColorPrices({ ...tempColorPrices });
+      setHasUnsavedChanges(false);
+      
+      console.log('Wszystkie zmiany zostały zapisane');
     } catch (err) {
-      setPriceErrors(prev => ({ ...prev, [colorName]: err.message || 'Nie udało się zapisać ceny koloru' }));
-      console.error('Error saving color price:', err);
+      setError('Nie udało się zapisać zmian: ' + (err.message || 'Nieznany błąd'));
+      console.error('Error saving changes:', err);
     } finally {
-      setSavingPrice('');
+      setIsSaving(false);
     }
   };
 
@@ -351,42 +316,6 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
               </select>
             </div>
             
-            {/* Color price input */}
-            {selectedColor && (
-              <div className={styles.priceSection}>
-                <div className={styles.priceLabel}>
-                  <label htmlFor="colorPrice">Cena za kolor lakieru ({selectedColor}):</label>
-                  <span className={styles.required}>*</span>
-                </div>
-                <div className={styles.priceInputGroup}>
-                  <input
-                    id="colorPrice"
-                    type="number"
-                    min="0"
-                    max="60000"
-                    step="1"
-                    value={colorPrice}
-                    onChange={handleColorPriceChange}
-                    placeholder="Wprowadź cenę (0-60000)"
-                    className={`${styles.priceInput} ${priceError ? styles.inputError : ''}`}
-                  />
-                  <span className={styles.currency}>zł</span>
-                  <button
-                    type="button"
-                    onClick={validateAndSaveColorPrice}
-                    className={styles.savePriceButton}
-                  >
-                    Zapisz cenę
-                  </button>
-                </div>
-                {priceError && (
-                  <p className={styles.errorText}>{priceError}</p>
-                )}
-                <p className={styles.priceInfo}>
-                  Wprowadź cenę za kolor lakieru (zakres: 0 – 60 000 zł)
-                </p>
-              </div>
-            )}
             
             <label htmlFor="imageUpload" className={styles.uploadButton}>
               <Upload size={20} />
@@ -410,6 +339,59 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
             </p>
           </div>
           
+          {/* Price management section */}
+          {availableColors.length > 0 && (
+            <div className={styles.priceManagementSection}>
+              <h4>Zarządzanie cenami kolorów:</h4>
+              {hasUnsavedChanges && (
+                <div className={styles.unsavedChangesWarning}>
+                  ⚠️ Masz niezapisane zmiany w cenach kolorów
+                </div>
+              )}
+              <div className={styles.colorPriceGrid}>
+                {availableColors.map(colorOption => {
+                  const hasImages = images.some(img => img.color === colorOption.value);
+                  const currentPrice = tempColorPrices[colorOption.value] ?? colorPrices[colorOption.value] ?? '';
+                  const hasError = priceErrors[colorOption.value];
+                  
+                  return (
+                    <div key={colorOption.value} className={styles.colorPriceItem}>
+                      <div className={styles.colorPriceHeader}>
+                        <span className={styles.colorName}>{colorOption.label}</span>
+                        {hasImages && <span className={styles.hasImagesIndicator}>📷</span>}
+                      </div>
+                      <div className={styles.priceInputGroup}>
+                        <input
+                          type="number"
+                          min="0"
+                          max="60000"
+                          step="1"
+                          value={currentPrice}
+                          onChange={(e) => handleTabColorPriceChange(colorOption.value, e.target.value)}
+                          placeholder="Cena (0-60000)"
+                          className={`${styles.priceInput} ${hasError ? styles.inputError : ''}`}
+                        />
+                        <span className={styles.currency}>zł</span>
+                      </div>
+                      {hasError && (
+                        <p className={styles.errorText}>{hasError}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className={styles.priceManagementActions}>
+                <button
+                  onClick={saveAllChanges}
+                  disabled={!hasUnsavedChanges || isSaving}
+                  className={styles.saveAllButton}
+                >
+                  {isSaving ? 'Zapisywanie...' : 'Zapisz zmiany'}
+                </button>
+              </div>
+            </div>
+          )}
+          
           {/* Color tabs */}
           {colorsWithImages.length > 0 && (
             <div className={styles.colorTabs}>
@@ -418,7 +400,6 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
                 {colorsWithImages.map(color => {
                   const colorInfo = availableColors.find(c => c.value === color);
                   const count = images.filter(img => img.color === color).length;
-                  const price = colorPrices[color];
                   return (
                     <button
                       key={color}
@@ -429,11 +410,6 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
                         <span className={styles.tabLabel}>
                           {colorInfo?.label || color} ({count})
                         </span>
-                        {price !== undefined && (
-                          <span className={styles.tabPrice}>
-                            {price.toLocaleString()} zł
-                          </span>
-                        )}
                       </div>
                     </button>
                   );
@@ -442,45 +418,6 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
             </div>
           )}
 
-          {/* Color price section for active tab */}
-          {activeTab && (
-            <div className={styles.activeTabPriceSection}>
-              <div className={styles.priceHeader}>
-                <h4>Cena za kolor lakieru: {activeTab}</h4>
-              </div>
-              <div className={styles.priceInputGroup}>
-                <input
-                  type="number"
-                  min="0"
-                  max="60000"
-                  step="1"
-                  value={tempColorPrices[activeTab] || ''}
-                  onChange={(e) => handleTabColorPriceChange(activeTab, e.target.value)}
-                  placeholder="Wprowadź cenę (0-60000)"
-                  className={`${styles.priceInput} ${priceErrors[activeTab] ? styles.inputError : ''}`}
-                />
-                <span className={styles.currency}>zł</span>
-                <button
-                  type="button"
-                  onClick={() => saveTabColorPrice(activeTab)}
-                  disabled={savingPrice === activeTab}
-                  className={styles.savePriceButton}
-                >
-                  {savingPrice === activeTab ? 'Zapisywanie...' : 'Zapisz'}
-                </button>
-              </div>
-              {priceErrors[activeTab] && (
-                <p className={styles.errorText}>{priceErrors[activeTab]}</p>
-              )}
-              <p className={styles.priceInfo}>
-                Wprowadź cenę za kolor lakieru (zakres: 0 – 60 000 zł)
-                <br />
-                <small style={{color: '#6b7280', fontSize: '0.75rem'}}>
-                  Cena zapisuje się automatycznie po 2 sekundach lub kliknij "Zapisz"
-                </small>
-              </p>
-            </div>
-          )}
 
           {/* Images grid */}
           {loading ? (
