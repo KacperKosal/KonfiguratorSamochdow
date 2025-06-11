@@ -282,6 +282,7 @@ class AdminApiService {
       }
       
       const response = await axiosInstance.get(`/api/car-model-images/${carModelId}`);
+      console.log('Received images:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching car model images:', error);
@@ -289,9 +290,9 @@ class AdminApiService {
     }
   }
 
-  async uploadCarModelImage(carModelId, file) {
+  async uploadCarModelImage(carModelId, file, color) {
     try {
-      console.log('adminApiService.uploadCarModelImage: carModelId:', carModelId, 'type:', typeof carModelId);
+      console.log('adminApiService.uploadCarModelImage: carModelId:', carModelId, 'type:', typeof carModelId, 'color:', color);
       
       if (!carModelId || carModelId === 'undefined' || carModelId === 'null') {
         throw new Error('Invalid car model ID for upload');
@@ -299,6 +300,9 @@ class AdminApiService {
       
       const formData = new FormData();
       formData.append('file', file);
+      if (color) {
+        formData.append('color', color);
+      }
       
       const response = await axiosInstance.post(`/api/car-model-images/${carModelId}`, formData, {
         headers: {
@@ -308,7 +312,17 @@ class AdminApiService {
       return response.data;
     } catch (error) {
       console.error('Error uploading car model image:', error);
-      throw error;
+      
+      // Extract error message from response
+      if (error.response?.data?.error) {
+        throw new Error(error.response.data.error);
+      } else if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      } else if (error.message) {
+        throw new Error(error.message);
+      } else {
+        throw new Error('Nie udało się przesłać zdjęcia');
+      }
     }
   }
 

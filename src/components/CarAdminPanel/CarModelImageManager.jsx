@@ -8,6 +8,24 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [selectedColor, setSelectedColor] = useState('');
+  const [activeTab, setActiveTab] = useState('');
+  const [availableColors] = useState([
+    { value: 'white', label: 'Biały' },
+    { value: 'black', label: 'Czarny' },
+    { value: 'silver', label: 'Srebrny' },
+    { value: 'gray', label: 'Szary' },
+    { value: 'red', label: 'Czerwony' },
+    { value: 'blue', label: 'Niebieski' },
+    { value: 'green', label: 'Zielony' },
+    { value: 'yellow', label: 'Żółty' },
+    { value: 'orange', label: 'Pomarańczowy' },
+    { value: 'brown', label: 'Brązowy' },
+    { value: 'beige', label: 'Beżowy' },
+    { value: 'gold', label: 'Złoty' },
+    { value: 'navy', label: 'Granatowy' },
+    { value: 'purple', label: 'Fioletowy' }
+  ]);
 
   useEffect(() => {
     console.log('CarModelImageManager: carModelId received:', carModelId, 'type:', typeof carModelId);
@@ -24,6 +42,12 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
       setLoading(true);
       const images = await adminApiService.getCarModelImages(carModelId);
       setImages(images.sort((a, b) => a.displayOrder - b.displayOrder));
+      
+      // Set initial active tab to first color with images
+      const colorsWithImages = [...new Set(images.map(img => img.color))].filter(Boolean);
+      if (colorsWithImages.length > 0 && !activeTab) {
+        setActiveTab(colorsWithImages[0]);
+      }
     } catch (err) {
       setError('Nie udało się załadować zdjęć');
       console.error('Error loading images:', err);
@@ -37,6 +61,13 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Validate color selection
+    if (!selectedColor) {
+      setError('Wybierz kolor, do którego chcesz dodać zdjęcia.');
+      e.target.value = '';
+      return;
+    }
+
     // Validate file
     if (!file.type.startsWith('image/')) {
       setError('Proszę wybrać plik obrazu (JPG, PNG, WebP)');
@@ -48,8 +79,10 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
       return;
     }
 
-    if (images.length >= 8) {
-      setError('Można dodać maksymalnie 8 zdjęć do modelu pojazdu');
+    // Count images for the selected color
+    const colorImages = images.filter(img => img.color === selectedColor);
+    if (colorImages.length >= 8) {
+      setError('Można dodać maksymalnie 8 zdjęć dla jednego koloru.');
       return;
     }
 
@@ -57,9 +90,14 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
       setUploading(true);
       setError('');
 
-      await adminApiService.uploadCarModelImage(carModelId, file);
+      await adminApiService.uploadCarModelImage(carModelId, file, selectedColor);
       await loadImages();
       e.target.value = '';
+      
+      // Switch to the uploaded color tab
+      if (!activeTab || activeTab !== selectedColor) {
+        setActiveTab(selectedColor);
+      }
     } catch (err) {
       setError(err.message || 'Nie udało się przesłać zdjęcia');
       console.error('Error uploading image:', err);
@@ -113,6 +151,12 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
     handleUpdateOrder(imageId, newOrder);
   };
 
+  // Get unique colors that have images
+  const colorsWithImages = [...new Set(images.map(img => img.color))].filter(Boolean);
+  
+  // Get images for active tab
+  const activeTabImages = activeTab ? images.filter(img => img.color === activeTab) : [];
+
   return (
     <div className={styles.modal}>
       <div className={`${styles.modalContent} ${styles.largeModal}`}>
@@ -130,6 +174,31 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
 
           {/* Upload section */}
           <div className={styles.uploadSection}>
+            <div className={styles.colorSelection}>
+              <label htmlFor="colorSelect">Wybierz kolor lakieru: *</label>
+              <select
+                id="colorSelect"
+                value={selectedColor}
+                onChange={(e) => {
+                  setSelectedColor(e.target.value);
+                  if (e.target.value && !colorsWithImages.includes(e.target.value)) {
+                    setActiveTab(e.target.value);
+                  }
+                }}
+                className={styles.colorSelect}
+              >
+                <option value="">-- Wybierz kolor --</option>
+                {availableColors.map(color => {
+                  const count = images.filter(img => img.color === color.value).length;
+                  return (
+                    <option key={color.value} value={color.value}>
+                      {color.label} ({count}/8 zdjęć)
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
+            
             <label htmlFor="imageUpload" className={styles.uploadButton}>
               <Upload size={20} />
               {uploading ? 'Przesyłanie...' : 'Dodaj zdjęcie'}
@@ -139,93 +208,123 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
               type="file"
               accept="image/*"
               onChange={handleImageUpload}
-              disabled={uploading || images.length >= 8}
+              disabled={uploading}
               style={{ display: 'none' }}
             />
+            {!selectedColor && (
+              <p className={styles.warningInfo}>
+                Wybierz kolor, do którego chcesz dodać zdjęcia.
+              </p>
+            )}
             <p className={styles.uploadInfo}>
-              Maksymalnie 8 zdjęć, rozmiar do 5MB każde. Obsługiwane formaty: JPG, PNG, WebP
-            </p>
-            <p className={styles.uploadInfo}>
-              Aktualnie: {images.length}/8 zdjęć
+              Maksymalnie 8 zdjęć na kolor, rozmiar do 5MB każde.
             </p>
           </div>
+          
+          {/* Color tabs */}
+          {colorsWithImages.length > 0 && (
+            <div className={styles.colorTabs}>
+              <h4>Zdjęcia według kolorów:</h4>
+              <div className={styles.tabs}>
+                {colorsWithImages.map(color => {
+                  const colorInfo = availableColors.find(c => c.value === color);
+                  const count = images.filter(img => img.color === color).length;
+                  return (
+                    <button
+                      key={color}
+                      onClick={() => setActiveTab(color)}
+                      className={`${styles.tab} ${activeTab === color ? styles.activeTab : ''}`}
+                    >
+                      {colorInfo?.label || color} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Images grid */}
           {loading ? (
             <div className={styles.loading}>Ładowanie zdjęć...</div>
-          ) : (
+          ) : activeTab && activeTabImages.length > 0 ? (
             <div className={styles.imagesGrid}>
-              {images.map((image, index) => (
-                <div key={image.id} className={styles.imageCard}>
-                  <div className={styles.imageWrapper}>
-                    <img
-                      src={adminApiService.getCarModelImageUrl(image.imageUrl)}
-                      alt={`Zdjęcie ${index + 1}`}
-                      className={styles.thumbnailImage}
-                    />
-                    {image.isMainImage && (
-                      <div className={styles.mainImageBadge}>
-                        <Star size={16} fill="gold" />
-                        Główne
-                      </div>
-                    )}
-                  </div>
-
-                  <div className={styles.imageControls}>
-                    <div className={styles.orderControls}>
-                      <span className={styles.orderNumber}>#{image.displayOrder}</span>
-                      <button
-                        onClick={() => moveImage(image.id, 'up')}
-                        disabled={image.displayOrder === 1}
-                        className={styles.orderButton}
-                        title="Przesuń w górę"
-                      >
-                        <ArrowUp size={16} />
-                      </button>
-                      <button
-                        onClick={() => moveImage(image.id, 'down')}
-                        disabled={image.displayOrder === images.length}
-                        className={styles.orderButton}
-                        title="Przesuń w dół"
-                      >
-                        <ArrowDown size={16} />
-                      </button>
-                    </div>
-
-                    <div className={styles.actionButtons}>
-                      {!image.isMainImage && (
-                        <button
-                          onClick={() => handleSetMainImage(image.id)}
-                          className={styles.setMainButton}
-                          title="Ustaw jako główne"
-                        >
-                          <Star size={16} />
-                        </button>
+              {activeTabImages.map((image, index) => {
+                const orderInColor = activeTabImages.findIndex(img => img.id === image.id) + 1;
+                return (
+                  <div key={image.id} className={styles.imageCard}>
+                    <div className={styles.imageWrapper}>
+                      <img
+                        src={adminApiService.getCarModelImageUrl(image.imageUrl)}
+                        alt={`Zdjęcie ${orderInColor}`}
+                        className={styles.thumbnailImage}
+                      />
+                      {image.isMainImage && (
+                        <div className={styles.mainImageBadge}>
+                          <Star size={16} fill="gold" />
+                          Główne
+                        </div>
                       )}
-                      <button
-                        onClick={() => window.open(adminApiService.getCarModelImageUrl(image.imageUrl), '_blank')}
-                        className={styles.viewButton}
-                        title="Zobacz w pełnym rozmiarze"
-                      >
-                        <Eye size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteImage(image.id)}
-                        className={styles.deleteButton}
-                        title="Usuń zdjęcie"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                    </div>
+
+                    <div className={styles.imageControls}>
+                      <div className={styles.orderControls}>
+                        <span className={styles.orderNumber}>#{orderInColor}</span>
+                        <button
+                          onClick={() => moveImage(image.id, 'up')}
+                          disabled={orderInColor === 1}
+                          className={styles.orderButton}
+                          title="Przesuń w górę"
+                        >
+                          <ArrowUp size={16} />
+                        </button>
+                        <button
+                          onClick={() => moveImage(image.id, 'down')}
+                          disabled={orderInColor === activeTabImages.length}
+                          className={styles.orderButton}
+                          title="Przesuń w dół"
+                        >
+                          <ArrowDown size={16} />
+                        </button>
+                      </div>
+
+                      <div className={styles.actionButtons}>
+                        {!image.isMainImage && (
+                          <button
+                            onClick={() => handleSetMainImage(image.id)}
+                            className={styles.setMainButton}
+                            title="Ustaw jako główne"
+                          >
+                            <Star size={16} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => window.open(adminApiService.getCarModelImageUrl(image.imageUrl), '_blank')}
+                          className={styles.viewButton}
+                          title="Zobacz w pełnym rozmiarze"
+                        >
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteImage(image.id)}
+                          className={styles.deleteButton}
+                          title="Usuń zdjęcie"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          )}
-
-          {images.length === 0 && !loading && (
+          ) : activeTab ? (
             <div className={styles.emptyState}>
-              <p>Brak zdjęć dla tego modelu. Dodaj pierwsze zdjęcie używając przycisku powyżej.</p>
+              <p>Brak zdjęć dla koloru: {availableColors.find(c => c.value === activeTab)?.label || activeTab}</p>
+              <p>Wybierz ten kolor z listy powyżej i dodaj pierwsze zdjęcie.</p>
+            </div>
+          ) : (
+            <div className={styles.emptyState}>
+              <p>Wybierz kolor z listy powyżej, aby zobaczyć zdjęcia.</p>
             </div>
           )}
         </div>

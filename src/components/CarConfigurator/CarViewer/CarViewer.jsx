@@ -9,8 +9,10 @@ const CarViewer = ({
   carColor
 }) => {
   const [carImages, setCarImages] = useState([]);
+  const [filteredImages, setFilteredImages] = useState([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loadingImages, setLoadingImages] = useState(false);
+  const [imageTransition, setImageTransition] = useState(false);
 
   // Load car images when car model changes
   useEffect(() => {
@@ -18,9 +20,37 @@ const CarViewer = ({
       loadCarImages();
     } else {
       setCarImages([]);
+      setFilteredImages([]);
       setCurrentImageIndex(0);
     }
   }, [selectedCarModel?.id]);
+
+  // Filter images by color when color changes
+  useEffect(() => {
+    if (carImages.length > 0) {
+      const colorInfo = colorMapping[carColor];
+      const colorName = colorInfo?.name || 'default';
+      
+      // Start transition
+      setImageTransition(true);
+      
+      setTimeout(() => {
+        // Filter images that match the selected color
+        const colorImages = carImages.filter(img => 
+          img.color === colorName || 
+          img.color === carColor ||
+          (img.color === '' && colorName === 'default')
+        );
+        
+        // If no images match the color, set empty array to show message
+        setFilteredImages(colorImages);
+        setCurrentImageIndex(0);
+        
+        // End transition
+        setImageTransition(false);
+      }, 150);
+    }
+  }, [carColor, carImages]);
 
   const loadCarImages = async () => {
     try {
@@ -48,9 +78,9 @@ const CarViewer = ({
   };
 
   const getCarImageUrl = () => {
-    // If we have multiple images, use the current one
-    if (carImages.length > 0 && carImages[currentImageIndex]) {
-      return adminApiService.getCarModelImageUrl(carImages[currentImageIndex].imageUrl);
+    // If we have filtered images, use the current one
+    if (filteredImages.length > 0 && filteredImages[currentImageIndex]) {
+      return adminApiService.getCarModelImageUrl(filteredImages[currentImageIndex].imageUrl);
     }
     
     // Fallback to the original imageUrl from car model
@@ -87,40 +117,55 @@ const CarViewer = ({
 
   // Navigation functions for images
   const nextImage = () => {
-    if (carImages.length > 1) {
-      setCurrentImageIndex((prev) => (prev + 1) % carImages.length);
+    if (filteredImages.length > 1) {
+      setCurrentImageIndex((prev) => (prev + 1) % filteredImages.length);
     }
   };
 
   const prevImage = () => {
-    if (carImages.length > 1) {
-      setCurrentImageIndex((prev) => (prev - 1 + carImages.length) % carImages.length);
+    if (filteredImages.length > 1) {
+      setCurrentImageIndex((prev) => (prev - 1 + filteredImages.length) % filteredImages.length);
     }
   };
 
   return (
     <div className={styles.viewerContainer}>
-      <SafeImage
-        src={getCarImageUrl()}
-        alt={selectedCarModel?.name || "Model samochodu"}
-        className={styles.viewerImage}
-        fallbackSrc={selectedCarModel?.imageUrl ? adminApiService.getImageUrl(selectedCarModel.imageUrl) : "/api/placeholder/600/400"}
-      />
+      {filteredImages.length > 0 ? (
+        <div className={`${styles.imageWrapper} ${imageTransition ? styles.transitioning : ''}`}>
+          <SafeImage
+            src={getCarImageUrl()}
+            alt={selectedCarModel?.name || "Model samochodu"}
+            className={styles.viewerImage}
+            fallbackSrc={selectedCarModel?.imageUrl ? adminApiService.getImageUrl(selectedCarModel.imageUrl) : "/api/placeholder/600/400"}
+          />
+        </div>
+      ) : loadingImages ? (
+        <div className={styles.loadingWrapper}>
+          <div className={styles.loading}>Ładowanie zdjęć...</div>
+        </div>
+      ) : (
+        <div className={styles.noImagesWrapper}>
+          <div className={styles.noImagesMessage}>
+            <p>Brak zdjęć dla wybranego koloru.</p>
+            <p className={styles.colorInfo}>Kolor: {colorMapping[carColor]?.display || 'Nieznany'}</p>
+          </div>
+        </div>
+      )}
       
       {selectedCarModel && (
         <div className={styles.carInfo}>
           <h3 className={styles.carName}>{selectedCarModel.name}</h3>
           <div className={styles.carDetails}>
             <span>Kolor: {colorMapping[carColor]?.display || carColor}</span>
-            {carImages.length > 0 && (
-              <span>Zdjęcie: {currentImageIndex + 1} z {carImages.length}</span>
+            {filteredImages.length > 0 && (
+              <span>Zdjęcie: {currentImageIndex + 1} z {filteredImages.length}</span>
             )}
           </div>
         </div>
       )}
 
       {/* Image navigation buttons - only show if there are multiple images */}
-      {carImages.length > 1 && (
+      {filteredImages.length > 1 && (
         <>
           <button onClick={prevImage} className={`${styles.imageNavButton} ${styles.imageNavLeft}`}>
             <ChevronLeft size={20} />
@@ -132,9 +177,9 @@ const CarViewer = ({
       )}
 
       {/* Image thumbnails */}
-      {carImages.length > 1 && (
+      {filteredImages.length > 1 && (
         <div className={styles.thumbnailStrip}>
-          {carImages.map((image, index) => (
+          {filteredImages.map((image, index) => (
             <button
               key={image.id}
               onClick={() => setCurrentImageIndex(index)}

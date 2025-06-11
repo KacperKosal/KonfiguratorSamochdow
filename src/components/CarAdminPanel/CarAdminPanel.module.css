@@ -663,6 +663,26 @@
   margin-bottom: 2rem;
 }
 
+.colorSelection {
+  margin-bottom: 1rem;
+}
+
+.colorSelection label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.colorSelect {
+  width: 250px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: white;
+  margin: 0 auto;
+}
+
 .uploadButton {
   display: inline-flex;
   align-items: center;
@@ -739,6 +759,68 @@
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.colorBadge {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.colorTabs {
+  margin: 2rem 0 1rem;
+}
+
+.colorTabs h4 {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  background: white;
+  color: #374151;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.tab:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.activeTab {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.activeTab:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.warningInfo {
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-weight: 500;
 }
 
 .imageControls {

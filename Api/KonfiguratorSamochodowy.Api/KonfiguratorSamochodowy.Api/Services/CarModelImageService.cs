@@ -46,13 +46,21 @@ namespace KonfiguratorSamochodowy.Api.Services
             return result;
         }
 
-        public async Task<Result<CarModelImage>> AddImageAsync(string carModelId, IFormFile imageFile)
+        public async Task<Result<CarModelImage>> AddImageAsync(string carModelId, IFormFile imageFile, string color = "")
         {
             // Validate car model ID
             if (string.IsNullOrEmpty(carModelId))
             {
                 return Result<CarModelImage>.Failure(
                     new Error("VALIDATION_ERROR", "Car model ID cannot be empty")
+                );
+            }
+
+            // Validate color
+            if (string.IsNullOrEmpty(color))
+            {
+                return Result<CarModelImage>.Failure(
+                    new Error("VALIDATION_ERROR", "Wybierz kolor, do którego chcesz dodać zdjęcia.")
                 );
             }
 
@@ -63,20 +71,30 @@ namespace KonfiguratorSamochodowy.Api.Services
                 return Result<CarModelImage>.Failure(fileValidation.Error);
             }
 
-            // Check if we've reached the maximum number of images
+            // Check if we've reached the maximum number of images for this color
+            if (!string.IsNullOrEmpty(color))
+            {
+                var colorCountResult = await _carModelImageRepository.GetImageCountByCarModelIdAndColorAsync(carModelId, color);
+                if (!colorCountResult.IsSuccess)
+                {
+                    Console.WriteLine($"Error getting image count for car model {carModelId} and color {color}: {colorCountResult.Error.Message}");
+                    return Result<CarModelImage>.Failure(colorCountResult.Error);
+                }
+
+                if (colorCountResult.Value >= 8) // Max 8 images per color
+                {
+                    return Result<CarModelImage>.Failure(
+                        new Error("VALIDATION_ERROR", "Można dodać maksymalnie 8 zdjęć dla jednego koloru.")
+                    );
+                }
+            }
+
+            // Check total images for model (fallback)
             var countResult = await _carModelImageRepository.GetImageCountByCarModelIdAsync(carModelId);
             if (!countResult.IsSuccess)
             {
-                // Log the error for debugging
-                Console.WriteLine($"Error getting image count for car model {carModelId}: {countResult.Error.Message}");
+                Console.WriteLine($"Error getting total image count for car model {carModelId}: {countResult.Error.Message}");
                 return Result<CarModelImage>.Failure(countResult.Error);
-            }
-
-            if (countResult.Value >= MaxImagesPerModel)
-            {
-                return Result<CarModelImage>.Failure(
-                    new Error("VALIDATION_ERROR", $"Maximum of {MaxImagesPerModel} images allowed per car model")
-                );
             }
 
             // Save the image file
@@ -96,6 +114,7 @@ namespace KonfiguratorSamochodowy.Api.Services
                 Id = Guid.NewGuid().ToString(),
                 CarModelId = carModelId,
                 ImageUrl = saveResult.Value,
+                Color = color ?? "",
                 DisplayOrder = nextOrder,
                 IsMainImage = countResult.Value == 0, // First image is main by default
                 CreatedAt = DateTime.UtcNow
@@ -193,14 +212,14 @@ namespace KonfiguratorSamochodowy.Api.Services
             if (file == null || file.Length == 0)
             {
                 return Result<bool>.Failure(
-                    new Error("VALIDATION_ERROR", "No file provided")
+                    new Error("VALIDATION_ERROR", "Wybierz plik zdjęcia.")
                 );
             }
 
             if (file.Length > MaxFileSize)
             {
                 return Result<bool>.Failure(
-                    new Error("VALIDATION_ERROR", $"File size cannot exceed {MaxFileSize / (1024 * 1024)}MB")
+                    new Error("VALIDATION_ERROR", "Maksymalny rozmiar zdjęcia to 5 MB.")
                 );
             }
 
@@ -208,7 +227,7 @@ namespace KonfiguratorSamochodowy.Api.Services
             if (!AllowedExtensions.Contains(extension))
             {
                 return Result<bool>.Failure(
-                    new Error("VALIDATION_ERROR", $"Only {string.Join(", ", AllowedExtensions)} files are allowed")
+                    new Error("VALIDATION_ERROR", "Nieprawidłowy format pliku. Dozwolone: JPG, PNG.")
                 );
             }
 

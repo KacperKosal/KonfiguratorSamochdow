@@ -303,7 +303,12 @@ const CarAdminPanel = () => {
         } else if (formData.description.trim().length < 10) {
           newErrors.description = 'Opis musi mieć co najmniej 10 znaków';
         } else if (formData.description.length > 800) {
-          newErrors.description = 'Opis nie może przekraczać 800 znaków';
+          newErrors.description = 'Opis może zawierać maksymalnie 800 znaków.';
+        }
+
+        // Walidacja zdjęcia tylko dla nowych modeli
+        if (!isEditing && !formData.imageUrl && !pendingImageFile) {
+          newErrors.image = 'Wybierz zdjęcie pojazdu.';
         }
 
         const currentYear = new Date().getFullYear();
@@ -581,8 +586,8 @@ const CarAdminPanel = () => {
       return;
     }
     
-    if (file.size > 10 * 1024 * 1024) {
-      setApiError('Plik jest za duży. Maksymalny rozmiar to 10MB.');
+    if (file.size > 5 * 1024 * 1024) {
+      setApiError('Maksymalny rozmiar zdjęcia to 5 MB.');
       e.target.value = '';
       return;
     }
@@ -597,6 +602,15 @@ const CarAdminPanel = () => {
       setImageLoadedSuccessfully(true); // Nowe zdjęcie zawsze jest dostępne
     };
     reader.readAsDataURL(file);
+    
+    // Usuń błąd walidacji zdjęcia jeśli istnieje
+    if (errors.image) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.image;
+        return newErrors;
+      });
+    }
   };
 
   // Usuwanie zdjęcia
@@ -1240,7 +1254,7 @@ const CarAdminPanel = () => {
       </div>
 
       <div className={styles.formGroup}>
-        <label>Zdjęcie samochodu</label>
+        <label>Zdjęcie samochodu{!isEditing && ' *'}</label>
         <div className={styles.imageUploadContainer}>
           {imagePreview ? (
             <div className={styles.imagePreview}>
@@ -1297,6 +1311,7 @@ const CarAdminPanel = () => {
             </p>
           </div>
         </div>
+        {errors.image && <span className={styles.errorText}>{errors.image}</span>}
       </div>
 
       <div className={styles.formGroup}>

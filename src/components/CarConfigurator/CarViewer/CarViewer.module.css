@@ -10,6 +10,56 @@
   overflow: hidden;
 }
 
+.imageWrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.imageWrapper.transitioning {
+  opacity: 0.3;
+}
+
+.loadingWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+}
+
+.loading {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.noImagesWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  text-align: center;
+}
+
+.noImagesMessage {
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.noImagesMessage p {
+  margin: 0.5rem 0;
+  color: #374151;
+}
+
+.colorInfo {
+  font-weight: 600;
+  color: #1f2937;
+}
+
 .viewerImage {
   width: 100%;
   height: 100%;

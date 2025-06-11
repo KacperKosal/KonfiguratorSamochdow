@@ -56,10 +56,14 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
 
         private static async Task<IResult> UploadCarModelImage(
             string carModelId,
-            IFormFile file,
+            HttpRequest request,
             ICarModelImageService carModelImageService)
         {
-            Console.WriteLine($"UploadCarModelImage endpoint called. CarModelId: {carModelId}, File: {file?.FileName}");
+            var form = await request.ReadFormAsync();
+            var file = form.Files.GetFile("file");
+            var color = form["color"].ToString();
+            
+            Console.WriteLine($"UploadCarModelImage endpoint called. CarModelId: {carModelId}, File: {file?.FileName}, Color: {color}");
             
             if (file == null)
             {
@@ -67,7 +71,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 return Results.BadRequest(new { error = "No file provided" });
             }
 
-            var result = await carModelImageService.AddImageAsync(carModelId, file);
+            var result = await carModelImageService.AddImageAsync(carModelId, file, color);
 
             if (!result.IsSuccess)
             {

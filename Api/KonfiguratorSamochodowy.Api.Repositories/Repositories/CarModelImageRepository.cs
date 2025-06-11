@@ -50,7 +50,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 }
                 
                 const string sql = @"
-                    SELECT ""Id"", ""CarModelId"", ""ImageUrl"", ""DisplayOrder"", ""IsMainImage"", ""CreatedAt"", ""UpdatedAt""
+                    SELECT ""Id"", ""CarModelId"", ""ImageUrl"", ""Color"", ""DisplayOrder"", ""IsMainImage"", ""CreatedAt"", ""UpdatedAt""
                     FROM pojazd_zdjecie
                     WHERE ""CarModelId"" = @CarModelId
                     ORDER BY ""DisplayOrder""";
@@ -77,7 +77,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 using var connection = new NpgsqlConnection(_connectionString);
                 await connection.OpenAsync();
                 const string sql = @"
-                    SELECT ""Id"", ""CarModelId"", ""ImageUrl"", ""DisplayOrder"", ""IsMainImage"", ""CreatedAt"", ""UpdatedAt""
+                    SELECT ""Id"", ""CarModelId"", ""ImageUrl"", ""Color"", ""DisplayOrder"", ""IsMainImage"", ""CreatedAt"", ""UpdatedAt""
                     FROM pojazd_zdjecie
                     WHERE ""Id"" = @Id";
 
@@ -108,9 +108,9 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 await connection.OpenAsync();
                 
                 const string sql = @"
-                    INSERT INTO pojazd_zdjecie (""Id"", ""CarModelId"", ""ImageUrl"", ""DisplayOrder"", ""IsMainImage"", ""CreatedAt"")
-                    VALUES (@Id, @CarModelId, @ImageUrl, @DisplayOrder, @IsMainImage, @CreatedAt)
-                    RETURNING ""Id"", ""CarModelId"", ""ImageUrl"", ""DisplayOrder"", ""IsMainImage"", ""CreatedAt"", ""UpdatedAt""";
+                    INSERT INTO pojazd_zdjecie (""Id"", ""CarModelId"", ""ImageUrl"", ""Color"", ""DisplayOrder"", ""IsMainImage"", ""CreatedAt"")
+                    VALUES (@Id, @CarModelId, @ImageUrl, @Color, @DisplayOrder, @IsMainImage, @CreatedAt)
+                    RETURNING ""Id"", ""CarModelId"", ""ImageUrl"", ""Color"", ""DisplayOrder"", ""IsMainImage"", ""CreatedAt"", ""UpdatedAt""";
 
                 var insertedImage = await connection.QuerySingleAsync<CarModelImage>(sql, image);
                 return Result<CarModelImage>.Success(insertedImage);
@@ -236,6 +236,26 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                 Console.WriteLine($"Database error in GetImageCountByCarModelIdAsync: {ex}");
                 return Result<int>.Failure(
                     new Error("DATABASE_ERROR", $"Error getting image count: {ex.Message}")
+                );
+            }
+        }
+
+        public async Task<Result<int>> GetImageCountByCarModelIdAndColorAsync(string carModelId, string color)
+        {
+            try
+            {
+                using var connection = new NpgsqlConnection(_connectionString);
+                await connection.OpenAsync();
+                const string sql = "SELECT COUNT(*) FROM pojazd_zdjecie WHERE \"CarModelId\" = @CarModelId AND \"Color\" = @Color";
+
+                var count = await connection.QuerySingleAsync<int>(sql, new { CarModelId = carModelId, Color = color });
+                return Result<int>.Success(count);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Database error in GetImageCountByCarModelIdAndColorAsync: {ex}");
+                return Result<int>.Failure(
+                    new Error("DATABASE_ERROR", $"Error getting image count by color: {ex.Message}")
                 );
             }
         }

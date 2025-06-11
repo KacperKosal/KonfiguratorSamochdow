@@ -322,6 +322,7 @@ static async Task CreateCarModelImagesTable(NpgsqlConnection connection)
                     ""Id"" VARCHAR(255) PRIMARY KEY,
                     ""CarModelId"" VARCHAR(255) NOT NULL,
                     ""ImageUrl"" VARCHAR(500) NOT NULL,
+                    ""Color"" VARCHAR(100) NOT NULL DEFAULT '',
                     ""DisplayOrder"" INTEGER NOT NULL DEFAULT 1,
                     ""IsMainImage"" BOOLEAN NOT NULL DEFAULT FALSE,
                     ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -329,7 +330,8 @@ static async Task CreateCarModelImagesTable(NpgsqlConnection connection)
                 );
                 
                 CREATE INDEX idx_pojazd_zdjecie_carmodelid ON pojazd_zdjecie(""CarModelId"");
-                CREATE INDEX idx_pojazd_zdjecie_displayorder ON pojazd_zdjecie(""DisplayOrder"");";
+                CREATE INDEX idx_pojazd_zdjecie_displayorder ON pojazd_zdjecie(""DisplayOrder"");
+                CREATE INDEX idx_pojazd_zdjecie_color ON pojazd_zdjecie(""Color"");";
             
             await connection.ExecuteAsync(createSql);
             Console.WriteLine("=== CreateCarModelImagesTable: Table created successfully ===");
@@ -350,7 +352,7 @@ static async Task CreateCarModelImagesTable(NpgsqlConnection connection)
             Console.WriteLine($"Existing columns: {string.Join(", ", columnNames)}");
             
             // Check if we have the expected quoted columns
-            var expectedColumns = new[] { "Id", "CarModelId", "ImageUrl", "DisplayOrder", "IsMainImage", "CreatedAt", "UpdatedAt" };
+            var expectedColumns = new[] { "Id", "CarModelId", "ImageUrl", "Color", "DisplayOrder", "IsMainImage", "CreatedAt", "UpdatedAt" };
             var hasCorrectStructure = expectedColumns.All(expected => columnNames.Contains(expected));
             
             if (!hasCorrectStructure)
@@ -366,6 +368,7 @@ static async Task CreateCarModelImagesTable(NpgsqlConnection connection)
                         ""Id"" VARCHAR(255) PRIMARY KEY,
                         ""CarModelId"" VARCHAR(255) NOT NULL,
                         ""ImageUrl"" VARCHAR(500) NOT NULL,
+                        ""Color"" VARCHAR(100) NOT NULL DEFAULT '',
                         ""DisplayOrder"" INTEGER NOT NULL DEFAULT 1,
                         ""IsMainImage"" BOOLEAN NOT NULL DEFAULT FALSE,
                         ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -373,7 +376,8 @@ static async Task CreateCarModelImagesTable(NpgsqlConnection connection)
                     );
                     
                     CREATE INDEX idx_pojazd_zdjecie_carmodelid ON pojazd_zdjecie(""CarModelId"");
-                    CREATE INDEX idx_pojazd_zdjecie_displayorder ON pojazd_zdjecie(""DisplayOrder"");";
+                    CREATE INDEX idx_pojazd_zdjecie_displayorder ON pojazd_zdjecie(""DisplayOrder"");
+                    CREATE INDEX idx_pojazd_zdjecie_color ON pojazd_zdjecie(""Color"");";
                 
                 await connection.ExecuteAsync(createSql);
                 Console.WriteLine("=== CreateCarModelImagesTable: Table recreated with correct structure ===");
@@ -381,6 +385,16 @@ static async Task CreateCarModelImagesTable(NpgsqlConnection connection)
             else
             {
                 Console.WriteLine("=== CreateCarModelImagesTable: Table structure is correct ===");
+                
+                // Check if Color column exists
+                if (!columnNames.Contains("Color"))
+                {
+                    Console.WriteLine("=== Adding Color column to existing table ===");
+                    var alterSql = @"ALTER TABLE pojazd_zdjecie ADD COLUMN ""Color"" VARCHAR(100) NOT NULL DEFAULT '';
+                                    CREATE INDEX idx_pojazd_zdjecie_color ON pojazd_zdjecie(""Color"");";
+                    await connection.ExecuteAsync(alterSql);
+                    Console.WriteLine("=== Color column added successfully ===");
+                }
             }
         }
         Console.WriteLine("=== CreateCarModelImagesTable: Completed ===");
