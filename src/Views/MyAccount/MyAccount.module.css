@@ -372,6 +372,22 @@
   gap: 0.5rem;
 }
 
+.viewBtn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.viewBtn:hover {
+  background: #2563eb;
+}
+
 .deleteBtn {
   background: #dc2626;
   color: white;

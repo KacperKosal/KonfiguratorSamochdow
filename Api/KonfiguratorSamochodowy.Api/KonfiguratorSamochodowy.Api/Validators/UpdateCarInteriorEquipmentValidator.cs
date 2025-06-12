@@ -8,9 +8,14 @@ namespace KonfiguratorSamochodowy.Api.Validators
         public UpdateCarInteriorEquipmentValidator()
         {
             // Walidacja opcjonalnych pól
+            When(x => !string.IsNullOrEmpty(x.Value), () => {
+                RuleFor(x => x.Value)
+                    .MaximumLength(49).WithMessage("Nazwa nie może przekraczać 49 znaków");
+            });
+            
             When(x => x.AdditionalPrice.HasValue, () => {
                 RuleFor(x => x.AdditionalPrice.Value)
-                    .GreaterThanOrEqualTo(0).WithMessage("Cena dodatkowa nie może być ujemna")
+                    .GreaterThanOrEqualTo(200).WithMessage("Cena dodatkowa nie może być mniejsza niż 200 zł")
                     .LessThanOrEqualTo(1000000).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
             });
             
@@ -18,7 +23,7 @@ namespace KonfiguratorSamochodowy.Api.Validators
             
             When(x => !string.IsNullOrEmpty(x.Description), () => {
                 RuleFor(x => x.Description)
-                    .MaximumLength(800).WithMessage("Opis nie może przekraczać 800 znaków");
+                    .MaximumLength(80).WithMessage("Opis nie może przekraczać 80 znaków");
             });
         }
     }

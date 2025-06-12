@@ -468,6 +468,18 @@ const MyAccount = () => {
                     </div>
                     <div className={styles.configActions}>
                       <button
+                        className={styles.viewBtn}
+                        onClick={() => {
+                          navigate('/car-configurator', { 
+                            state: { 
+                              configurationId: config.id
+                            } 
+                          });
+                        }}
+                      >
+                        Wyświetl
+                      </button>
+                      <button
                         className={styles.deleteBtn}
                         onClick={() => deleteConfiguration(config.id, config.configurationName)}
                       >

@@ -10,7 +10,12 @@ const SummaryPanel = ({
   selectedInteriorEquipment,
   carColor,
   totalPrice,
-  onSaveConfiguration
+  onSaveConfiguration,
+  configurationId,
+  isEditMode,
+  onEditConfiguration,
+  onSaveNewConfiguration,
+  onCancelEdit
 }) => {
   const selectedExterior = exteriorColors.find(c => c.value === carColor);
 
@@ -109,13 +114,39 @@ const SummaryPanel = ({
         </div>
       </div>
       <div className={styles.buttonGroup}>
-        <button 
-          className={`${styles.actionButton} ${styles.save}`}
-          onClick={onSaveConfiguration}
-        >
-          <ShoppingCart size={20} />
-          Zapisz konfigurację
-        </button>
+        {configurationId && !isEditMode ? (
+          <button 
+            className={`${styles.actionButton} ${styles.edit}`}
+            onClick={onEditConfiguration}
+          >
+            <ShoppingCart size={20} />
+            Edytuj konfigurację
+          </button>
+        ) : isEditMode ? (
+          <>
+            <button 
+              className={`${styles.actionButton} ${styles.save}`}
+              onClick={onSaveNewConfiguration}
+            >
+              <ShoppingCart size={20} />
+              Zapisz nową konfigurację
+            </button>
+            <button 
+              className={`${styles.actionButton} ${styles.cancel}`}
+              onClick={onCancelEdit}
+            >
+              Anuluj edycję
+            </button>
+          </>
+        ) : (
+          <button 
+            className={`${styles.actionButton} ${styles.save}`}
+            onClick={onSaveConfiguration}
+          >
+            <ShoppingCart size={20} />
+            Zapisz konfigurację
+          </button>
+        )}
       </div>
     </div>
   );

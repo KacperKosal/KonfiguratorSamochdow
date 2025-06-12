@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './CarConfigurator.module.css';
 import CarViewer from '../../components/CarConfigurator/CarViewer/CarViewer';
 import ConfigTabs from '../../components/CarConfigurator/ConfigTabs/ConfigTabs';
@@ -9,7 +9,10 @@ import adminApiService from '../../services/adminApiService';
 
 const CarConfigurator = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const modelFromNavigation = location.state?.modelId;
+  const savedConfiguration = location.state?.savedConfiguration;
+  const configurationId = location.state?.configurationId;
   
   const [activeTab, setActiveTab] = useState('engine');
   const [carColor, setCarColor] = useState('#000000');
@@ -27,6 +30,8 @@ const CarConfigurator = () => {
   const [colorPrices, setColorPrices] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [originalConfiguration, setOriginalConfiguration] = useState(null);
 
   // Konfiguracja API
   const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7001';
@@ -43,9 +48,11 @@ const CarConfigurator = () => {
         const carModelsData = await carModelsResponse.json();
         setCarModels(carModelsData);
         
-        // Wybierz model na podstawie nawigacji lub pierwszy dostępny
+        // Wybierz model na podstawie nawigacji, zapisanej konfiguracji lub pierwszy dostępny
         let selectedModel = null;
-        if (modelFromNavigation) {
+        if (savedConfiguration && savedConfiguration.carModelId) {
+          selectedModel = carModelsData.find(model => model.id === savedConfiguration.carModelId);
+        } else if (modelFromNavigation) {
           selectedModel = carModelsData.find(model => model.id === modelFromNavigation);
         }
         if (!selectedModel && carModelsData.length > 0) {
@@ -147,6 +154,124 @@ const CarConfigurator = () => {
 
     fetchData();
   }, [apiUrl, modelFromNavigation]);
+  
+  // Pobieranie konfiguracji z API na podstawie configurationId
+  useEffect(() => {
+    const loadConfigurationFromApi = async () => {
+      if (configurationId && !loading) {
+        try {
+          console.log('Pobieranie konfiguracji z API dla ID:', configurationId);
+          const response = await fetch(`${apiUrl}/api/user-configurations/${configurationId}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            }
+          });
+          
+          if (response.ok) {
+            const apiConfiguration = await response.json();
+            console.log('Pobrana konfiguracja z API:', apiConfiguration);
+            setOriginalConfiguration(apiConfiguration);
+            
+            // Wczytaj konfigurację
+            loadSavedConfiguration(apiConfiguration);
+          } else {
+            console.error('Błąd pobierania konfiguracji z API:', response.status);
+            // Fallback - użyj danych z location.state
+            if (savedConfiguration) {
+              loadSavedConfiguration(savedConfiguration);
+            }
+          }
+        } catch (err) {
+          console.error('Błąd pobierania konfiguracji:', err);
+          // Fallback - użyj danych z location.state
+          if (savedConfiguration) {
+            loadSavedConfiguration(savedConfiguration);
+          }
+        }
+      } else if (savedConfiguration && !loading) {
+        // Jeśli nie ma configurationId, ale jest savedConfiguration
+        loadSavedConfiguration(savedConfiguration);
+      }
+    };
+
+    loadConfigurationFromApi();
+  }, [configurationId, loading, engines, accessories, interiorEquipment, carModels]);
+
+  // Funkcja do wczytywania konfiguracji
+  const loadSavedConfiguration = (configuration) => {
+    if (!configuration) return;
+    
+    console.log('Wczytywanie konfiguracji:', configuration);
+    setOriginalConfiguration(configuration);
+    
+    // Ustaw właściwy model samochodu
+    if (configuration.carModelId && carModels.length > 0) {
+      const savedModel = carModels.find(model => 
+        model.id.toString() === configuration.carModelId.toString()
+      );
+      console.log('Szukam modelu o ID:', configuration.carModelId, 'Znaleziony:', savedModel);
+      if (savedModel && savedModel.id !== selectedCarModel?.id) {
+        console.log('Przełączam na model:', savedModel);
+        setSelectedCarModel(savedModel);
+        // Tutaj mógłbyś również przeładować dane specyficzne dla modelu (kolory, silniki, akcesoria)
+        return; // Zakończ tutaj, żeby przeładować dane dla nowego modelu
+      }
+    }
+      
+    // Ustaw wybrany silnik
+    if (configuration.engineId && engines.length > 0) {
+      console.log('Szukam silnika o ID:', configuration.engineId);
+      console.log('Dostępne silniki:', engines);
+      const savedEngine = engines.find(e => 
+        e.carModelEngineId === configuration.engineId || 
+        e.engineId === configuration.engineId ||
+        e.id === configuration.engineId
+      );
+      console.log('Znaleziony silnik:', savedEngine);
+      if (savedEngine) {
+        setSelectedEngine(savedEngine);
+      }
+    }
+    
+    // Ustaw kolor
+    if (configuration.exteriorColor) {
+      setCarColor(configuration.exteriorColor);
+    }
+    
+    // Ustaw akcesoria
+    if (configuration.selectedAccessories && configuration.selectedAccessories.length > 0) {
+      console.log('Wczytywanie akcesoriów:', configuration.selectedAccessories);
+      const selectedAcc = [];
+      setAccessories(prev => prev.map(acc => {
+        const isSelected = configuration.selectedAccessories.some(savedAcc => 
+          savedAcc.id === acc.id || savedAcc === acc.id
+        );
+        if (isSelected) {
+          selectedAcc.push(acc);
+        }
+        return { ...acc, selected: isSelected };
+      }));
+      setSelectedAccessories(selectedAcc);
+      console.log('Wybrane akcesoria:', selectedAcc);
+    }
+    
+    // Ustaw wyposażenie wnętrza
+    if (configuration.selectedInteriorEquipment && configuration.selectedInteriorEquipment.length > 0) {
+      console.log('Wczytywanie wyposażenia wnętrza:', configuration.selectedInteriorEquipment);
+      const selectedEq = [];
+      setInteriorEquipment(prev => prev.map(eq => {
+        const isSelected = configuration.selectedInteriorEquipment.some(savedEq => 
+          savedEq.id === eq.id || savedEq === eq.id
+        );
+        if (isSelected) {
+          selectedEq.push(eq);
+        }
+        return { ...eq, selected: isSelected };
+      }));
+      setSelectedInteriorEquipment(selectedEq);
+      console.log('Wybrane wyposażenie wnętrza:', selectedEq);
+    }
+  };
 
 
   // Funkcja do obsługi zmiany silnika
@@ -236,18 +361,25 @@ const CarConfigurator = () => {
       // Przygotuj dane konfiguracji
       const exteriorColorInfo = exteriorColors.find(c => c.value === carColor) || 
                                 staticExteriorColors.find(c => c.value === carColor);
+      console.log('Wybrany model:', selectedCarModel);
+      console.log('Wybrany silnik:', selectedEngine);
+      console.log('Wybrane akcesoria:', selectedAccessories);
+      console.log('Wybrane wyposażenie wnętrza:', selectedInteriorEquipment);
+      console.log('Wybrany kolor:', carColor, exteriorColorInfo);
+      console.log('Całkowita cena:', totalPrice);
+
       const configurationData = {
         configurationName: configurationName.trim(),
-        carModelId: selectedCarModel.id,
-        engineId: selectedEngine?.engineId || null,
+        carModelId: selectedCarModel.id.toString(),
+        engineId: selectedEngine?.carModelEngineId?.toString() || selectedEngine?.engineId?.toString() || selectedEngine?.id?.toString() || null,
         exteriorColor: carColor,
         exteriorColorName: exteriorColorInfo?.name || 'Nieznany kolor',
-        accessoryIds: selectedAccessories.map(acc => acc.id),
-        interiorEquipmentIds: selectedInteriorEquipment.map(eq => eq.id),
+        accessoryIds: selectedAccessories.map(acc => acc.id.toString()),
+        interiorEquipmentIds: selectedInteriorEquipment.map(eq => eq.id.toString()),
         totalPrice: totalPrice
       };
 
-      console.log('Zapisuję konfigurację:', configurationData);
+      console.log('Dane do wysłania:', configurationData);
       
       // Wyślij do nowego endpointa
       const response = await fetch(`${apiUrl}/api/user-configurations`, {
@@ -263,6 +395,14 @@ const CarConfigurator = () => {
         const result = await response.json();
         alert(`Konfiguracja "${configurationName}" została zapisana w Twoim koncie!`);
         console.log('Konfiguracja zapisana z ID:', result.Id);
+        
+        // Przejdź do konfiguratora z zapisaną konfiguracją - użyj tylko configurationId
+        navigate('/car-configurator', { 
+          state: { 
+            configurationId: result.Id
+          },
+          replace: true
+        });
       } else if (response.status === 401) {
         alert('Musisz być zalogowany, aby zapisać konfigurację. Przejdź do logowania.');
       } else {
@@ -273,6 +413,62 @@ const CarConfigurator = () => {
       console.error('Błąd zapisywania konfiguracji:', err);
       alert(`Wystąpił błąd podczas zapisywania konfiguracji: ${err.message}`);
     }
+  };
+
+  // Funkcje obsługi trybu edycji
+  const handleEditConfiguration = () => {
+    setIsEditMode(true);
+  };
+
+  const handleSaveNewConfiguration = () => {
+    saveConfiguration(); // Zapisz jako nową konfigurację
+  };
+
+  const handleCancelEdit = () => {
+    if (originalConfiguration) {
+      // Przywróć oryginalną konfigurację
+      if (originalConfiguration.engineId && engines.length > 0) {
+        const savedEngine = engines.find(e => e.carModelEngineId === originalConfiguration.engineId);
+        if (savedEngine) {
+          setSelectedEngine(savedEngine);
+        }
+      }
+      
+      if (originalConfiguration.exteriorColor) {
+        setCarColor(originalConfiguration.exteriorColor);
+      }
+      
+      // Przywróć akcesoria
+      if (originalConfiguration.selectedAccessories) {
+        const selectedAcc = [];
+        setAccessories(prev => prev.map(acc => {
+          const isSelected = originalConfiguration.selectedAccessories.some(savedAcc => 
+            savedAcc.id === acc.id || savedAcc === acc.id
+          );
+          if (isSelected) {
+            selectedAcc.push(acc);
+          }
+          return { ...acc, selected: isSelected };
+        }));
+        setSelectedAccessories(selectedAcc);
+      }
+      
+      // Przywróć wyposażenie wnętrza
+      if (originalConfiguration.selectedInteriorEquipment) {
+        const selectedEq = [];
+        setInteriorEquipment(prev => prev.map(eq => {
+          const isSelected = originalConfiguration.selectedInteriorEquipment.some(savedEq => 
+            savedEq.id === eq.id || savedEq === eq.id
+          );
+          if (isSelected) {
+            selectedEq.push(eq);
+          }
+          return { ...eq, selected: isSelected };
+        }));
+        setSelectedInteriorEquipment(selectedEq);
+      }
+    }
+    setIsEditMode(false);
   };
 
   const staticExteriorColors = [
@@ -389,6 +585,11 @@ const CarConfigurator = () => {
             totalPrice={totalPrice}
             onSaveConfiguration={saveConfiguration}
             carColor={carColor}
+            configurationId={configurationId}
+            isEditMode={isEditMode}
+            onEditConfiguration={handleEditConfiguration}
+            onSaveNewConfiguration={handleSaveNewConfiguration}
+            onCancelEdit={handleCancelEdit}
           />
         </div>
       </div>

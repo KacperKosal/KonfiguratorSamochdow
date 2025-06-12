@@ -98,6 +98,32 @@
   background-color: var(--color-primary-hover);
 }
 
+.actionButton.edit {
+  background-color: #f59e0b;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.actionButton.edit:hover {
+  background-color: #d97706;
+}
+
+.actionButton.cancel {
+  background-color: #6b7280;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.actionButton.cancel:hover {
+  background-color: #4b5563;
+}
+
 .actionButton.testDrive {
   background-color: var(--color-success);
   color: var(--color-text-light);

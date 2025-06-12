@@ -533,13 +533,15 @@ const CarAdminPanel = () => {
         }
 
         if (!formData.value.trim()) {
-          newErrors.value = 'Wartość jest wymagana';
-        } else if (formData.value.length > 255) {
-          newErrors.value = 'Przekroczono dozwoloną liczbę znaków lub wartość liczbową.';
+          newErrors.value = 'Nazwa jest wymagana';
+        } else if (formData.value.length > 49) {
+          newErrors.value = 'Nazwa nie może przekraczać 49 znaków';
         }
 
-        if (!formData.additionalPrice || isNaN(formData.additionalPrice) || parseFloat(formData.additionalPrice) < 0) {
-          newErrors.additionalPrice = 'Cena dodatkowa jest wymagana i musi być liczbą większą lub równą 0';
+        if (!formData.additionalPrice || isNaN(formData.additionalPrice)) {
+          newErrors.additionalPrice = 'Cena dodatkowa jest wymagana';
+        } else if (parseFloat(formData.additionalPrice) < 200) {
+          newErrors.additionalPrice = 'Cena dodatkowa nie może być mniejsza niż 200 zł';
         } else if (parseFloat(formData.additionalPrice) > 1000000) {
           newErrors.additionalPrice = 'Przekroczono dozwoloną liczbę znaków lub wartość liczbową.';
         }
@@ -552,8 +554,8 @@ const CarAdminPanel = () => {
           }
         }
 
-        if (formData.description && formData.description.length > 800) {
-          newErrors.description = 'Opis nie może przekraczać 800 znaków';
+        if (formData.description && formData.description.length > 80) {
+          newErrors.description = 'Opis nie może przekraczać 80 znaków';
         }
         break;
 
@@ -995,7 +997,7 @@ const CarAdminPanel = () => {
         break;
       case 'interior':
         data = interiorEquipment || [];
-        headers = ['Typ', 'Wartość', 'Cena dodatkowa', 'Nawigacja', 'Premium Audio', 'Akcje'];
+        headers = ['Typ', 'Nazwa', 'Cena dodatkowa', 'Nawigacja', 'Premium Audio', 'Akcje'];
         emptyMessage = 'Brak wyposażenia wnętrza';
         break;
       default:
@@ -1932,12 +1934,13 @@ const CarAdminPanel = () => {
         </div>
 
         <div className={styles.formGroup}>
-          <label>Wartość *</label>
+          <label>Nazwa *</label>
           <input
             type="text"
             name="value"
             value={formData.value}
             onChange={handleInputChange}
+            maxLength="49"
             className={errors.value ? styles.errorInput : ''}
           />
           {errors.value && <span className={styles.errorText}>{errors.value}</span>}
@@ -1950,7 +1953,7 @@ const CarAdminPanel = () => {
             name="additionalPrice"
             value={formData.additionalPrice}
             onChange={handleInputChange}
-            min="0"
+            min="200"
             max="1000000"
             step="100"
             className={errors.additionalPrice ? styles.errorInput : ''}
@@ -2015,21 +2018,10 @@ const CarAdminPanel = () => {
           value={formData.description}
           onChange={handleInputChange}
           rows="4"
+          maxLength="80"
           className={errors.description ? styles.errorInput : ''}
         />
         {errors.description && <span className={styles.errorText}>{errors.description}</span>}
-      </div>
-
-      <div className={styles.formGroup}>
-        <label className={styles.checkboxLabel}>
-          <input
-            type="checkbox"
-            name="isDefault"
-            checked={formData.isDefault}
-            onChange={handleInputChange}
-          />
-          Domyślne wyposażenie
-        </label>
       </div>
     </>
   );

@@ -16,11 +16,11 @@ namespace KonfiguratorSamochodowy.Api.Validators
                 .Must(BeValidEquipmentType).WithMessage("Nieprawidłowy typ wyposażenia");
                 
             RuleFor(x => x.Value)
-                .NotEmpty().WithMessage("Wartość jest wymagana")
-                .MaximumLength(255).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
+                .NotEmpty().WithMessage("Nazwa jest wymagana")
+                .MaximumLength(49).WithMessage("Nazwa nie może przekraczać 49 znaków");
                 
             RuleFor(x => x.AdditionalPrice)
-                .GreaterThanOrEqualTo(0).WithMessage("Cena dodatkowa nie może być ujemna")
+                .GreaterThanOrEqualTo(200).WithMessage("Cena dodatkowa nie może być mniejsza niż 200 zł")
                 .LessThanOrEqualTo(1000000).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
                 
             // Walidacje specyficzne dla typów
@@ -39,7 +39,7 @@ namespace KonfiguratorSamochodowy.Api.Validators
             });
             
             RuleFor(x => x.Description)
-                .MaximumLength(800).WithMessage("Opis nie może przekraczać 800 znaków");
+                .MaximumLength(80).WithMessage("Opis nie może przekraczać 80 znaków");
         }
         
         private bool BeValidEquipmentType(string type)
