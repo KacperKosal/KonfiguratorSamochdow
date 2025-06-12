@@ -22,6 +22,8 @@ body[data-theme='light'] {
   --color-shadow: rgba(0, 0, 0, 0.1);
 }
 
+
+
 /* Layout aplikacji */
 .main-container {
   max-width: 1200px;

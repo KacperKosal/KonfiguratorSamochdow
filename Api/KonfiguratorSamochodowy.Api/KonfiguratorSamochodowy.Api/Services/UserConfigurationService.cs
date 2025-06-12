@@ -139,8 +139,8 @@ public class UserConfigurationService : IUserConfigurationService
             EngineName = config.EngineName,
             ExteriorColor = config.ExteriorColor,
             ExteriorColorName = config.ExteriorColorName,
-            SelectedAccessories = ParseJsonToList(config.SelectedAccessories),
-            SelectedInteriorEquipment = ParseJsonToList(config.SelectedInteriorEquipment),
+            SelectedAccessories = ParseJsonToAccessories(config.SelectedAccessories),
+            SelectedInteriorEquipment = ParseJsonToInteriorEquipment(config.SelectedInteriorEquipment),
             TotalPrice = config.TotalPrice,
             CreatedAt = config.CreatedAt,
             UpdatedAt = config.UpdatedAt
@@ -166,8 +166,8 @@ public class UserConfigurationService : IUserConfigurationService
             EngineName = config.EngineName,
             ExteriorColor = config.ExteriorColor,
             ExteriorColorName = config.ExteriorColorName,
-            SelectedAccessories = ParseJsonToList(config.SelectedAccessories),
-            SelectedInteriorEquipment = ParseJsonToList(config.SelectedInteriorEquipment),
+            SelectedAccessories = ParseJsonToAccessories(config.SelectedAccessories),
+            SelectedInteriorEquipment = ParseJsonToInteriorEquipment(config.SelectedInteriorEquipment),
             TotalPrice = config.TotalPrice,
             CreatedAt = config.CreatedAt,
             UpdatedAt = config.UpdatedAt
@@ -181,18 +181,35 @@ public class UserConfigurationService : IUserConfigurationService
         return await _repository.DeleteUserConfigurationAsync(configurationId, userId);
     }
 
-    private List<object>? ParseJsonToList(string? json)
+    private List<SavedAccessoryDto>? ParseJsonToAccessories(string? json)
     {
         if (string.IsNullOrEmpty(json))
-            return new List<object>();
+            return new List<SavedAccessoryDto>();
 
         try
         {
-            return JsonSerializer.Deserialize<List<object>>(json);
+            return JsonSerializer.Deserialize<List<SavedAccessoryDto>>(json);
         }
-        catch
+        catch (Exception ex)
         {
-            return new List<object>();
+            Console.WriteLine($"Error parsing accessories JSON: {ex.Message}");
+            return new List<SavedAccessoryDto>();
+        }
+    }
+
+    private List<SavedInteriorEquipmentDto>? ParseJsonToInteriorEquipment(string? json)
+    {
+        if (string.IsNullOrEmpty(json))
+            return new List<SavedInteriorEquipmentDto>();
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<SavedInteriorEquipmentDto>>(json);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error parsing interior equipment JSON: {ex.Message}");
+            return new List<SavedInteriorEquipmentDto>();
         }
     }
 }

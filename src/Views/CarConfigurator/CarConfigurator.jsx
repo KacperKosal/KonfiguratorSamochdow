@@ -119,7 +119,7 @@ const CarConfigurator = () => {
       // lub jeśli konfiguracja już została załadowana
       if (pendingConfiguration || originalConfiguration) return;
       
-      if (configurationId && !loading) {
+      if (configurationId && !loading && !isLoadingModelData) {
         try {
           console.log('Pobieranie konfiguracji z API dla ID:', configurationId);
           const response = await fetch(`${apiUrl}/api/user-configurations/${configurationId}`, {
@@ -133,40 +133,59 @@ const CarConfigurator = () => {
             console.log('Pobrana konfiguracja z API:', apiConfiguration);
             setOriginalConfiguration(apiConfiguration);
             
-            // Wczytaj konfigurację
-            setIsLoadingConfiguration(true);
-            setTimeout(() => {
-              loadSavedConfiguration(apiConfiguration);
-              setTimeout(() => setIsLoadingConfiguration(false), 100);
-            }, 50);
+            // Wczytaj konfigurację tylko jeśli dane są dostępne
+            if (engines.length > 0 || !apiConfiguration.engineId) {
+              setIsLoadingConfiguration(true);
+              setTimeout(() => {
+                loadSavedConfiguration(apiConfiguration);
+                setTimeout(() => setIsLoadingConfiguration(false), 100);
+              }, 50);
+            } else {
+              console.log('Czekam na załadowanie silników przed wczytaniem konfiguracji');
+              // Konfiguracja zostanie wczytana gdy silniki będą gotowe
+              setPendingConfiguration(apiConfiguration);
+            }
           } else {
             console.error('Błąd pobierania konfiguracji z API:', response.status);
             // Fallback - użyj danych z location.state
             if (savedConfiguration) {
-              setIsLoadingConfiguration(true);
-              loadSavedConfiguration(savedConfiguration);
-              setIsLoadingConfiguration(false);
+              if (engines.length > 0 || !savedConfiguration.engineId) {
+                setIsLoadingConfiguration(true);
+                loadSavedConfiguration(savedConfiguration);
+                setIsLoadingConfiguration(false);
+              } else {
+                setPendingConfiguration(savedConfiguration);
+              }
             }
           }
         } catch (err) {
           console.error('Błąd pobierania konfiguracji:', err);
           // Fallback - użyj danych z location.state
           if (savedConfiguration) {
-            setIsLoadingConfiguration(true);
-            loadSavedConfiguration(savedConfiguration);
-            setIsLoadingConfiguration(false);
+            if (engines.length > 0 || !savedConfiguration.engineId) {
+              setIsLoadingConfiguration(true);
+              loadSavedConfiguration(savedConfiguration);
+              setIsLoadingConfiguration(false);
+            } else {
+              setPendingConfiguration(savedConfiguration);
+            }
           }
         }
-      } else if (savedConfiguration && !loading) {
+      } else if (savedConfiguration && !loading && !isLoadingModelData) {
         // Jeśli nie ma configurationId, ale jest savedConfiguration
-        setIsLoadingConfiguration(true);
-        loadSavedConfiguration(savedConfiguration);
-        setIsLoadingConfiguration(false);
+        if (engines.length > 0 || !savedConfiguration.engineId) {
+          setIsLoadingConfiguration(true);
+          loadSavedConfiguration(savedConfiguration);
+          setIsLoadingConfiguration(false);
+        } else {
+          console.log('Czekam na załadowanie silników przed wczytaniem savedConfiguration');
+          setPendingConfiguration(savedConfiguration);
+        }
       }
     };
 
     loadConfigurationFromApi();
-  }, [configurationId, loading, carModels]);
+  }, [configurationId, loading, carModels, engines, accessories, interiorEquipment, isLoadingModelData]);
 
   // UseEffect do ładowania danych specyficznych dla wybranego modelu
   useEffect(() => {
@@ -218,7 +237,8 @@ const CarConfigurator = () => {
           const enginesData = await enginesResponse.json();
           console.log('Otrzymane silniki:', enginesData);
           setEngines(enginesData);
-          if (!pendingConfiguration && !originalConfiguration && enginesData.length > 0) {
+          // Nie ustawiaj domyślnego silnika jeśli ładujemy konfigurację
+          if (!pendingConfiguration && !originalConfiguration && !savedConfiguration && enginesData.length > 0) {
             setSelectedEngine(enginesData[0]);
             console.log('Wybrany domyślny silnik:', enginesData[0]);
           }
@@ -344,11 +364,12 @@ const CarConfigurator = () => {
   }, [pendingConfiguration, selectedCarModel, engines, accessories, interiorEquipment, isLoadingModelData]);
 
   // Funkcja do wczytywania konfiguracji
-  const loadSavedConfiguration = (configuration) => {
+  const loadSavedConfiguration = (configuration, retryCount = 0) => {
     if (!configuration || isLoadingConfiguration) return;
     
     console.log('=== ŁADOWANIE KONFIGURACJI ===');
     console.log('Timestamp:', new Date().toISOString());
+    console.log('Retry count:', retryCount);
     console.log('Konfiguracja do załadowania:', configuration);
     console.log('Właściwości konfiguracji:', Object.keys(configuration));
     console.log('carModelId/CarModelId:', configuration.carModelId, '/', configuration.CarModelId);
@@ -357,7 +378,7 @@ const CarConfigurator = () => {
     console.log('selectedInteriorEquipment/SelectedInteriorEquipment:', configuration.selectedInteriorEquipment, '/', configuration.SelectedInteriorEquipment);
     console.log('Aktualny stan:');
     console.log('- selectedCarModel:', selectedCarModel?.id, selectedCarModel?.name);
-    console.log('- engines length:', engines.length);
+    console.log('- engines length:', engines.length, engines.map(e => ({ engineId: e.engineId, id: e.id, name: e.engineName })));
     console.log('- accessories length:', accessories.length, accessories.map(a => ({ id: a.id, name: a.name, selected: a.selected })));
     console.log('- interiorEquipment length:', interiorEquipment.length, interiorEquipment.map(i => ({ id: i.id, value: i.value, selected: i.selected })));
     console.log('================================');
@@ -383,28 +404,39 @@ const CarConfigurator = () => {
       
     // Ustaw wybrany silnik
     const engineId = configuration.engineId || configuration.EngineId;
+    console.warn('Silnik do ustawienia:', engineId);
+    console.warn('Dostępne silniki:', engines);
     if (engineId && engines.length > 0) {
       console.log('Szukam silnika o ID:', engineId);
       console.log('Dostępne silniki:', engines);
-      const savedEngine = engines.find(e => 
-        e.carModelEngineId === engineId || 
-        e.carModelEngineId === parseInt(engineId) ||
-        e.engineId === engineId ||
-        e.engineId === parseInt(engineId) ||
-        e.id === engineId ||
-        e.id === parseInt(engineId)
-      );
+      const savedEngine = engines.find(e => {
+        // Sprawdź pola ID z konwersją na string
+        const engineIdField = e.engineId?.toString();
+        const id = e.id?.toString();
+        const searchId = engineId.toString();
+        
+        return engineIdField === searchId || id === searchId;
+      });
       console.log('Znaleziony silnik:', savedEngine);
       if (savedEngine) {
         setSelectedEngine(savedEngine);
+        console.log('Ustawiono wybrany silnik:', savedEngine);
       } else {
         console.warn(`Silnik o ID ${engineId} nie został znaleziony. Dostępne silniki:`, engines.map(e => ({
-          carModelEngineId: e.carModelEngineId,
           engineId: e.engineId,
           id: e.id,
           name: e.engineName
         })));
+        // Fallback - wybierz pierwszy dostępny silnik
+        if (engines.length > 0) {
+          setSelectedEngine(engines[0]);
+          console.log('Fallback - ustawiono pierwszy dostępny silnik:', engines[0]);
+        }
       }
+    } else if (!engineId && engines.length > 0) {
+      // Jeśli nie ma zapisanego ID silnika, wybierz pierwszy dostępny
+      setSelectedEngine(engines[0]);
+      console.log('Brak zapisanego ID silnika - ustawiono pierwszy dostępny:', engines[0]);
     }
     
     // Ustaw kolor
@@ -413,57 +445,89 @@ const CarConfigurator = () => {
     }
     
     // Ustaw akcesoria
-    const selectedAccessories = configuration.selectedAccessories || configuration.SelectedAccessories || [];
-    if (selectedAccessories && selectedAccessories.length > 0 && accessories.length > 0) {
-      console.log('Wczytywanie akcesoriów:', selectedAccessories);
-      console.log('Dostępne akcesoria do mapowania:', accessories);
-      const selectedAcc = [];
-      setAccessories(prev => prev.map(acc => {
-        const isSelected = selectedAccessories.some(savedAcc => {
-          // Sprawdź różne warianty ID - API zwraca duże I
-          const savedId = savedAcc.Id || savedAcc.id || savedAcc;
-          console.log(`Porównuję akcesorium ${acc.id} z zapisanym ${savedId}`);
-          return savedId === acc.id || savedId.toString() === acc.id.toString();
-        });
-        if (isSelected) {
-          selectedAcc.push(acc);
-          console.log(`Znaleziono akcesorium: ${acc.name} (ID: ${acc.id})`);
+    const savedAccessoriesConfig = configuration.selectedAccessories || configuration.SelectedAccessories || [];
+    console.log('Konfiguracja akcesoriów do załadowania:', savedAccessoriesConfig);
+    console.log('Dostępne akcesoria w stanie:', accessories.length);
+    
+    if (savedAccessoriesConfig && savedAccessoriesConfig.length > 0) {
+      if (accessories.length > 0) {
+        console.log('Wczytywanie akcesoriów:', savedAccessoriesConfig);
+        console.log('Dostępne akcesoria do mapowania:', accessories);
+        const selectedAcc = [];
+        setAccessories(prev => prev.map(acc => {
+          const isSelected = savedAccessoriesConfig.some(savedAcc => {
+            // Sprawdź różne warianty ID - API zwraca duże I
+            const savedId = savedAcc.Id || savedAcc.id || savedAcc;
+            console.log(`Porównuję akcesorium ${acc.id} z zapisanym ${savedId}`);
+            return savedId?.toString() === acc.id?.toString();
+          });
+          if (isSelected) {
+            selectedAcc.push(acc);
+            console.log(`Znaleziono akcesorium: ${acc.name} (ID: ${acc.id})`);
+          }
+          return { ...acc, selected: isSelected };
+        }));
+        setSelectedAccessories(selectedAcc);
+        console.log('Wybrane akcesoria po mapowaniu:', selectedAcc);
+      } else {
+        console.log('POMINIĘTO mapowanie akcesoriów - dane jeszcze nie załadowane');
+        console.log('Zapisane akcesoria do załadowania:', savedAccessoriesConfig);
+        console.log('Długość tablicy accessories:', accessories.length);
+        // Zamiast pomijać, spróbuj ponownie później (max 3 razy)
+        if (retryCount < 3) {
+          setTimeout(() => {
+            if (accessories.length > 0) {
+              console.log('Ponowienie ładowania akcesoriów po opóźnieniu');
+              loadSavedConfiguration(configuration, retryCount + 1);
+            }
+          }, 500);
+        } else {
+          console.warn('Maksymalna liczba prób ładowania akcesoriów przekroczona');
         }
-        return { ...acc, selected: isSelected };
-      }));
-      setSelectedAccessories(selectedAcc);
-      console.log('Wybrane akcesoria po mapowaniu:', selectedAcc);
-    } else if (selectedAccessories && selectedAccessories.length > 0) {
-      console.log('POMINIĘTO mapowanie akcesoriów - brak dostępnych akcesoriów w stanie');
-      console.log('Zapisane akcesoria do załadowania:', selectedAccessories);
-      console.log('Długość tablicy accessories:', accessories.length);
+      }
     }
     
     // Ustaw wyposażenie wnętrza
-    const selectedInteriorEquipment = configuration.selectedInteriorEquipment || configuration.SelectedInteriorEquipment || [];
-    if (selectedInteriorEquipment && selectedInteriorEquipment.length > 0 && interiorEquipment.length > 0) {
-      console.log('Wczytywanie wyposażenia wnętrza:', selectedInteriorEquipment);
-      console.log('Dostępne wyposażenie do mapowania:', interiorEquipment);
-      const selectedEq = [];
-      setInteriorEquipment(prev => prev.map(eq => {
-        const isSelected = selectedInteriorEquipment.some(savedEq => {
-          // Sprawdź różne warianty ID - API zwraca duże I
-          const savedId = savedEq.Id || savedEq.id || savedEq;
-          console.log(`Porównuję wyposażenie ${eq.id} z zapisanym ${savedId}`);
-          return savedId === eq.id || savedId.toString() === eq.id.toString();
-        });
-        if (isSelected) {
-          selectedEq.push(eq);
-          console.log(`Znaleziono wyposażenie: ${eq.value} (ID: ${eq.id})`);
+    const savedInteriorEquipmentConfig = configuration.selectedInteriorEquipment || configuration.SelectedInteriorEquipment || [];
+    console.log('Konfiguracja wyposażenia wnętrza do załadowania:', savedInteriorEquipmentConfig);
+    console.log('Dostępne wyposażenie wnętrza w stanie:', interiorEquipment.length);
+    
+    if (savedInteriorEquipmentConfig && savedInteriorEquipmentConfig.length > 0) {
+      if (interiorEquipment.length > 0) {
+        console.log('Wczytywanie wyposażenia wnętrza:', savedInteriorEquipmentConfig);
+        console.log('Dostępne wyposażenie do mapowania:', interiorEquipment);
+        const selectedEq = [];
+        setInteriorEquipment(prev => prev.map(eq => {
+          const isSelected = savedInteriorEquipmentConfig.some(savedEq => {
+            // Sprawdź różne warianty ID - API zwraca duże I
+            const savedId = savedEq.Id || savedEq.id || savedEq;
+            console.log(`Porównuję wyposażenie ${eq.id} z zapisanym ${savedId}`);
+            return savedId?.toString() === eq.id?.toString();
+          });
+          if (isSelected) {
+            selectedEq.push(eq);
+            console.log(`Znaleziono wyposażenie: ${eq.value} (ID: ${eq.id})`);
+          }
+          return { ...eq, selected: isSelected };
+        }));
+        setSelectedInteriorEquipment(selectedEq);
+        console.log('Wybrane wyposażenie wnętrza po mapowaniu:', selectedEq);
+      } else {
+        console.log('POMINIĘTO mapowanie wyposażenia wnętrza - dane jeszcze nie załadowane');
+        console.log('Zapisane wyposażenie do załadowania:', savedInteriorEquipmentConfig);
+        console.log('Długość tablicy interiorEquipment:', interiorEquipment.length);
+        // Zamiast pomijać, spróbuj ponownie później (max 3 razy)
+        if (retryCount < 3) {
+          setTimeout(() => {
+            if (interiorEquipment.length > 0) {
+              console.log('Ponowienie ładowania wyposażenia wnętrza po opóźnieniu');
+              loadSavedConfiguration(configuration, retryCount + 1);
+            }
+          }, 500);
+        } else {
+          console.warn('Maksymalna liczba prób ładowania wyposażenia wnętrza przekroczona');
         }
-        return { ...eq, selected: isSelected };
-      }));
-      setSelectedInteriorEquipment(selectedEq);
-      console.log('Wybrane wyposażenie wnętrza po mapowaniu:', selectedEq);
-    } else if (selectedInteriorEquipment && selectedInteriorEquipment.length > 0) {
-      console.log('POMINIĘTO mapowanie wyposażenia wnętrza - brak dostępnego wyposażenia w stanie');
-      console.log('Zapisane wyposażenie do załadowania:', selectedInteriorEquipment);
-      console.log('Długość tablicy interiorEquipment:', interiorEquipment.length);
+      }
     }
   };
 
@@ -565,7 +629,7 @@ const CarConfigurator = () => {
       const configurationData = {
         configurationName: configurationName.trim(),
         carModelId: selectedCarModel.id.toString(),
-        engineId: selectedEngine?.carModelEngineId?.toString() || selectedEngine?.engineId?.toString() || selectedEngine?.id?.toString() || null,
+        engineId: selectedEngine?.engineId?.toString() || selectedEngine?.id?.toString() || null,
         exteriorColor: carColor,
         exteriorColorName: exteriorColorInfo?.name || 'Nieznany kolor',
         accessoryIds: selectedAccessories.map(acc => acc.id.toString()),
@@ -633,7 +697,10 @@ const CarConfigurator = () => {
     if (originalConfiguration) {
       // Przywróć oryginalną konfigurację
       if (originalConfiguration.engineId && engines.length > 0) {
-        const savedEngine = engines.find(e => e.carModelEngineId === originalConfiguration.engineId);
+        const savedEngine = engines.find(e => 
+          e.engineId?.toString() === originalConfiguration.engineId?.toString() || 
+          e.id?.toString() === originalConfiguration.engineId?.toString()
+        );
         if (savedEngine) {
           setSelectedEngine(savedEngine);
         }

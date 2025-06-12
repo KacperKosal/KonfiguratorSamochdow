@@ -10,8 +10,8 @@ public class UserConfigurationDto
     public string? EngineName { get; set; }
     public string? ExteriorColor { get; set; }
     public string? ExteriorColorName { get; set; }
-    public List<object>? SelectedAccessories { get; set; }
-    public List<object>? SelectedInteriorEquipment { get; set; }
+    public List<SavedAccessoryDto>? SelectedAccessories { get; set; }
+    public List<SavedInteriorEquipmentDto>? SelectedInteriorEquipment { get; set; }
     public decimal TotalPrice { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
