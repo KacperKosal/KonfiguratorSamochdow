@@ -42,8 +42,8 @@ const FormRenderer = ({
             className={errors.manufacturer ? styles.errorInput : ''}
           >
             <option value="">Wybierz producenta</option>
-            {manufacturers.map(manufacturer => (
-              <option key={manufacturer} value={manufacturer}>{manufacturer}</option>
+            {manufacturers.map((manufacturer, index) => (
+              <option key={`manufacturer-${index}-${manufacturer}`} value={manufacturer}>{manufacturer}</option>
             ))}
           </select>
           {errors.manufacturer && <span className={styles.errorText}>{errors.manufacturer}</span>}
@@ -58,8 +58,8 @@ const FormRenderer = ({
             className={errors.bodyType ? styles.errorInput : ''}
           >
             <option value="">Wybierz typ</option>
-            {bodyTypes.map(type => (
-              <option key={type} value={type}>{type}</option>
+            {bodyTypes.map((type, index) => (
+              <option key={`bodytype-${index}-${type}`} value={type}>{type}</option>
             ))}
           </select>
           {errors.bodyType && <span className={styles.errorText}>{errors.bodyType}</span>}

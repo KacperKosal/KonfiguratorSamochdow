@@ -37,7 +37,24 @@ public class UserConfigurationRepository : IUserConfigurationRepository
                  @TotalPrice, @CreatedAt, @IsActive)
                 RETURNING id";
 
-            var id = await connection.QuerySingleAsync<int>(insertSql, configuration);
+            var parameters = new
+            {
+                UserId = configuration.UserId,
+                ConfigurationName = configuration.ConfigurationName,
+                CarModelId = configuration.CarModelId,
+                CarModelName = configuration.CarModelName,
+                EngineId = configuration.EngineId,
+                EngineName = configuration.EngineName,
+                ExteriorColor = configuration.ExteriorColor,
+                ExteriorColorName = configuration.ExteriorColorName,
+                SelectedAccessories = configuration.SelectedAccessories,
+                SelectedInteriorEquipment = configuration.SelectedInteriorEquipment,
+                TotalPrice = configuration.TotalPrice,
+                CreatedAt = configuration.CreatedAt,
+                IsActive = configuration.IsActive
+            };
+
+            var id = await connection.QuerySingleAsync<int>(insertSql, parameters);
             return Helpers.Result.Success(id);
         }
         catch (Exception ex)
@@ -56,7 +73,23 @@ public class UserConfigurationRepository : IUserConfigurationRepository
             await EnsureTableExists(connection);
 
             const string selectSql = @"
-                SELECT * FROM user_configurations 
+                SELECT 
+                    id as Id,
+                    user_id as UserId,
+                    configuration_name as ConfigurationName,
+                    car_model_id as CarModelId,
+                    car_model_name as CarModelName,
+                    engine_id as EngineId,
+                    engine_name as EngineName,
+                    exterior_color as ExteriorColor,
+                    exterior_color_name as ExteriorColorName,
+                    selected_accessories as SelectedAccessories,
+                    selected_interior_equipment as SelectedInteriorEquipment,
+                    total_price as TotalPrice,
+                    created_at as CreatedAt,
+                    updated_at as UpdatedAt,
+                    is_active as IsActive
+                FROM user_configurations 
                 WHERE user_id = @UserId AND is_active = true 
                 ORDER BY created_at DESC";
 
@@ -79,7 +112,23 @@ public class UserConfigurationRepository : IUserConfigurationRepository
             await EnsureTableExists(connection);
 
             const string selectSql = @"
-                SELECT * FROM user_configurations 
+                SELECT 
+                    id as Id,
+                    user_id as UserId,
+                    configuration_name as ConfigurationName,
+                    car_model_id as CarModelId,
+                    car_model_name as CarModelName,
+                    engine_id as EngineId,
+                    engine_name as EngineName,
+                    exterior_color as ExteriorColor,
+                    exterior_color_name as ExteriorColorName,
+                    selected_accessories as SelectedAccessories,
+                    selected_interior_equipment as SelectedInteriorEquipment,
+                    total_price as TotalPrice,
+                    created_at as CreatedAt,
+                    updated_at as UpdatedAt,
+                    is_active as IsActive
+                FROM user_configurations 
                 WHERE id = @ConfigurationId AND user_id = @UserId AND is_active = true";
 
             var configuration = await connection.QuerySingleOrDefaultAsync<UserConfiguration>(
@@ -146,7 +195,25 @@ public class UserConfigurationRepository : IUserConfigurationRepository
                 WHERE id = @Id AND user_id = @UserId";
 
             configuration.UpdatedAt = DateTime.UtcNow;
-            var rowsAffected = await connection.ExecuteAsync(updateSql, configuration);
+            
+            var parameters = new
+            {
+                Id = configuration.Id,
+                UserId = configuration.UserId,
+                ConfigurationName = configuration.ConfigurationName,
+                CarModelId = configuration.CarModelId,
+                CarModelName = configuration.CarModelName,
+                EngineId = configuration.EngineId,
+                EngineName = configuration.EngineName,
+                ExteriorColor = configuration.ExteriorColor,
+                ExteriorColorName = configuration.ExteriorColorName,
+                SelectedAccessories = configuration.SelectedAccessories,
+                SelectedInteriorEquipment = configuration.SelectedInteriorEquipment,
+                TotalPrice = configuration.TotalPrice,
+                UpdatedAt = configuration.UpdatedAt
+            };
+            
+            var rowsAffected = await connection.ExecuteAsync(updateSql, parameters);
 
             return Result.Success(rowsAffected > 0);
         }

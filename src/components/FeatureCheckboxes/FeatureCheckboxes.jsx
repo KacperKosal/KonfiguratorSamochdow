@@ -36,8 +36,8 @@ const FeatureCheckboxes = ({ formData, dostepneCechy, onFeatureChange, onBasicOp
     <div className={styles.checkboxGroup}>
       <h3 className={styles.checkboxTitle}>Cechy dodatkowe</h3>
       <div className={styles.checkboxList}>
-        {dostepneCechy.map((cecha) => (
-          <div key={cecha} className={styles.checkboxItem}>
+        {dostepneCechy.map((cecha, index) => (
+          <div key={`feature-${index}-${cecha}`} className={styles.checkboxItem}>
             <input
               type="checkbox"
               checked={formData.cechy.includes(cecha)}

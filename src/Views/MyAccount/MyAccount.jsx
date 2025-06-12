@@ -416,7 +416,22 @@ const MyAccount = () => {
         )}
 
         <div className={styles.configurationsSection}>
-          <h2 className={styles.sectionTitle}>Moje Konfiguracje ({configurations.length})</h2>
+          <div className={styles.configurationHeader}>
+            <h2 className={styles.sectionTitle}>Moje Konfiguracje ({configurations.length}/9)</h2>
+            {configurations.length >= 8 && (
+              <div className={styles.limitWarning}>
+                {configurations.length === 9 ? (
+                  <span className={styles.limitReached}>
+                    ⚠️ Osiągnięto maksymalny limit konfiguracji (9/9). Usuń starsze konfiguracje, aby dodać nowe.
+                  </span>
+                ) : (
+                  <span className={styles.limitClose}>
+                    ⚠️ Zbliżasz się do limitu konfiguracji ({configurations.length}/9)
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
           
           {configurations.length === 0 ? (
             <div className={styles.noConfigurations}>

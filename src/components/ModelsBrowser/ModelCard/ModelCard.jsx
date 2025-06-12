@@ -34,7 +34,7 @@ const ModelCard = ({ model, formatPrice }) =>
             <h3 className={styles.enginesTitle}>Dostępne silniki:</h3>
             <div className={styles.engineTags}>
               {model.engineOptions.map((engine, index) => (
-                <span key={index} className={styles.engineTag}>
+                <span key={`${model.id}-engine-${index}-${engine}`} className={styles.engineTag}>
                   {engine}
                 </span>
               ))}

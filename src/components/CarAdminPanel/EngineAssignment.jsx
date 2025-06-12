@@ -243,7 +243,7 @@ const EngineAssignment = ({ model, onClose }) => {
                         const enginePower = engine.power || 'N/A';
                         
                         return (
-                          <option key={`engine-${engineId}-${index}`} value={engineId}>
+                          <option key={`available-engine-${engineId}`} value={engineId}>
                             {engineName} - {engineType} - {enginePower} KM
                           </option>
                         );

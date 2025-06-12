@@ -33,6 +33,14 @@ public class UserConfigurationService : IUserConfigurationService
     {
         try
         {
+            // Sprawdź limit konfiguracji użytkownika (maksymalnie 9)
+            var existingConfigurationsResult = await _repository.GetUserConfigurationsAsync(userId);
+            if (existingConfigurationsResult.IsSuccess && existingConfigurationsResult.Value.Count >= 9)
+            {
+                return Repositories.Helpers.Result.Failure<int>(Error.Validation("Configuration.LimitExceeded", 
+                    "Osiągnięto maksymalny limit 9 konfiguracji na użytkownika. Usuń starsze konfiguracje, aby dodać nową."));
+            }
+
             // Pobierz szczegóły modelu samochodu
             var carModelResult = await _carModelRepository.GetByIdAsync(request.CarModelId);
             var carModelName = carModelResult.IsSuccess ? carModelResult.Value.Name : "Unknown Model";

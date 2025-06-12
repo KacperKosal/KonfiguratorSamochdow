@@ -24,7 +24,7 @@ const CustomFeatures = ({ formData, nowaCecha, onNowaCechaChange, onAddCustomFea
       <div className={styles.featureTags}>
         {formData.wlasneCechy.map((cecha, index) => (
           <span
-            key={index}
+            key={`custom-feature-${index}-${cecha}`}
             className={styles.featureTag}
           >
             {cecha}

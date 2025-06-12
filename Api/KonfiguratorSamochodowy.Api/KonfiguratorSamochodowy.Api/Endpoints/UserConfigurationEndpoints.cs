@@ -29,9 +29,18 @@ public static class UserConfigurationEndpoints
 
             var result = await service.SaveUserConfigurationAsync(userId.Value, request);
             
-            return result.IsSuccess 
-                ? Results.Ok(new { Id = result.Value, Message = "Konfiguracja została zapisana pomyślnie" })
-                : Results.Problem(result.Error.Message, statusCode: 500);
+            if (result.IsSuccess)
+            {
+                return Results.Ok(new { Id = result.Value, Message = "Konfiguracja została zapisana pomyślnie" });
+            }
+            
+            // Sprawdź czy to błąd walidacji (np. limit konfiguracji)
+            if (result.Error.Code == "Configuration.LimitExceeded")
+            {
+                return Results.BadRequest(new { error = result.Error.Message });
+            }
+            
+            return Results.Problem(result.Error.Message, statusCode: 500);
         })
         .WithName("SaveUserConfiguration")
         .WithOpenApi(operation => new(operation)

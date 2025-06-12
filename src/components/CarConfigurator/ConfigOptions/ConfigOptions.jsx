@@ -75,9 +75,9 @@ const ConfigOptions = ({
 
     return (
       <div className={styles.configGrid}>
-        {exteriorColors.map((color) => (
+        {exteriorColors.map((color, index) => (
           <div
-            key={color.value}
+            key={`color-${index}-${color.name}-${color.value}`}
             onClick={() => setCarColor(color.value)}
             className={`${styles.configItem} ${carColor === color.value ? styles.selected : ''}`}
           >
@@ -198,8 +198,8 @@ const ConfigOptions = ({
                 groups[type].push(equipment);
                 return groups;
               }, {})
-            ).map(([type, equipmentList]) => (
-              <div key={type} className={styles.equipmentCategory}>
+            ).map(([type, equipmentList], typeIndex) => (
+              <div key={`equipment-type-${typeIndex}-${type}`} className={styles.equipmentCategory}>
                 <h4 className={styles.categoryTitle}>{translateInteriorEquipmentType(type)}</h4>
                 <div className={styles.equipmentGrid}>
                   {equipmentList.map((equipment) => {
@@ -274,8 +274,8 @@ const ConfigOptions = ({
 
     return (
       <div className={styles.accessoriesContainer}>
-        {Object.entries(accessoriesByType).map(([type, typeAccessories]) => (
-          <div key={type} className={styles.categorySection}>
+        {Object.entries(accessoriesByType).map(([type, typeAccessories], typeIndex) => (
+          <div key={`accessory-type-${typeIndex}-${type}`} className={styles.categorySection}>
             <h3 className={styles.categoryTitle}>{type}</h3>
             <div className={styles.configGrid}>
               {typeAccessories.map((accessory) => (

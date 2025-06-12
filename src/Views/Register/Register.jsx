@@ -369,7 +369,7 @@ const RegisterPage = () => {
                     </div>
                     <ul>
                       {errors.password.map((err, index) => (
-                        <li key={index}>{err}</li>
+                        <li key={`password-error-${index}-${err.substring(0, 10)}`}>{err}</li>
                       ))}
                     </ul>
                   </div>

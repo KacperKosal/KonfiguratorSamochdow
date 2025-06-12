@@ -66,7 +66,7 @@ const CarTableRow = ({ car, formatPrice, onShowDetails, onEdit, onDelete }) => (
         )}
         {car.cechy && car.cechy.slice(0, 2).map((cecha, index) => (
           <span
-            key={index}
+            key={`car-${car.id}-feature-${index}-${cecha}`}
             className={`${commonStyles.badge} ${commonStyles.badgeGray}`}
           >
             {cecha}

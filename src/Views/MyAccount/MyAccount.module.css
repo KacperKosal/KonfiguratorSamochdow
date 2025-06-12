@@ -474,3 +474,42 @@
     gap: 1rem;
   }
 }
+
+/* Configuration limit warning styles */
+.configurationHeader {
+  margin-bottom: 1.5rem;
+}
+
+.limitWarning {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.limitClose {
+  color: #d97706;
+  background-color: #fef3c7;
+  border: 1px solid #fcd34d;
+  display: block;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.limitReached {
+  color: #dc2626;
+  background-color: #fee2e2;
+  border: 1px solid #fca5a5;
+  display: block;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+}
+
+@media (max-width: 768px) {
+  .limitWarning {
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}

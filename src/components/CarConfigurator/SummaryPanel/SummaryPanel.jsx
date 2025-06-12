@@ -57,8 +57,8 @@ const SummaryPanel = ({
         return selectedWheels.length > 0 && (
           <div className={styles.summarySection}>
             <h3>Felgi</h3>
-            {selectedWheels.map((wheel) => (
-              <div key={wheel.id} className={styles.accessoryItem}>
+            {selectedWheels.map((wheel, index) => (
+              <div key={`summary-wheel-${wheel.id}-${index}`} className={styles.accessoryItem}>
                 <div>
                   <p>{wheel.name}</p>
                   {wheel.size && <p className={styles.wheelDetails}>Rozmiar: {wheel.size}"</p>}
@@ -78,8 +78,8 @@ const SummaryPanel = ({
         return nonWheelAccessories.length > 0 && (
           <div className={styles.summarySection}>
             <h3>Akcesoria</h3>
-            {nonWheelAccessories.map((accessory) => (
-              <div key={accessory.id} className={styles.accessoryItem}>
+            {nonWheelAccessories.map((accessory, index) => (
+              <div key={`summary-accessory-${accessory.id}-${index}`} className={styles.accessoryItem}>
                 <p>{accessory.name}</p>
                 <p className={styles.summaryPrice}>+{accessory.price?.toLocaleString() || 0} zł</p>
               </div>
@@ -92,8 +92,8 @@ const SummaryPanel = ({
       {selectedInteriorEquipment && selectedInteriorEquipment.length > 0 && (
         <div className={styles.summarySection}>
           <h3>Wyposażenie wnętrza</h3>
-          {selectedInteriorEquipment.map((equipment) => (
-            <div key={equipment.id} className={styles.summaryItem}>
+          {selectedInteriorEquipment.map((equipment, index) => (
+            <div key={`summary-interior-${equipment.id}-${index}`} className={styles.summaryItem}>
               <div>
                 <p className={styles.summaryItemName}>{equipment.value}</p>
                 <p className={styles.summaryItemDescription}>{equipment.description}</p>

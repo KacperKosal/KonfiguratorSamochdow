@@ -397,12 +397,12 @@ const CarModelImageManager = ({ carModelId, onClose }) => {
             <div className={styles.colorTabs}>
               <h4>Zdjęcia według kolorów:</h4>
               <div className={styles.tabs}>
-                {colorsWithImages.map(color => {
+                {colorsWithImages.map((color, index) => {
                   const colorInfo = availableColors.find(c => c.value === color);
                   const count = images.filter(img => img.color === color).length;
                   return (
                     <button
-                      key={color}
+                      key={`color-tab-${index}-${color}`}
                       onClick={() => handleTabChange(color)}
                       className={`${styles.tab} ${activeTab === color ? styles.activeTab : ''}`}
                     >

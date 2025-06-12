@@ -135,7 +135,7 @@ const CarDetailsModal = ({ car, onClose, onEdit, formatPrice }) => (
             <div className={styles.detailBadges}>
               {car.cechy.map((cecha, index) => (
                 <span
-                  key={index}
+                  key={`modal-${car.id}-feature-${index}-${cecha}`}
                   className={`${styles.detailBadge} ${styles.detailBadgeBlue}`}
                 >
                   {cecha}
@@ -154,7 +154,7 @@ const CarDetailsModal = ({ car, onClose, onEdit, formatPrice }) => (
             <div className={styles.detailBadges}>
               {car.wlasneCechy.map((cecha, index) => (
                 <span
-                  key={index}
+                  key={`modal-${car.id}-custom-${index}-${cecha}`}
                   className={`${styles.detailBadge} ${styles.detailBadgeGreen}`}
                 >
                   {cecha}
