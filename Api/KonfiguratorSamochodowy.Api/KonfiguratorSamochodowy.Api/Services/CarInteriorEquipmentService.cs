@@ -11,15 +11,18 @@ namespace KonfiguratorSamochodowy.Api.Services;
     public class CarInteriorEquipmentService : ICarInteriorEquipmentService
     {
         private readonly ICarInteriorEquipmentRepository _repository;
+        private readonly IVehicleRepository _vehicleRepository;
         private readonly CreateCarInteriorEquipmentValidator _createValidator;
         private readonly UpdateCarInteriorEquipmentValidator _updateValidator;
         
         public CarInteriorEquipmentService(
-            ICarInteriorEquipmentRepository repository, 
+            ICarInteriorEquipmentRepository repository,
+            IVehicleRepository vehicleRepository,
             CreateCarInteriorEquipmentValidator createValidator,
             UpdateCarInteriorEquipmentValidator updateValidator)
         {
             _repository = repository;
+            _vehicleRepository = vehicleRepository;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
         }
@@ -136,15 +139,23 @@ namespace KonfiguratorSamochodowy.Api.Services;
             };
             
             // Pobierz model samochodu na podstawie CarId
-            var carResult = await _repository.GetByCarIdAsync(request.CarId);
-            if (carResult.IsSuccess && carResult.Value.Any())
+            if (int.TryParse(request.CarId, out var carId))
             {
-                equipment.CarModel = carResult.Value.First().CarModel;
+                var vehicle = await _vehicleRepository.GetByIdAsync(carId);
+                if (vehicle != null)
+                {
+                    equipment.CarModel = vehicle.Model;
+                }
+                else
+                {
+                    return Result<CarInteriorEquipmentDto>.Failure(
+                        new Error("ValidationError", $"Nie znaleziono samochodu o ID: {request.CarId}"));
+                }
             }
             else
             {
                 return Result<CarInteriorEquipmentDto>.Failure(
-                    new Error("ValidationError", $"Nie znaleziono samochodu o ID: {request.CarId}"));
+                    new Error("ValidationError", $"Nieprawidłowy format ID samochodu: {request.CarId}"));
             }
             
             var result = await _repository.CreateAsync(equipment);

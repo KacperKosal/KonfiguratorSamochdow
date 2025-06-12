@@ -62,7 +62,7 @@ namespace KonfiguratorSamochodowy.Api.Validators
             When(x => x.CO2Emission.HasValue && x.FuelType != "Electric", () => {
                 RuleFor(x => x.CO2Emission.Value)
                     .GreaterThanOrEqualTo(0).WithMessage("Emisja CO2 nie może być ujemna")
-                    .LessThanOrEqualTo(20).WithMessage("Emisja CO2 nie może przekraczać 20 g/km");
+                    .LessThanOrEqualTo(100).WithMessage("Emisja CO2 nie może przekraczać 100 g/km");
             });
             
             When(x => !string.IsNullOrEmpty(x.Description), () => {

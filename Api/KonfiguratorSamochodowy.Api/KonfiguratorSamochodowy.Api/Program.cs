@@ -107,8 +107,6 @@ static async Task EnsureTablesExist(IServiceProvider services)
         // Extend Silnik table with additional columns
         await ExtendSilnikTable(connection);
         
-        // Create car model images table
-        await CreateCarModelImagesTable(connection);
         
         // Check if car_interior_equipment table exists
         var checkSql = @"
@@ -121,37 +119,7 @@ static async Task EnsureTablesExist(IServiceProvider services)
         // With this corrected line:
         var exists = await connection.ExecuteScalarAsync<bool>(checkSql);
 
-        if (!exists)
-        {
-            Console.WriteLine("Creating car_interior_equipment table...");
-            
-            var createSql = @"
-                CREATE TABLE car_interior_equipment (
-                    id VARCHAR(255) PRIMARY KEY,
-                    type VARCHAR(50) NOT NULL,
-                    value VARCHAR(255) NOT NULL,
-                    description TEXT,
-                    additional_price DECIMAL(10, 2) NOT NULL DEFAULT 0,
-                    has_navigation BOOLEAN DEFAULT FALSE,
-                    has_premium_sound BOOLEAN DEFAULT FALSE,
-                    control_type VARCHAR(50)
-                );
-                
-                INSERT INTO car_interior_equipment (id, type, value, description, additional_price, has_navigation, has_premium_sound, control_type) VALUES
-                ('1', 'Audio', 'System audio podstawowy', 'Standardowy system audio z radiem FM/AM', 0, FALSE, FALSE, 'Przyciski'),
-                ('2', 'Audio', 'System audio Premium', 'System audio wysokiej jakości z 12 głośnikami', 2500, FALSE, TRUE, 'Dotykowy'),
-                ('3', 'Nawigacja', 'Nawigacja podstawowa', 'System nawigacji z mapami Europy', 1500, TRUE, FALSE, 'Dotykowy'),
-                ('4', 'Nawigacja', 'Nawigacja Premium', 'Zaawansowany system nawigacji z Traffic Live', 3000, TRUE, TRUE, 'Głosowy'),
-                ('5', 'Klimatyzacja', 'Klimatyzacja automatyczna', 'Dwustrefowa automatyczna klimatyzacja', 2000, FALSE, FALSE, 'Automatyczny'),
-                ('6', 'Oświetlenie', 'Oświetlenie ambientowe', 'Kolorowe oświetlenie wnętrza z regulacją', 800, FALSE, FALSE, 'Dotykowy');";
-            
-            await connection.ExecuteAsync(createSql);
-            Console.WriteLine("car_interior_equipment table created successfully.");
-        }
-        else
-        {
-            Console.WriteLine("car_interior_equipment table already exists.");
-        }
+        
     }
     catch (Exception ex)
     {
@@ -173,35 +141,6 @@ static async Task ExtendSilnikTable(NpgsqlConnection connection)
             
         var tableExists = await connection.ExecuteScalarAsync<bool>(checkTableSql);
         
-        if (!tableExists)
-        {
-            Console.WriteLine("Creating Silnik table...");
-            
-            var createTableSql = @"
-                CREATE TABLE ""Silnik"" (
-                    ""ID"" SERIAL PRIMARY KEY,
-                    ""PojazdID"" INT REFERENCES Pojazd(ID),
-                    ""Pojemnosc"" VARCHAR(10),
-                    ""Typ"" VARCHAR(20),
-                    ""Moc"" SMALLINT,
-                    ""Nazwa"" VARCHAR(255),
-                    ""MomentObrotowy"" INT,
-                    ""RodzajPaliwa"" VARCHAR(50),
-                    ""Cylindry"" INT,
-                    ""Skrzynia"" VARCHAR(50),
-                    ""Biegi"" INT,
-                    ""NapedzType"" VARCHAR(50),
-                    ""ZuzyciePaliva"" VARCHAR(10),
-                    ""EmisjaCO2"" INT,
-                    ""Opis"" TEXT,
-                    ""JestAktywny"" BOOLEAN DEFAULT TRUE
-                );";
-                
-            await connection.ExecuteAsync(createTableSql);
-            Console.WriteLine("Silnik table created successfully.");
-            return; // Table is new, no need to extend
-        }
-        
         Console.WriteLine("Extending Silnik table with additional columns...");
         
         var alterSql = @"
@@ -219,47 +158,47 @@ static async Task ExtendSilnikTable(NpgsqlConnection connection)
                 END IF;
                 
                 -- FuelType (rodzaj paliwa) 
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'silnik' AND column_name = 'RodzajPaliwa') THEN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Silnik' AND column_name = 'RodzajPaliwa') THEN
                     ALTER TABLE ""Silnik"" ADD COLUMN ""RodzajPaliwa"" VARCHAR(50);
                 END IF;
                 
                 -- Cylinders (liczba cylindrów)
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'silnik' AND column_name = 'Cylindry') THEN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Silnik' AND column_name = 'Cylindry') THEN
                     ALTER TABLE ""Silnik"" ADD COLUMN ""Cylindry"" INT;
                 END IF;
                 
                 -- Transmission (skrzynia biegów)
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'silnik' AND column_name = 'Skrzynia') THEN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Silnik' AND column_name = 'Skrzynia') THEN
                     ALTER TABLE ""Silnik"" ADD COLUMN ""Skrzynia"" VARCHAR(50);
                 END IF;
                 
                 -- Gears (liczba biegów)
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'silnik' AND column_name = 'Biegi') THEN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Silnik' AND column_name = 'Biegi') THEN
                     ALTER TABLE ""Silnik"" ADD COLUMN ""Biegi"" INT;
                 END IF;
                 
                 -- DriveType (napęd)
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'silnik' AND column_name = 'NapedzType') THEN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Silnik' AND column_name = 'NapedzType') THEN
                     ALTER TABLE ""Silnik"" ADD COLUMN ""NapedzType"" VARCHAR(50);
                 END IF;
                 
                 -- FuelConsumption (zużycie paliwa)
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'silnik' AND column_name = 'ZuzyciePaliva') THEN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Silnik' AND column_name = 'ZuzyciePaliva') THEN
                     ALTER TABLE ""Silnik"" ADD COLUMN ""ZuzyciePaliva"" VARCHAR(10);
                 END IF;
                 
                 -- CO2Emission (emisja CO2)
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'silnik' AND column_name = 'EmisjaCO2') THEN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Silnik' AND column_name = 'EmisjaCO2') THEN
                     ALTER TABLE ""Silnik"" ADD COLUMN ""EmisjaCO2"" INT;
                 END IF;
                 
                 -- Description (opis)
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'silnik' AND column_name = 'Opis') THEN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Silnik' AND column_name = 'Opis') THEN
                     ALTER TABLE ""Silnik"" ADD COLUMN ""Opis"" TEXT;
                 END IF;
                 
                 -- IsActive (czy aktywny)
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'silnik' AND column_name = 'JestAktywny') THEN
+                IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'Silnik' AND column_name = 'JestAktywny') THEN
                     ALTER TABLE ""Silnik"" ADD COLUMN ""JestAktywny"" BOOLEAN DEFAULT TRUE;
                 END IF;
             END $$;";
@@ -300,216 +239,4 @@ static async Task ExtendSilnikTable(NpgsqlConnection connection)
     }
 }
 
-static async Task CreateCarModelImagesTable(NpgsqlConnection connection)
-{
-    try
-    {
-        Console.WriteLine("=== CreateCarModelImagesTable: Starting ===");
-        var checkSql = @"
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_schema = 'public' 
-                AND table_name = 'pojazd_zdjecie'
-            );";
 
-        var exists = await connection.ExecuteScalarAsync<bool>(checkSql);
-        Console.WriteLine($"=== CreateCarModelImagesTable: Table exists check returned: {exists} ===");
-
-        if (!exists)
-        {
-            Console.WriteLine("Creating pojazd_zdjecie table...");
-            
-            var createSql = @"
-                CREATE TABLE pojazd_zdjecie (
-                    ""Id"" VARCHAR(255) PRIMARY KEY,
-                    ""CarModelId"" VARCHAR(255) NOT NULL,
-                    ""ImageUrl"" VARCHAR(500) NOT NULL,
-                    ""Color"" VARCHAR(100) NOT NULL DEFAULT '',
-                    ""DisplayOrder"" INTEGER NOT NULL DEFAULT 1,
-                    ""IsMainImage"" BOOLEAN NOT NULL DEFAULT FALSE,
-                    ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-                    ""UpdatedAt"" TIMESTAMP WITH TIME ZONE
-                );
-                
-                CREATE INDEX idx_pojazd_zdjecie_carmodelid ON pojazd_zdjecie(""CarModelId"");
-                CREATE INDEX idx_pojazd_zdjecie_displayorder ON pojazd_zdjecie(""DisplayOrder"");
-                CREATE INDEX idx_pojazd_zdjecie_color ON pojazd_zdjecie(""Color"");";
-            
-            await connection.ExecuteAsync(createSql);
-            Console.WriteLine("=== CreateCarModelImagesTable: Table created successfully ===");
-        }
-        else 
-        {
-            Console.WriteLine("=== CreateCarModelImagesTable: Table already exists, checking structure ===");
-            
-            // Check if the table has the correct column structure
-            var columnsQuery = @"
-                SELECT column_name, data_type 
-                FROM information_schema.columns 
-                WHERE table_name = 'pojazd_zdjecie' 
-                ORDER BY ordinal_position;";
-            
-            var columns = await connection.QueryAsync(columnsQuery);
-            var columnNames = columns.Select(c => c.column_name).ToList();
-            Console.WriteLine($"Existing columns: {string.Join(", ", columnNames)}");
-            
-            // Check if we have the expected quoted columns
-            var expectedColumns = new[] { "Id", "CarModelId", "ImageUrl", "Color", "DisplayOrder", "IsMainImage", "CreatedAt", "UpdatedAt" };
-            var hasCorrectStructure = expectedColumns.All(expected => columnNames.Contains(expected));
-            
-            if (!hasCorrectStructure)
-            {
-                Console.WriteLine("=== Table structure is incorrect, recreating table ===");
-                
-                // Drop and recreate table with correct structure
-                var dropSql = "DROP TABLE IF EXISTS pojazd_zdjecie CASCADE;";
-                await connection.ExecuteAsync(dropSql);
-                
-                var createSql = @"
-                    CREATE TABLE pojazd_zdjecie (
-                        ""Id"" VARCHAR(255) PRIMARY KEY,
-                        ""CarModelId"" VARCHAR(255) NOT NULL,
-                        ""ImageUrl"" VARCHAR(500) NOT NULL,
-                        ""Color"" VARCHAR(100) NOT NULL DEFAULT '',
-                        ""DisplayOrder"" INTEGER NOT NULL DEFAULT 1,
-                        ""IsMainImage"" BOOLEAN NOT NULL DEFAULT FALSE,
-                        ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-                        ""UpdatedAt"" TIMESTAMP WITH TIME ZONE
-                    );
-                    
-                    CREATE INDEX idx_pojazd_zdjecie_carmodelid ON pojazd_zdjecie(""CarModelId"");
-                    CREATE INDEX idx_pojazd_zdjecie_displayorder ON pojazd_zdjecie(""DisplayOrder"");
-                    CREATE INDEX idx_pojazd_zdjecie_color ON pojazd_zdjecie(""Color"");";
-                
-                await connection.ExecuteAsync(createSql);
-                Console.WriteLine("=== CreateCarModelImagesTable: Table recreated with correct structure ===");
-            }
-            else
-            {
-                Console.WriteLine("=== CreateCarModelImagesTable: Table structure is correct ===");
-                
-                // Check if Color column exists
-                if (!columnNames.Contains("Color"))
-                {
-                    Console.WriteLine("=== Adding Color column to existing table ===");
-                    var alterSql = @"ALTER TABLE pojazd_zdjecie ADD COLUMN ""Color"" VARCHAR(100) NOT NULL DEFAULT '';
-                                    CREATE INDEX idx_pojazd_zdjecie_color ON pojazd_zdjecie(""Color"");";
-                    await connection.ExecuteAsync(alterSql);
-                    Console.WriteLine("=== Color column added successfully ===");
-                }
-            }
-        }
-        Console.WriteLine("=== CreateCarModelImagesTable: Completed ===");
-        
-        // Migration: Update old English color names to Polish names
-        await MigrateColorNames(connection);
-        
-        // Create car model colors table
-        await CreateCarModelColorsTable(connection);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"=== CreateCarModelImagesTable: ERROR - {ex.Message} ===");
-        Console.WriteLine($"=== CreateCarModelImagesTable: FULL ERROR - {ex} ===");
-    }
-}
-
-static async Task MigrateColorNames(NpgsqlConnection connection)
-{
-    try
-    {
-        Console.WriteLine("=== MigrateColorNames: Starting color name migration ===");
-        
-        var colorMigrationMapping = new Dictionary<string, string>
-        {
-            { "white", "Biały" },
-            { "black", "Czarny" },
-            { "silver", "Srebrny" },
-            { "gray", "Szary" },
-            { "red", "Czerwony" },
-            { "blue", "Niebieski" },
-            { "green", "Zielony" },
-            { "yellow", "Żółty" },
-            { "orange", "Pomarańczowy" },
-            { "brown", "Brązowy" },
-            { "beige", "Beżowy" },
-            { "gold", "Złoty" },
-            { "navy", "Granatowy" },
-            { "purple", "Fioletowy" }
-        };
-        
-        foreach (var mapping in colorMigrationMapping)
-        {
-            var updateSql = @"
-                UPDATE pojazd_zdjecie 
-                SET ""Color"" = @NewColor 
-                WHERE ""Color"" = @OldColor";
-            
-            var rowsAffected = await connection.ExecuteAsync(updateSql, new { 
-                OldColor = mapping.Key, 
-                NewColor = mapping.Value 
-            });
-            
-            if (rowsAffected > 0)
-            {
-                Console.WriteLine($"=== MigrateColorNames: Updated {rowsAffected} rows from '{mapping.Key}' to '{mapping.Value}' ===");
-            }
-        }
-        
-        Console.WriteLine("=== MigrateColorNames: Color name migration completed ===");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"=== MigrateColorNames: ERROR - {ex.Message} ===");
-    }
-}
-
-static async Task CreateCarModelColorsTable(NpgsqlConnection connection)
-{
-    try
-    {
-        Console.WriteLine("=== CreateCarModelColorsTable: Starting ===");
-        var checkSql = @"
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_schema = 'public' 
-                AND table_name = 'car_model_colors'
-            );";
-
-        var exists = await connection.ExecuteScalarAsync<bool>(checkSql);
-        Console.WriteLine($"=== CreateCarModelColorsTable: Table exists check returned: {exists} ===");
-
-        if (!exists)
-        {
-            Console.WriteLine("Creating car_model_colors table...");
-            
-            var createSql = @"
-                CREATE TABLE car_model_colors (
-                    ""Id"" VARCHAR(255) PRIMARY KEY,
-                    ""CarModelId"" VARCHAR(255) NOT NULL,
-                    ""ColorName"" VARCHAR(100) NOT NULL,
-                    ""Price"" INTEGER NOT NULL DEFAULT 0 CHECK (""Price"" >= 0 AND ""Price"" <= 60000),
-                    ""CreatedAt"" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-                    ""UpdatedAt"" TIMESTAMP WITH TIME ZONE,
-                    CONSTRAINT unique_car_model_color UNIQUE (""CarModelId"", ""ColorName"")
-                );
-                
-                CREATE INDEX idx_car_model_colors_carmodelid ON car_model_colors(""CarModelId"");
-                CREATE INDEX idx_car_model_colors_colorname ON car_model_colors(""ColorName"");";
-            
-            await connection.ExecuteAsync(createSql);
-            Console.WriteLine("=== CreateCarModelColorsTable: Table created successfully ===");
-        }
-        else 
-        {
-            Console.WriteLine("=== CreateCarModelColorsTable: Table already exists ===");
-        }
-        
-        Console.WriteLine("=== CreateCarModelColorsTable: Completed ===");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"=== CreateCarModelColorsTable: ERROR - {ex.Message} ===");
-        Console.WriteLine($"=== CreateCarModelColorsTable: FULL ERROR - {ex} ===");
-    }
-}

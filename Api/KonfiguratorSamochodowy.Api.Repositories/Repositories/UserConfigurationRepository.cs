@@ -226,26 +226,7 @@ public class UserConfigurationRepository : IUserConfigurationRepository
     private async Task EnsureTableExists(NpgsqlConnection connection)
     {
         const string createTableSql = @"
-            CREATE TABLE IF NOT EXISTS user_configurations (
-                id SERIAL PRIMARY KEY,
-                user_id INTEGER NOT NULL,
-                configuration_name VARCHAR(255) NOT NULL,
-                car_model_id VARCHAR(255),
-                car_model_name VARCHAR(255),
-                engine_id VARCHAR(255),
-                engine_name VARCHAR(255),
-                exterior_color VARCHAR(50),
-                exterior_color_name VARCHAR(100),
-                selected_accessories TEXT,
-                selected_interior_equipment TEXT,
-                total_price DECIMAL(12, 2) NOT NULL DEFAULT 0,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP WITH TIME ZONE,
-                is_active BOOLEAN DEFAULT true
-            );
-
-            CREATE INDEX IF NOT EXISTS idx_user_configurations_user_id ON user_configurations(user_id);
-            CREATE INDEX IF NOT EXISTS idx_user_configurations_created_at ON user_configurations(created_at);";
+            ";
 
         await connection.ExecuteAsync(createTableSql);
     }

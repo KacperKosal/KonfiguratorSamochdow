@@ -24,6 +24,26 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
         {
             try
             {
+                // Check if ""Silnik"" table exists first
+                var tableExistsQuery = @"
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_name = 'Silnik'
+                    )";
+                
+                var silnikTableExists = await _connection.QuerySingleAsync<bool>(tableExistsQuery);
+                var modelsilnikTableExists = await _connection.QuerySingleAsync<bool>(@"
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_name = 'modelsilnik'
+                    )");
+
+                if (!silnikTableExists || !modelsilnikTableExists)
+                {
+                    // Return empty list if tables don't exist yet
+                    return Result<IEnumerable<CarModelEngine>>.Success(new List<CarModelEngine>());
+                }
+
                 var query = @"
                     SELECT
                         CAST(ms.id AS VARCHAR) as Id,
@@ -32,14 +52,14 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         ms.cenadodatkowa as AdditionalPrice,
                         TRUE as IsDefault,
                         CAST(CASE 
-                            WHEN s.typ = 'benzyna' THEN 200 + CAST(s.moc AS INTEGER) / 2
-                            WHEN s.typ = 'diesel' THEN 180 + CAST(s.moc AS INTEGER) / 3
-                            WHEN s.typ = 'elektryczny' THEN 220 + CAST(s.moc AS INTEGER) / 4
-                            ELSE 160 + CAST(s.moc AS INTEGER) / 5
+                            WHEN s.""Typ"" = 'benzyna' THEN 200 + CAST(s.""Moc"" AS INTEGER) / 2
+                            WHEN s.""Typ"" = 'diesel' THEN 180 + CAST(s.""Moc"" AS INTEGER) / 3
+                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + CAST(s.""Moc"" AS INTEGER) / 4
+                            ELSE 160 + CAST(s.""Moc"" AS INTEGER) / 5
                         END AS INT) as TopSpeed,
                         CAST(CASE
-                            WHEN s.typ = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - CAST(s.moc AS INTEGER)) / 100.0
+                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - CAST(s.""Moc"" AS INTEGER)) / 100.0
                         END AS DECIMAL(4,1)) as Acceleration0To100,
                         NOW() as AvailabilityDate,
                         TRUE as IsAvailable, 
@@ -50,9 +70,9 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     JOIN 
                         pojazd p ON ms.modelid = p.id
                     JOIN 
-                        silnik s ON ms.silnikid = s.id
+                        ""Silnik"" s ON ms.silnikid = s.""ID""
                     ORDER BY 
-                        p.model, CAST(s.moc AS INTEGER) DESC";
+                        p.model, CAST(s.""Moc"" AS INTEGER) DESC";
 
                 var carModelEngines = await _connection.QueryAsync<CarModelEngine>(query);
                 
@@ -76,14 +96,14 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         ms.cenadodatkowa as AdditionalPrice,
                         TRUE as IsDefault,
                         CASE 
-                            WHEN s.typ = 'benzyna' THEN 200 + CAST(s.moc AS INTEGER) / 2
-                            WHEN s.typ = 'diesel' THEN 180 + CAST(s.moc AS INTEGER) / 3
-                            WHEN s.typ = 'elektryczny' THEN 220 + CAST(s.moc AS INTEGER) / 4
-                            ELSE 160 + CAST(s.moc AS INTEGER) / 5
+                            WHEN s.""Typ"" = 'benzyna' THEN 200 + CAST(s.""Moc"" AS INTEGER) / 2
+                            WHEN s.""Typ"" = 'diesel' THEN 180 + CAST(s.""Moc"" AS INTEGER) / 3
+                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + CAST(s.""Moc"" AS INTEGER) / 4
+                            ELSE 160 + CAST(s.""Moc"" AS INTEGER) / 5
                         END as TopSpeed,
                         CASE
-                            WHEN s.typ = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - CAST(s.moc AS INTEGER)) / 100.0
+                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - CAST(s.""Moc"" AS INTEGER)) / 100.0
                         END as Acceleration0To100,
                         NOW() as AvailabilityDate,
                         TRUE as IsAvailable, 
@@ -94,7 +114,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     JOIN 
                         pojazd p ON ms.modelid = p.id
                     JOIN 
-                        silnik s ON ms.silnikid = s.id
+                        ""Silnik"" s ON ms.silnikid = s.""ID""
                     WHERE 
                         ms.id = CAST(@Id AS INTEGER)";
 
@@ -125,14 +145,14 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         ms.cenadodatkowa as AdditionalPrice,
                         TRUE as IsDefault,
                         CASE 
-                            WHEN s.typ = 'benzyna' THEN 200 + CAST(s.moc AS INTEGER) / 2
-                            WHEN s.typ = 'diesel' THEN 180 + CAST(s.moc AS INTEGER) / 3
-                            WHEN s.typ = 'elektryczny' THEN 220 + CAST(s.moc AS INTEGER) / 4
-                            ELSE 160 + CAST(s.moc AS INTEGER) / 5
+                            WHEN s.""Typ"" = 'benzyna' THEN 200 + CAST(s.""Moc"" AS INTEGER) / 2
+                            WHEN s.""Typ"" = 'diesel' THEN 180 + CAST(s.""Moc"" AS INTEGER) / 3
+                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + CAST(s.""Moc"" AS INTEGER) / 4
+                            ELSE 160 + CAST(s.""Moc"" AS INTEGER) / 5
                         END as TopSpeed,
                         CASE
-                            WHEN s.typ = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - CAST(s.moc AS INTEGER)) / 100.0
+                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - CAST(s.""Moc"" AS INTEGER)) / 100.0
                         END as Acceleration0To100,
                         NOW() as AvailabilityDate,
                         TRUE as IsAvailable, 
@@ -143,7 +163,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     JOIN 
                         pojazd p ON ms.modelid = p.id
                     JOIN 
-                        silnik s ON ms.silnikid = s.id
+                        ""Silnik"" s ON ms.silnikid = s.""ID""
                     WHERE 
                         ms.modelid = CAST(@CarModelId AS INTEGER)
                         AND ms.silnikid = CAST(@EngineId AS INTEGER)";
@@ -175,14 +195,14 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         ms.cenadodatkowa as AdditionalPrice,
                         TRUE as IsDefault,
                         CASE 
-                            WHEN s.typ = 'benzyna' THEN 200 + CAST(s.moc AS INTEGER) / 2
-                            WHEN s.typ = 'diesel' THEN 180 + CAST(s.moc AS INTEGER) / 3
-                            WHEN s.typ = 'elektryczny' THEN 220 + CAST(s.moc AS INTEGER) / 4
-                            ELSE 160 + CAST(s.moc AS INTEGER) / 5
+                            WHEN s.""Typ"" = 'benzyna' THEN 200 + CAST(s.""Moc"" AS INTEGER) / 2
+                            WHEN s.""Typ"" = 'diesel' THEN 180 + CAST(s.""Moc"" AS INTEGER) / 3
+                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + CAST(s.""Moc"" AS INTEGER) / 4
+                            ELSE 160 + CAST(s.""Moc"" AS INTEGER) / 5
                         END as TopSpeed,
                         CASE
-                            WHEN s.typ = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - CAST(s.moc AS INTEGER)) / 100.0
+                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - CAST(s.""Moc"" AS INTEGER)) / 100.0
                         END as Acceleration0To100,
                         NOW() as AvailabilityDate,
                         TRUE as IsAvailable, 
@@ -193,11 +213,11 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     JOIN 
                         pojazd p ON ms.modelid = p.id
                     JOIN 
-                        silnik s ON ms.silnikid = s.id
+                        ""Silnik"" s ON ms.silnikid = s.""ID""
                     WHERE 
                         ms.modelid = CAST(@CarModelId AS INTEGER)
                     ORDER BY 
-                        CAST(s.moc AS INTEGER) DESC";
+                        CAST(s.""Moc"" AS INTEGER) DESC";
 
                 var carModelEngines = await _connection.QueryAsync<CarModelEngine>(query, new { CarModelId = carModelId });
                 
@@ -221,14 +241,14 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         ms.cenadodatkowa as AdditionalPrice,
                         TRUE as IsDefault,
                         CASE 
-                            WHEN s.typ = 'benzyna' THEN 200 + s.moc / 2
-                            WHEN s.typ = 'diesel' THEN 180 + s.moc / 3
-                            WHEN s.typ = 'elektryczny' THEN 220 + s.moc / 4
-                            ELSE 160 + s.moc / 5
+                            WHEN s.""Typ"" = 'benzyna' THEN 200 + s.""Moc"" / 2
+                            WHEN s.""Typ"" = 'diesel' THEN 180 + s.""Moc"" / 3
+                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + s.""Moc"" / 4
+                            ELSE 160 + s.""Moc"" / 5
                         END as TopSpeed,
                         CASE
-                            WHEN s.typ = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - s.moc) / 100.0
+                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - s.""Moc"") / 100.0
                         END as Acceleration0To100,
                         NOW() as AvailabilityDate,
                         TRUE as IsAvailable, 
@@ -239,7 +259,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     JOIN 
                         pojazd p ON ms.modelid = p.id
                     JOIN 
-                        silnik s ON ms.silnikid = s.id
+                        ""Silnik"" s ON ms.silnikid = s.""ID""
                     WHERE 
                         ms.silnikid = CAST(@EngineId AS INTEGER)
                     ORDER BY 
@@ -306,14 +326,14 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         ms.cenadodatkowa as AdditionalPrice,
                         TRUE as IsDefault,
                         CASE 
-                            WHEN s.typ = 'benzyna' THEN 200 + s.moc / 2
-                            WHEN s.typ = 'diesel' THEN 180 + s.moc / 3
-                            WHEN s.typ = 'elektryczny' THEN 220 + s.moc / 4
-                            ELSE 160 + s.moc / 5
+                            WHEN s.""Typ"" = 'benzyna' THEN 200 + s.""Moc"" / 2
+                            WHEN s.""Typ"" = 'diesel' THEN 180 + s.""Moc"" / 3
+                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + s.""Moc"" / 4
+                            ELSE 160 + s.""Moc"" / 5
                         END as TopSpeed,
                         CASE
-                            WHEN s.typ = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - s.moc) / 100.0
+                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - s.""Moc"") / 100.0
                         END as Acceleration0To100,
                         NOW() as AvailabilityDate,
                         TRUE as IsAvailable, 
@@ -324,7 +344,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     JOIN 
                         pojazd p ON ms.modelid = p.id
                     JOIN 
-                        silnik s ON ms.silnikid = s.id
+                        ""Silnik"" s ON ms.silnikid = s.""ID""
                     WHERE 
                         ms.id = @InsertedId";
                         
@@ -391,14 +411,14 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         ms.cenadodatkowa as AdditionalPrice,
                         TRUE as IsDefault,
                         CASE 
-                            WHEN s.typ = 'benzyna' THEN 200 + s.moc / 2
-                            WHEN s.typ = 'diesel' THEN 180 + s.moc / 3
-                            WHEN s.typ = 'elektryczny' THEN 220 + s.moc / 4
-                            ELSE 160 + s.moc / 5
+                            WHEN s.""Typ"" = 'benzyna' THEN 200 + s.""Moc"" / 2
+                            WHEN s.""Typ"" = 'diesel' THEN 180 + s.""Moc"" / 3
+                            WHEN s.""Typ"" = 'elektryczny' THEN 220 + s.""Moc"" / 4
+                            ELSE 160 + s.""Moc"" / 5
                         END as TopSpeed,
                         CASE
-                            WHEN s.typ = 'elektryczny' THEN 5.0
-                            ELSE (1000.0 - s.moc) / 100.0
+                            WHEN s.""Typ"" = 'elektryczny' THEN 5.0
+                            ELSE (1000.0 - s.""Moc"") / 100.0
                         END as Acceleration0To100,
                         NOW() as AvailabilityDate,
                         TRUE as IsAvailable, 
@@ -409,7 +429,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                     JOIN 
                         pojazd p ON ms.modelid = p.id
                     JOIN 
-                        silnik s ON ms.silnikid = s.id
+                        ""Silnik"" s ON ms.silnikid = s.""ID""
                     WHERE 
                         ms.id = CAST(@Id AS INTEGER)";
 

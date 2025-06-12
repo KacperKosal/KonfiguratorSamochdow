@@ -24,7 +24,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories
 
             // Minimal configuration - we're primarily using Dapper for our repositories
             modelBuilder.Entity<CarModel>().ToTable("pojazd");
-            modelBuilder.Entity<Engine>().ToTable("silnik");
+            modelBuilder.Entity<Engine>().ToTable("Silnik");
             modelBuilder.Entity<CarModelEngine>().ToTable("modelsilnik");
             modelBuilder.Entity<CarModelImage>().ToTable("pojazd_zdjecie");
         }

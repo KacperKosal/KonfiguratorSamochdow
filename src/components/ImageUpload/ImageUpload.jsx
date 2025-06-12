@@ -2,7 +2,7 @@
 import { useRef } from 'react';
 import styles from './ImageUpload.module.css';
 
-const ImageUpload = ({ imageData, onImageChange, onImageRemove }) => {
+const ImageUpload = ({ imageData, onImageChange, onImageRemove, label = "Zdjęcie samochodu" }) => {
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -42,7 +42,7 @@ const ImageUpload = ({ imageData, onImageChange, onImageRemove }) => {
   return (
     <div className={styles.fileUpload}>
       <label className={styles.formLabel}>
-        Zdjęcie samochodu
+        {label}
       </label>
       <div className={styles.spaceY3}>
         <div>

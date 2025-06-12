@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, Save, X, AlertCircle, Car, Settings, Package, Palette, Link, Images } from 'lucide-react';
 import adminApiService from '../../services/adminApiService';
 import SafeImage from '../SafeImage/SafeImage';
+import ImageUpload from '../ImageUpload/ImageUpload';
 import EngineAssignment from './EngineAssignment';
 import CarModelImageManager from './CarModelImageManager';
 import { translateAccessoryType, translateInteriorEquipmentType, translateAccessoryCategory } from '../../utils/translations';
@@ -426,8 +427,8 @@ const CarAdminPanel = () => {
             newErrors.co2Emission = 'Emisja CO2 musi być liczbą';
           } else if (parseInt(formData.co2Emission) < 0) {
             newErrors.co2Emission = 'Emisja CO2 nie może być ujemna';
-          } else if (parseInt(formData.co2Emission) > 20) {
-            newErrors.co2Emission = 'Emisja CO2 nie może przekraczać 20 g/km';
+          } else if (parseInt(formData.co2Emission) > 100) {
+            newErrors.co2Emission = 'Emisja CO2 nie może przekraczać 100 g/km';
           }
         }
 
@@ -520,6 +521,16 @@ const CarAdminPanel = () => {
 
         if (formData.description && formData.description.length > 800) {
           newErrors.description = 'Opis nie może przekraczać 800 znaków';
+        }
+
+        // Walidacja specyficzna dla felg (AlloyWheels)
+        if (formData.type === 'AlloyWheels') {
+          if (!formData.size) {
+            newErrors.size = 'Rozmiar felg jest wymagany';
+          }
+          if (!formData.pattern || !formData.pattern.trim()) {
+            newErrors.pattern = 'Wzór felg jest wymagany';
+          }
         }
         break;
 
@@ -787,8 +798,38 @@ const CarAdminPanel = () => {
       setShowForm(false);
       resetForm();
     } catch (error) {
-      console.error('Error saving car model:', error);
-      setApiError(`Nie udało się ${isEditing ? 'zaktualizować' : 'dodać'} modelu`);
+      console.error('Error saving:', error);
+      let errorMessage = `Nie udało się ${isEditing ? 'zaktualizować' : 'dodać'} `;
+      
+      switch (activeTab) {
+        case 'models':
+          errorMessage += 'modelu';
+          break;
+        case 'engines':
+          errorMessage += 'silnika';
+          break;
+        case 'accessories':
+          errorMessage += 'akcesorium';
+          break;
+        case 'interior':
+          errorMessage += 'wyposażenia wnętrza';
+          break;
+        default:
+          errorMessage += 'modelu';
+      }
+      
+      // Sprawdź czy to błąd walidacji z API
+      if (error.response?.data) {
+        const apiErrorMessage = error.response.data.message || error.response.data.error || error.response.data;
+        if (typeof apiErrorMessage === 'string') {
+          // Jeśli API zwraca konkretny błąd (np. numer części się powtarza)
+          errorMessage = apiErrorMessage;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setApiError(errorMessage);
     } finally {
       setLoading(false);
       setUploadingImage(false);
@@ -1554,7 +1595,7 @@ const CarAdminPanel = () => {
                   value={formData.co2Emission}
                   onChange={handleInputChange}
                   min="0"
-                  max="20"
+                  max="100"
                   className={errors.co2Emission ? styles.errorInput : ''}
                 />
                 {errors.co2Emission && <span className={styles.errorText}>{errors.co2Emission}</span>}
@@ -1761,6 +1802,18 @@ const CarAdminPanel = () => {
               {errors.pattern && <span className={styles.errorText}>{errors.pattern}</span>}
             </div>
           </div>
+          
+          {/* Zdjęcie felgi - tylko przy dodawaniu nowego akcesorium */}
+          {!isEditing && (
+            <div className={styles.formGroup}>
+              <ImageUpload
+                imageData={imagePreview}
+                onImageChange={handleImageUpload}
+                onImageRemove={handleRemoveImage}
+                label="Zdjęcie felgi"
+              />
+            </div>
+          )}
         </>
       )}
 

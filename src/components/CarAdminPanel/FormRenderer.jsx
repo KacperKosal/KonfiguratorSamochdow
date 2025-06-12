@@ -632,6 +632,7 @@ const FormRenderer = ({
         </div>
       </div>
 
+
       <div className={styles.formGroup}>
         <label>Opis</label>
         <textarea

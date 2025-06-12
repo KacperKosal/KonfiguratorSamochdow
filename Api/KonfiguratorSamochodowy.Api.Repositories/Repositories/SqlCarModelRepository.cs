@@ -99,19 +99,25 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
                         END as Segment,
                         p.cena as BasePrice,
                         p.opis as Description,
-                        CASE
-                            WHEN p.model ILIKE '%bmw%' THEN '/images/models/bmw.jpg'
-                            WHEN p.model ILIKE '%toyota%' THEN '/images/models/toyota.jpg'
-                            WHEN p.model ILIKE '%tesla%' THEN '/images/models/tesla.jpg'
-                            ELSE '/images/models/default.jpg'
-                        END as ImageUrl,
+                        COALESCE(p.imageurl, 
+                            CASE
+                                WHEN p.model ILIKE '%bmw%' THEN '/images/models/bmw.jpg'
+                                WHEN p.model ILIKE '%toyota%' THEN '/images/models/toyota.jpg'
+                                WHEN p.model ILIKE '%tesla%' THEN '/images/models/tesla.jpg'
+                                ELSE '/images/models/default.jpg'
+                            END
+                        ) as ImageUrl,
                         isactive as IsActive,
+                        p.ma4x4 as Has4x4,
+                        p.jestelektryczny as IsElectric,
+                        p.typnadwozia as BodyTypeValue,
                         NOW() - INTERVAL '30 days' * RANDOM() as CreatedAt,
                         NULL as UpdatedAt
                     FROM 
                         pojazd p
                     WHERE 
-                        p.id = @Id::integer";
+                        p.id = CAST(@Id AS INTEGER)
+                        AND isactive = true";
 
                 var carModel = await _connection.QueryFirstOrDefaultAsync<CarModel>(query, new { Id = id });
 

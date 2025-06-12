@@ -11,11 +11,6 @@ const axiosInstance = axios.create({
   withCredentials: true // Ważne dla ciasteczek z refresh tokenem
 });
 
-// Funkcja do ustawienia tokenu (deprecated - używamy request interceptora)
-export const setAuthToken = (token) => {
-  // Nie robimy nic - token jest dodawany przez request interceptor
-};
-
 // Funkcja do odświeżenia tokenu
 const refreshAccessToken = async () => {
   try {

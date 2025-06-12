@@ -19,7 +19,7 @@ namespace KonfiguratorSamochodowy.Api.Validators
             When(x => !string.IsNullOrEmpty(x.PartNumber), () => {
                 RuleFor(x => x.PartNumber)
                     .MaximumLength(255).WithMessage("Przekroczono dozwoloną liczbę znaków lub wartość liczbową.");
-                // Uwaga: walidacja unikalności dla Update wymaga dodatkowej logiki w kontrolerze
+                // Uwaga: walidacja unikalności dla Update będzie sprawdzana w serwisie
             });
             
             When(x => !string.IsNullOrEmpty(x.Manufacturer), () => {

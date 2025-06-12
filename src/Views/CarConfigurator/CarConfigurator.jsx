@@ -32,6 +32,9 @@ const CarConfigurator = () => {
   const [error, setError] = useState(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [originalConfiguration, setOriginalConfiguration] = useState(null);
+  const [pendingConfiguration, setPendingConfiguration] = useState(null);
+  const [isLoadingConfiguration, setIsLoadingConfiguration] = useState(false);
+  const [isLoadingModelData, setIsLoadingModelData] = useState(false);
 
   // Konfiguracja API
   const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7001';
@@ -62,61 +65,9 @@ const CarConfigurator = () => {
         if (selectedModel) {
           console.log('Wybrany model samochodu:', selectedModel);
           setSelectedCarModel(selectedModel);
-          
-          // Pobierz dostępne kolory dla modelu
-          try {
-            console.log(`Pobieranie dostępnych kolorów dla modelu: ${selectedModel.id}`);
-            const availableColorsData = await adminApiService.getAvailableColorsForModel(selectedModel.id);
-            console.log('Otrzymane dostępne kolory:', availableColorsData);
-            setAvailableColors(availableColorsData || []);
-            
-            // Pobierz ceny kolorów
-            try {
-              const colorPricesData = await adminApiService.getColorPricesForModel(selectedModel.id);
-              console.log('Otrzymane ceny kolorów:', colorPricesData);
-              setColorPrices(colorPricesData || {});
-            } catch (err) {
-              console.log('Błąd pobierania cen kolorów:', err);
-              setColorPrices({});
-            }
-            
-            // Ustaw domyślny kolor jeśli dostępne
-            if (availableColorsData && availableColorsData.length > 0) {
-              const defaultColorName = availableColorsData[0];
-              console.log(`Ustawianie domyślnego koloru: ${defaultColorName}`);
-              const staticColor = staticExteriorColors.find(c => c.name === defaultColorName);
-              console.log('Znaleziony statyczny kolor:', staticColor);
-              if (staticColor) {
-                setCarColor(staticColor.value);
-                console.log(`Ustawiono kolor samochodu na: ${staticColor.value}`);
-              }
-            } else {
-              console.log('Brak dostępnych kolorów dla tego modelu');
-              // Jeśli brak kolorów i aktywna jest zakładka exterior, przełącz na engine
-              if (activeTab === 'exterior') {
-                setActiveTab('engine');
-              }
-            }
-          } catch (err) {
-            console.error('Błąd pobierania dostępnych kolorów:', err);
-            setAvailableColors([]);
-          }
-          
-          // Pobierz silniki dla wybranego modelu
-          console.log(`Pobieranie silników dla modelu: ${selectedModel.id}`);
-          const enginesResponse = await fetch(`${apiUrl}/api/car-models/${selectedModel.id}/engines`);
-          if (enginesResponse.ok) {
-            const enginesData = await enginesResponse.json();
-            console.log('Otrzymane silniki:', enginesData);
-            setEngines(enginesData);
-            if (enginesData.length > 0) {
-              setSelectedEngine(enginesData[0]);
-              console.log('Wybrany domyślny silnik:', enginesData[0]);
-            }
-          } else {
-            console.error('Błąd pobierania silników:', enginesResponse.status, enginesResponse.statusText);
-          }
-          
+          // Dane specyficzne dla modelu będą załadowane przez osobny useEffect
+        } else {
+          // Jeśli nie ma wybranego modelu, załaduj globalne dane
           // Pobierz akcesoria
           let accessoriesData = [];
           try {
@@ -128,7 +79,13 @@ const CarConfigurator = () => {
             console.log('Błąd pobierania akcesorii:', err);
           }
           
-          setAccessories(accessoriesData.map(acc => ({ ...acc, selected: false })));
+          setAccessories(accessoriesData.map(acc => {
+            // Konstruuj pełny URL dla zdjęcia jeśli jest to tylko nazwa pliku
+            const imageUrl = acc.imageUrl && !acc.imageUrl.startsWith('http') 
+              ? `${apiUrl}/api/images/${acc.imageUrl}` 
+              : acc.imageUrl;
+            return { ...acc, selected: false, imageUrl };
+          }));
           
           // Pobierz wyposażenie wnętrza
           let interiorEquipmentData = [];
@@ -158,6 +115,10 @@ const CarConfigurator = () => {
   // Pobieranie konfiguracji z API na podstawie configurationId
   useEffect(() => {
     const loadConfigurationFromApi = async () => {
+      // Nie ładuj konfiguracji jeśli jest pendingConfiguration (czeka na dane nowego modelu)
+      // lub jeśli konfiguracja już została załadowana
+      if (pendingConfiguration || originalConfiguration) return;
+      
       if (configurationId && !loading) {
         try {
           console.log('Pobieranie konfiguracji z API dla ID:', configurationId);
@@ -173,63 +134,276 @@ const CarConfigurator = () => {
             setOriginalConfiguration(apiConfiguration);
             
             // Wczytaj konfigurację
-            loadSavedConfiguration(apiConfiguration);
+            setIsLoadingConfiguration(true);
+            setTimeout(() => {
+              loadSavedConfiguration(apiConfiguration);
+              setTimeout(() => setIsLoadingConfiguration(false), 100);
+            }, 50);
           } else {
             console.error('Błąd pobierania konfiguracji z API:', response.status);
             // Fallback - użyj danych z location.state
             if (savedConfiguration) {
+              setIsLoadingConfiguration(true);
               loadSavedConfiguration(savedConfiguration);
+              setIsLoadingConfiguration(false);
             }
           }
         } catch (err) {
           console.error('Błąd pobierania konfiguracji:', err);
           // Fallback - użyj danych z location.state
           if (savedConfiguration) {
+            setIsLoadingConfiguration(true);
             loadSavedConfiguration(savedConfiguration);
+            setIsLoadingConfiguration(false);
           }
         }
       } else if (savedConfiguration && !loading) {
         // Jeśli nie ma configurationId, ale jest savedConfiguration
+        setIsLoadingConfiguration(true);
         loadSavedConfiguration(savedConfiguration);
+        setIsLoadingConfiguration(false);
       }
     };
 
     loadConfigurationFromApi();
-  }, [configurationId, loading, engines, accessories, interiorEquipment, carModels]);
+  }, [configurationId, loading, carModels]);
+
+  // UseEffect do ładowania danych specyficznych dla wybranego modelu
+  useEffect(() => {
+    const loadModelSpecificData = async () => {
+      if (!selectedCarModel || loading || isLoadingConfiguration || isLoadingModelData) return;
+      
+      console.log(`=== ŁADOWANIE DANYCH MODELU: ${selectedCarModel.id} ===`);
+      console.log('Timestamp:', new Date().toISOString());
+      
+      setIsLoadingModelData(true);
+      
+      try {
+        // Pobierz dostępne kolory dla modelu
+        try {
+          console.log(`Pobieranie dostępnych kolorów dla modelu: ${selectedCarModel.id}`);
+          const availableColorsData = await adminApiService.getAvailableColorsForModel(selectedCarModel.id);
+          console.log('Otrzymane dostępne kolory:', availableColorsData);
+          setAvailableColors(availableColorsData);
+          
+          try {
+            const colorPricesData = await adminApiService.getColorPricesForModel(selectedCarModel.id);
+            console.log('Otrzymane ceny kolorów:', colorPricesData);
+            setColorPrices(colorPricesData);
+          } catch (err) {
+            console.log('Błąd pobierania cen kolorów:', err);
+            setColorPrices({});
+          }
+          
+          // Ustaw domyślny kolor jeśli dostępne (tylko gdy nie ma pendingConfiguration ani originalConfiguration)
+          if (!pendingConfiguration && !originalConfiguration && availableColorsData && availableColorsData.length > 0) {
+            const defaultColorName = availableColorsData[0];
+            console.log(`Ustawianie domyślnego koloru: ${defaultColorName}`);
+            const staticColor = staticExteriorColors.find(c => c.name === defaultColorName);
+            console.log('Znaleziony statyczny kolor:', staticColor);
+            if (staticColor) {
+              setCarColor(staticColor.value);
+              console.log(`Ustawiono kolor samochodu na: ${staticColor.value}`);
+            }
+          }
+        } catch (err) {
+          console.error('Błąd pobierania dostępnych kolorów:', err);
+          setAvailableColors([]);
+        }
+        
+        // Pobierz silniki dla wybranego modelu
+        console.log(`Pobieranie silników dla modelu: ${selectedCarModel.id}`);
+        const enginesResponse = await fetch(`${apiUrl}/api/car-models/${selectedCarModel.id}/engines`);
+        if (enginesResponse.ok) {
+          const enginesData = await enginesResponse.json();
+          console.log('Otrzymane silniki:', enginesData);
+          setEngines(enginesData);
+          if (!pendingConfiguration && !originalConfiguration && enginesData.length > 0) {
+            setSelectedEngine(enginesData[0]);
+            console.log('Wybrany domyślny silnik:', enginesData[0]);
+          }
+        } else {
+          console.error('Błąd pobierania silników:', enginesResponse.status, enginesResponse.statusText);
+        }
+        
+        // Pobierz akcesoria
+        let accessoriesData = [];
+        try {
+          const accessoriesResponse = await fetch(`${apiUrl}/api/car-accessories`);
+          if (accessoriesResponse.ok) {
+            accessoriesData = await accessoriesResponse.json();
+          }
+        } catch (err) {
+          console.log('Błąd pobierania akcesorii:', err);
+        }
+        
+        // Pobierz wyposażenie wnętrza
+        let interiorEquipmentData = [];
+        try {
+          const interiorResponse = await fetch(`${apiUrl}/api/car-interior-equipment`);
+          if (interiorResponse.ok) {
+            interiorEquipmentData = await interiorResponse.json();
+          }
+        } catch (err) {
+          console.log('Błąd pobierania wyposażenia wnętrza:', err);
+        }
+        
+        // Tylko zaktualizuj jeśli dane rzeczywiście się zmieniły, zachowaj istniejące zaznaczenia
+        setAccessories(prev => {
+          console.log('loadModelSpecificData - aktualizacja akcesoriów');
+          console.log('Poprzednie akcesoria:', prev.map(p => ({ id: p.id, name: p.name, selected: p.selected })));
+          const newData = accessoriesData.map(item => {
+            const existing = prev.find(p => p.id === item.id);
+            const selected = existing ? existing.selected : false;
+            // Konstruuj pełny URL dla zdjęcia jeśli jest to tylko nazwa pliku
+            const imageUrl = item.imageUrl && !item.imageUrl.startsWith('http') 
+              ? `${apiUrl}/api/images/${item.imageUrl}` 
+              : item.imageUrl;
+            return { ...item, selected, imageUrl };
+          });
+          console.log('Nowe akcesoria:', newData.map(p => ({ id: p.id, name: p.name, selected: p.selected })));
+          if (JSON.stringify(prev.map(p => ({ ...p, selected: false }))) !== JSON.stringify(newData.map(p => ({ ...p, selected: false })))) {
+            return newData;
+          }
+          return prev;
+        });
+        
+        setInteriorEquipment(prev => {
+          console.log('loadModelSpecificData - aktualizacja wyposażenia wnętrza');
+          console.log('Poprzednie wyposażenie:', prev.map(p => ({ id: p.id, value: p.value, selected: p.selected })));
+          const newData = interiorEquipmentData.map(item => {
+            const existing = prev.find(p => p.id === item.id);
+            const selected = existing ? existing.selected : false;
+            return { ...item, selected };
+          });
+          console.log('Nowe wyposażenie:', newData.map(p => ({ id: p.id, value: p.value, selected: p.selected })));
+          if (JSON.stringify(prev.map(p => ({ ...p, selected: false }))) !== JSON.stringify(newData.map(p => ({ ...p, selected: false })))) {
+            return newData;
+          }
+          return prev;
+        });
+        
+      } catch (err) {
+        console.error('Błąd ładowania danych modelu:', err);
+      } finally {
+        setIsLoadingModelData(false);
+      }
+    };
+
+    loadModelSpecificData();
+  }, [selectedCarModel, apiUrl, loading, pendingConfiguration, isLoadingConfiguration, originalConfiguration]);
+
+  // UseEffect do obsługi odłożonej konfiguracji po zmianie modelu
+  useEffect(() => {
+    if (pendingConfiguration && selectedCarModel) {
+      let attempts = 0;
+      const maxAttempts = 10; // Maksymalnie 10 prób (2 sekundy)
+      
+      // Sprawdź czy wszystkie potrzebne dane są już załadowane
+      const checkDataReady = () => {
+        attempts++;
+        // Sprawdź czy dane zostały już załadowane
+        // Musimy poczekać na dane z API - sprawdź czy tablice zostały faktycznie załadowane
+        // (nie tylko zdefiniowane jako puste tablice)
+        const dataReady = engines.length > 0 && 
+                          accessories !== undefined && 
+                          interiorEquipment !== undefined &&
+                          !isLoadingModelData &&
+                          (accessories.length > 0 || interiorEquipment.length > 0 || attempts > 3);
+        console.log('Sprawdzanie czy dane są gotowe:', {
+          attempt: attempts,
+          maxAttempts,
+          engines: engines.length,
+          accessories: accessories.length,
+          interiorEquipment: interiorEquipment.length,
+          isLoadingModelData,
+          dataReady
+        });
+        
+        if (dataReady) {
+          console.log('Wszystkie dane gotowe - ładowanie odłożonej konfiguracji po zmianie modelu');
+          setIsLoadingConfiguration(true);
+          setTimeout(() => {
+            loadSavedConfiguration(pendingConfiguration);
+            setPendingConfiguration(null);
+            setTimeout(() => setIsLoadingConfiguration(false), 100);
+          }, 50);
+        } else if (attempts < maxAttempts) {
+          // Spróbuj ponownie za chwilę
+          setTimeout(checkDataReady, 200);
+        } else {
+          console.warn('Przekroczono maksymalną liczbę prób ładowania konfiguracji');
+          setPendingConfiguration(null);
+        }
+      };
+
+      // Pierwsza próba po 100ms
+      const timeout = setTimeout(checkDataReady, 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [pendingConfiguration, selectedCarModel, engines, accessories, interiorEquipment, isLoadingModelData]);
 
   // Funkcja do wczytywania konfiguracji
   const loadSavedConfiguration = (configuration) => {
-    if (!configuration) return;
+    if (!configuration || isLoadingConfiguration) return;
     
-    console.log('Wczytywanie konfiguracji:', configuration);
+    console.log('=== ŁADOWANIE KONFIGURACJI ===');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Konfiguracja do załadowania:', configuration);
+    console.log('Właściwości konfiguracji:', Object.keys(configuration));
+    console.log('carModelId/CarModelId:', configuration.carModelId, '/', configuration.CarModelId);
+    console.log('engineId/EngineId:', configuration.engineId, '/', configuration.EngineId);
+    console.log('selectedAccessories/SelectedAccessories:', configuration.selectedAccessories, '/', configuration.SelectedAccessories);
+    console.log('selectedInteriorEquipment/SelectedInteriorEquipment:', configuration.selectedInteriorEquipment, '/', configuration.SelectedInteriorEquipment);
+    console.log('Aktualny stan:');
+    console.log('- selectedCarModel:', selectedCarModel?.id, selectedCarModel?.name);
+    console.log('- engines length:', engines.length);
+    console.log('- accessories length:', accessories.length, accessories.map(a => ({ id: a.id, name: a.name, selected: a.selected })));
+    console.log('- interiorEquipment length:', interiorEquipment.length, interiorEquipment.map(i => ({ id: i.id, value: i.value, selected: i.selected })));
+    console.log('================================');
+    
     setOriginalConfiguration(configuration);
     
     // Ustaw właściwy model samochodu
-    if (configuration.carModelId && carModels.length > 0) {
+    const carModelId = configuration.carModelId || configuration.CarModelId;
+    if (carModelId && carModels.length > 0) {
       const savedModel = carModels.find(model => 
-        model.id.toString() === configuration.carModelId.toString()
+        model.id.toString() === carModelId.toString()
       );
-      console.log('Szukam modelu o ID:', configuration.carModelId, 'Znaleziony:', savedModel);
+      console.log('Szukam modelu o ID:', carModelId, 'Znaleziony:', savedModel);
       if (savedModel && savedModel.id !== selectedCarModel?.id) {
         console.log('Przełączam na model:', savedModel);
         setSelectedCarModel(savedModel);
-        // Tutaj mógłbyś również przeładować dane specyficzne dla modelu (kolory, silniki, akcesoria)
+        // Zaznacz że konfiguracja powinna być załadowana po zmianie modelu
+        setPendingConfiguration(configuration);
+        console.log(configuration);
         return; // Zakończ tutaj, żeby przeładować dane dla nowego modelu
       }
     }
       
     // Ustaw wybrany silnik
-    if (configuration.engineId && engines.length > 0) {
-      console.log('Szukam silnika o ID:', configuration.engineId);
+    const engineId = configuration.engineId || configuration.EngineId;
+    if (engineId && engines.length > 0) {
+      console.log('Szukam silnika o ID:', engineId);
       console.log('Dostępne silniki:', engines);
       const savedEngine = engines.find(e => 
-        e.carModelEngineId === configuration.engineId || 
-        e.engineId === configuration.engineId ||
-        e.id === configuration.engineId
+        e.carModelEngineId === engineId || 
+        e.carModelEngineId === parseInt(engineId) ||
+        e.engineId === engineId ||
+        e.engineId === parseInt(engineId) ||
+        e.id === engineId ||
+        e.id === parseInt(engineId)
       );
       console.log('Znaleziony silnik:', savedEngine);
       if (savedEngine) {
         setSelectedEngine(savedEngine);
+      } else {
+        console.warn(`Silnik o ID ${engineId} nie został znaleziony. Dostępne silniki:`, engines.map(e => ({
+          carModelEngineId: e.carModelEngineId,
+          engineId: e.engineId,
+          id: e.id,
+          name: e.engineName
+        })));
       }
     }
     
@@ -239,37 +413,57 @@ const CarConfigurator = () => {
     }
     
     // Ustaw akcesoria
-    if (configuration.selectedAccessories && configuration.selectedAccessories.length > 0) {
-      console.log('Wczytywanie akcesoriów:', configuration.selectedAccessories);
+    const selectedAccessories = configuration.selectedAccessories || configuration.SelectedAccessories || [];
+    if (selectedAccessories && selectedAccessories.length > 0 && accessories.length > 0) {
+      console.log('Wczytywanie akcesoriów:', selectedAccessories);
+      console.log('Dostępne akcesoria do mapowania:', accessories);
       const selectedAcc = [];
       setAccessories(prev => prev.map(acc => {
-        const isSelected = configuration.selectedAccessories.some(savedAcc => 
-          savedAcc.id === acc.id || savedAcc === acc.id
-        );
+        const isSelected = selectedAccessories.some(savedAcc => {
+          // Sprawdź różne warianty ID - API zwraca duże I
+          const savedId = savedAcc.Id || savedAcc.id || savedAcc;
+          console.log(`Porównuję akcesorium ${acc.id} z zapisanym ${savedId}`);
+          return savedId === acc.id || savedId.toString() === acc.id.toString();
+        });
         if (isSelected) {
           selectedAcc.push(acc);
+          console.log(`Znaleziono akcesorium: ${acc.name} (ID: ${acc.id})`);
         }
         return { ...acc, selected: isSelected };
       }));
       setSelectedAccessories(selectedAcc);
-      console.log('Wybrane akcesoria:', selectedAcc);
+      console.log('Wybrane akcesoria po mapowaniu:', selectedAcc);
+    } else if (selectedAccessories && selectedAccessories.length > 0) {
+      console.log('POMINIĘTO mapowanie akcesoriów - brak dostępnych akcesoriów w stanie');
+      console.log('Zapisane akcesoria do załadowania:', selectedAccessories);
+      console.log('Długość tablicy accessories:', accessories.length);
     }
     
     // Ustaw wyposażenie wnętrza
-    if (configuration.selectedInteriorEquipment && configuration.selectedInteriorEquipment.length > 0) {
-      console.log('Wczytywanie wyposażenia wnętrza:', configuration.selectedInteriorEquipment);
+    const selectedInteriorEquipment = configuration.selectedInteriorEquipment || configuration.SelectedInteriorEquipment || [];
+    if (selectedInteriorEquipment && selectedInteriorEquipment.length > 0 && interiorEquipment.length > 0) {
+      console.log('Wczytywanie wyposażenia wnętrza:', selectedInteriorEquipment);
+      console.log('Dostępne wyposażenie do mapowania:', interiorEquipment);
       const selectedEq = [];
       setInteriorEquipment(prev => prev.map(eq => {
-        const isSelected = configuration.selectedInteriorEquipment.some(savedEq => 
-          savedEq.id === eq.id || savedEq === eq.id
-        );
+        const isSelected = selectedInteriorEquipment.some(savedEq => {
+          // Sprawdź różne warianty ID - API zwraca duże I
+          const savedId = savedEq.Id || savedEq.id || savedEq;
+          console.log(`Porównuję wyposażenie ${eq.id} z zapisanym ${savedId}`);
+          return savedId === eq.id || savedId.toString() === eq.id.toString();
+        });
         if (isSelected) {
           selectedEq.push(eq);
+          console.log(`Znaleziono wyposażenie: ${eq.value} (ID: ${eq.id})`);
         }
         return { ...eq, selected: isSelected };
       }));
       setSelectedInteriorEquipment(selectedEq);
-      console.log('Wybrane wyposażenie wnętrza:', selectedEq);
+      console.log('Wybrane wyposażenie wnętrza po mapowaniu:', selectedEq);
+    } else if (selectedInteriorEquipment && selectedInteriorEquipment.length > 0) {
+      console.log('POMINIĘTO mapowanie wyposażenia wnętrza - brak dostępnego wyposażenia w stanie');
+      console.log('Zapisane wyposażenie do załadowania:', selectedInteriorEquipment);
+      console.log('Długość tablicy interiorEquipment:', interiorEquipment.length);
     }
   };
 
@@ -405,6 +599,17 @@ const CarConfigurator = () => {
         });
       } else if (response.status === 401) {
         alert('Musisz być zalogowany, aby zapisać konfigurację. Przejdź do logowania.');
+      } else if (response.status === 400) {
+        const errorData = await response.json().catch(() => ({}));
+        if (errorData.error && errorData.error.includes('maksymalny limit')) {
+          alert(errorData.error);
+          // Opcjonalnie: przekieruj do strony konta gdzie użytkownik może usunąć stare konfiguracje
+          if (confirm('Czy chcesz przejść do swojego konta, aby usunąć stare konfiguracje?')) {
+            navigate('/my-account');
+          }
+        } else {
+          alert(errorData.error || 'Błąd walidacji danych');
+        }
       } else {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Błąd zapisywania konfiguracji');
