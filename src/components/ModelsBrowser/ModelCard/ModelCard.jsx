@@ -8,7 +8,7 @@ const ModelCard = ({ model, formatPrice }) =>
   {
    const navigate = useNavigate()
    const goToConfigurator = () => {
-    navigate('/car-configurator', { state: { modelId: model.id, modelName: model.name } })
+    navigate(`/car-configurator/new?modelId=${model.id}`)
   }
   
   return (

@@ -21,6 +21,16 @@
   background-color: var(--color-bg-secondary);
 }
 
+.configItem.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.configItem.disabled:hover {
+  border-color: var(--color-border);
+}
+
 .colorBox {
   width: 100%;
   height: 48px;

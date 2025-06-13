@@ -31,7 +31,7 @@ const MyAccount = () => {
     fetchUserConfigurations();
   }, []);
 
-  const fetchUserConfigurations = async () => {
+  const fetchUserConfigurations = async (retryCount = 0) => {
     if (!accessToken) {
       setError('Musisz być zalogowany, aby zobaczyć swoje konfiguracje');
       setLoading(false);
@@ -40,13 +40,26 @@ const MyAccount = () => {
 
     try {
       setLoading(true);
+      setError(null);
       
       const response = await axiosInstance.get('/api/user-configurations');
       setConfigurations(response.data);
     } catch (err) {
       console.error('Błąd pobierania konfiguracji:', err);
+      
+      // Jeśli to błąd 401 i jeszcze nie próbowaliśmy ponownie, spróbuj jeszcze raz po krótkim opóźnieniu
+      if (err.response?.status === 401 && retryCount < 2) {
+        console.log(`Ponawiam pobieranie konfiguracji (próba ${retryCount + 1}/2)...`);
+        setTimeout(() => {
+          fetchUserConfigurations(retryCount + 1);
+        }, 1000);
+        return;
+      }
+      
       if (err.response?.status === 401) {
         setError('Sesja wygasła. Zaloguj się ponownie.');
+        // Wyloguj użytkownika po błędzie 401
+        dispatch({ type: 'LOGOUT' });
       } else {
         setError('Wystąpił błąd podczas ładowania konfiguracji');
       }
@@ -485,11 +498,7 @@ const MyAccount = () => {
                       <button
                         className={styles.viewBtn}
                         onClick={() => {
-                          navigate('/car-configurator', { 
-                            state: { 
-                              configurationId: config.id
-                            } 
-                          });
+                          navigate(`/car-configurator/saved/${config.id}`);
                         }}
                       >
                         Wyświetl

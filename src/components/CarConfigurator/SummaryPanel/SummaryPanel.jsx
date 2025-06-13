@@ -15,7 +15,8 @@ const SummaryPanel = ({
   isEditMode,
   onEditConfiguration,
   onSaveNewConfiguration,
-  onCancelEdit
+  onCancelEdit,
+  isSavedConfiguration = false
 }) => {
   const selectedExterior = exteriorColors.find(c => c.value === carColor);
 

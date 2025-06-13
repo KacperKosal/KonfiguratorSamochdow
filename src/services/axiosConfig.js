@@ -57,6 +57,22 @@ axiosInstance.interceptors.request.use(
   }
 );
 
+// Zmienna do śledzenia czy odświeżanie tokenu jest w toku
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  failedQueue = [];
+};
+
 // Response interceptor - obsługuje błędy 401 i automatycznie odświeża token
 axiosInstance.interceptors.response.use(
   (response) => {
@@ -70,10 +86,22 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // Jeśli błąd 401 i nie próbowaliśmy jeszcze odświeżyć tokenu
     if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Jeśli odświeżanie jest już w toku, dodaj żądanie do kolejki
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(token => {
+          originalRequest.headers['Authorization'] = `Bearer ${token}`;
+          return axiosInstance(originalRequest);
+        }).catch(err => {
+          return Promise.reject(err);
+        });
+      }
+
       console.log('🔒 Otrzymano błąd 401, próba odświeżenia tokenu...');
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
         const newToken = await refreshAccessToken();
@@ -82,18 +110,24 @@ axiosInstance.interceptors.response.use(
         originalRequest.headers = originalRequest.headers || {};
         originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
         
+        processQueue(null, newToken);
+        
         console.log('🔄 Ponowienie żądania z nowym tokenem...');
         const retryResponse = await axiosInstance(originalRequest);
         console.log('✅ Żądanie ponowione pomyślnie');
         return retryResponse;
       } catch (refreshError) {
         console.error('❌ Nie udało się odświeżyć tokenu, wylogowanie...');
+        processQueue(refreshError, null);
+        
         // Wyloguj użytkownika zamiast przekierowywać
         const store = window.__store;
         if (store) {
           store.dispatch({ type: 'LOGOUT' });
         }
         return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
       }
     }
 

@@ -15,6 +15,7 @@ const ConfigOptions = ({
   engines,
   selectedEngine,
   onEngineChange,
+  disabled = false,
 }) => {
   // Silnik
   if (activeTab === 'engine') {
@@ -31,10 +32,10 @@ const ConfigOptions = ({
         {engines.map((engine) => (
           <div
             key={engine.engineId}
-            onClick={() => onEngineChange(engine)}
+            onClick={() => !disabled && onEngineChange(engine)}
             className={`${styles.configItem} ${styles.engineItem} ${
               selectedEngine?.engineId === engine.engineId ? styles.selected : ''
-            }`}
+            } ${disabled ? styles.disabled : ''}`}
           >
             <div className={styles.engineIcon}>🔧</div>
             <div className={styles.engineInfo}>
@@ -78,8 +79,8 @@ const ConfigOptions = ({
         {exteriorColors.map((color, index) => (
           <div
             key={`color-${index}-${color.name}-${color.value}`}
-            onClick={() => setCarColor(color.value)}
-            className={`${styles.configItem} ${carColor === color.value ? styles.selected : ''}`}
+            onClick={() => !disabled && setCarColor(color.value)}
+            className={`${styles.configItem} ${carColor === color.value ? styles.selected : ''} ${disabled ? styles.disabled : ''}`}
           >
             <div
               className={styles.colorBox}
@@ -119,10 +120,10 @@ const ConfigOptions = ({
           {wheelAccessories.map((wheelAcc) => (
             <div
               key={wheelAcc.id}
-              onClick={() => onAccessoryToggle(wheelAcc.id)}
+              onClick={() => !disabled && onAccessoryToggle(wheelAcc.id)}
               className={`${styles.configItem} ${styles.accessoryItem} ${
                 wheelAcc.selected ? styles.selected : ''
-              } ${!wheelAcc.isInStock ? styles.outOfStock : ''}`}
+              } ${!wheelAcc.isInStock ? styles.outOfStock : ''} ${disabled ? styles.disabled : ''}`}
             >
               {wheelAcc.imageUrl && (
                 <div className={styles.accessoryImageContainer}>
@@ -207,8 +208,8 @@ const ConfigOptions = ({
                     return (
                       <div
                         key={equipment.id}
-                        onClick={() => onInteriorEquipmentToggle(equipment.id)}
-                        className={`${styles.equipmentItem} ${isSelected ? styles.selected : ''}`}
+                        onClick={() => !disabled && onInteriorEquipmentToggle(equipment.id)}
+                        className={`${styles.equipmentItem} ${isSelected ? styles.selected : ''} ${disabled ? styles.disabled : ''}`}
                       >
                         <div className={styles.equipmentInfo}>
                           <h5 className={styles.equipmentName}>{equipment.value}</h5>
@@ -281,10 +282,10 @@ const ConfigOptions = ({
               {typeAccessories.map((accessory) => (
                 <div
                   key={accessory.id}
-                  onClick={() => onAccessoryToggle(accessory.id)}
+                  onClick={() => !disabled && onAccessoryToggle(accessory.id)}
                   className={`${styles.configItem} ${styles.accessoryItem} ${
                     accessory.selected ? styles.selected : ''
-                  } ${!accessory.isInStock ? styles.outOfStock : ''}`}
+                  } ${!accessory.isInStock ? styles.outOfStock : ''} ${disabled ? styles.disabled : ''}`}
                 >
                   {accessory.imageUrl && (
                     <div className={styles.accessoryImageContainer}>
