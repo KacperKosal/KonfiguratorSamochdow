@@ -493,10 +493,14 @@ export const useCarConfigurator = () => {
       
       if (response.ok) {
         const result = await response.json();
+        console.log('📁 Odpowiedź z API po zapisaniu:', result);
         alert(`Konfiguracja "${configurationName}" została zapisana w Twoim koncie!`);
         
         if (navigate) {
-          navigate(`/car-configurator/saved/${result.Id}`, { replace: true });
+          // Spróbuj obu wariantów ID
+          const configId = result.Id || result.id;
+          console.log('📁 Używam ID konfiguracji do redirecta:', configId);
+          navigate(`/car-configurator/saved/${configId}`, { replace: true });
         }
         return result;
       } else if (response.status === 401) {
