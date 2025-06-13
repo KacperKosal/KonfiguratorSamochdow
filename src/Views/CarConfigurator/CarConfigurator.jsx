@@ -35,9 +35,10 @@ const CarConfigurator = () => {
   const [pendingConfiguration, setPendingConfiguration] = useState(null);
   const [isLoadingConfiguration, setIsLoadingConfiguration] = useState(false);
   const [isLoadingModelData, setIsLoadingModelData] = useState(false);
+  const [loadedConfigurationId, setLoadedConfigurationId] = useState(null);
 
   // Konfiguracja API
-  const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7001';
+  const apiUrl = import.meta.env.VITE_API_URL || 'https://localhost:7020';
 
   // Pobieranie danych z API
   useEffect(() => {
@@ -131,6 +132,8 @@ const CarConfigurator = () => {
           if (response.ok) {
             const apiConfiguration = await response.json();
             console.log('Pobrana konfiguracja z API:', apiConfiguration);
+            console.log('selectedAccessories z API:', apiConfiguration.selectedAccessories);
+            console.log('selectedInteriorEquipment z API:', apiConfiguration.selectedInteriorEquipment);
             setOriginalConfiguration(apiConfiguration);
             
             // Wczytaj konfigurację tylko jeśli dane są dostępne
@@ -367,6 +370,13 @@ const CarConfigurator = () => {
   const loadSavedConfiguration = (configuration, retryCount = 0) => {
     if (!configuration || isLoadingConfiguration) return;
     
+    // Sprawdź czy ta konfiguracja nie została już załadowana
+    const configId = configuration.id || configuration.Id;
+    if (configId && loadedConfigurationId === configId && retryCount === 0) {
+      console.log('Konfiguracja już załadowana, pomijam:', configId);
+      return;
+    }
+    
     console.log('=== ŁADOWANIE KONFIGURACJI ===');
     console.log('Timestamp:', new Date().toISOString());
     console.log('Retry count:', retryCount);
@@ -383,7 +393,18 @@ const CarConfigurator = () => {
     console.log('- interiorEquipment length:', interiorEquipment.length, interiorEquipment.map(i => ({ id: i.id, value: i.value, selected: i.selected })));
     console.log('================================');
     
-    setOriginalConfiguration(configuration);
+    // Przy pierwszym wywołaniu ustaw oryginalną konfigurację i wyczyść aktualne listy
+    if (retryCount === 0) {
+      setOriginalConfiguration(configuration);
+      setLoadedConfigurationId(configId);
+      // Wyczyść aktualne listy wyboru, żeby uniknąć duplikatów
+      setSelectedAccessories([]);
+      setSelectedInteriorEquipment([]);
+      
+      // Wyczyść stan selected we wszystkich akcesoriach i wyposażeniu
+      setAccessories(prev => prev.map(acc => ({ ...acc, selected: false })));
+      setInteriorEquipment(prev => prev.map(eq => ({ ...eq, selected: false })));
+    }
     
     // Ustaw właściwy model samochodu
     const carModelId = configuration.carModelId || configuration.CarModelId;
@@ -449,12 +470,20 @@ const CarConfigurator = () => {
     console.log('Konfiguracja akcesoriów do załadowania:', savedAccessoriesConfig);
     console.log('Dostępne akcesoria w stanie:', accessories.length);
     
-    if (savedAccessoriesConfig && savedAccessoriesConfig.length > 0) {
+    // Sprawdź czy akcesoria nie zostały już załadowane w tym cyklu
+    const accessoriesAlreadyLoaded = selectedAccessories.length > 0 && 
+      savedAccessoriesConfig.every(savedAcc => {
+        const savedId = savedAcc.Id || savedAcc.id || savedAcc;
+        return selectedAccessories.some(acc => acc.id?.toString() === savedId?.toString());
+      });
+    
+    if (savedAccessoriesConfig && savedAccessoriesConfig.length > 0 && !accessoriesAlreadyLoaded) {
       if (accessories.length > 0) {
         console.log('Wczytywanie akcesoriów:', savedAccessoriesConfig);
         console.log('Dostępne akcesoria do mapowania:', accessories);
+        // Najpierw przygotuj nowe dane
         const selectedAcc = [];
-        setAccessories(prev => prev.map(acc => {
+        const updatedAccessories = accessories.map(acc => {
           const isSelected = savedAccessoriesConfig.some(savedAcc => {
             // Sprawdź różne warianty ID - API zwraca duże I
             const savedId = savedAcc.Id || savedAcc.id || savedAcc;
@@ -466,7 +495,12 @@ const CarConfigurator = () => {
             console.log(`Znaleziono akcesorium: ${acc.name} (ID: ${acc.id})`);
           }
           return { ...acc, selected: isSelected };
-        }));
+        });
+        
+        // Zaktualizuj oba stany jednocześnie
+        console.log('PRZED setSelectedAccessories - obecna lista:', selectedAccessories);
+        console.log('PRZED setSelectedAccessories - nowa lista do ustawienia:', selectedAcc);
+        setAccessories(updatedAccessories);
         setSelectedAccessories(selectedAcc);
         console.log('Wybrane akcesoria po mapowaniu:', selectedAcc);
       } else {
@@ -492,12 +526,20 @@ const CarConfigurator = () => {
     console.log('Konfiguracja wyposażenia wnętrza do załadowania:', savedInteriorEquipmentConfig);
     console.log('Dostępne wyposażenie wnętrza w stanie:', interiorEquipment.length);
     
-    if (savedInteriorEquipmentConfig && savedInteriorEquipmentConfig.length > 0) {
+    // Sprawdź czy wyposażenie nie zostało już załadowane w tym cyklu
+    const interiorEquipmentAlreadyLoaded = selectedInteriorEquipment.length > 0 && 
+      savedInteriorEquipmentConfig.every(savedEq => {
+        const savedId = savedEq.Id || savedEq.id || savedEq;
+        return selectedInteriorEquipment.some(eq => eq.id?.toString() === savedId?.toString());
+      });
+    
+    if (savedInteriorEquipmentConfig && savedInteriorEquipmentConfig.length > 0 && !interiorEquipmentAlreadyLoaded) {
       if (interiorEquipment.length > 0) {
         console.log('Wczytywanie wyposażenia wnętrza:', savedInteriorEquipmentConfig);
         console.log('Dostępne wyposażenie do mapowania:', interiorEquipment);
+        // Najpierw przygotuj nowe dane
         const selectedEq = [];
-        setInteriorEquipment(prev => prev.map(eq => {
+        const updatedInteriorEquipment = interiorEquipment.map(eq => {
           const isSelected = savedInteriorEquipmentConfig.some(savedEq => {
             // Sprawdź różne warianty ID - API zwraca duże I
             const savedId = savedEq.Id || savedEq.id || savedEq;
@@ -509,7 +551,10 @@ const CarConfigurator = () => {
             console.log(`Znaleziono wyposażenie: ${eq.value} (ID: ${eq.id})`);
           }
           return { ...eq, selected: isSelected };
-        }));
+        });
+        
+        // Zaktualizuj oba stany jednocześnie
+        setInteriorEquipment(updatedInteriorEquipment);
         setSelectedInteriorEquipment(selectedEq);
         console.log('Wybrane wyposażenie wnętrza po mapowaniu:', selectedEq);
       } else {
@@ -542,11 +587,18 @@ const CarConfigurator = () => {
     const clickedAccessory = accessories.find(acc => acc.id === accessoryId);
     if (!clickedAccessory) return;
 
-    // Logika dla felg - tylko jedna może być wybrana
+    const isCurrentlySelected = clickedAccessory.selected;
+
+    // Logika dla felg - tylko jedna może być wybrana lub żadna
     if (clickedAccessory.type === 'AlloyWheels') {
       setAccessories(prev => 
         prev.map(acc => {
           if (acc.type === 'AlloyWheels') {
+            // Jeśli klikamy na już wybraną felgę, odznacz ją
+            if (acc.id === accessoryId && isCurrentlySelected) {
+              return { ...acc, selected: false };
+            }
+            // W przeciwnym razie zaznacz tylko klikniętą felgę
             return { ...acc, selected: acc.id === accessoryId };
           }
           return acc;
@@ -554,16 +606,25 @@ const CarConfigurator = () => {
       );
       
       setSelectedAccessories(prev => {
-        // Usuń wszystkie felgi i dodaj tylko wybraną
         const withoutWheels = prev.filter(acc => acc.type !== 'AlloyWheels');
+        // Jeśli odznaczamy, zwróć listę bez felg
+        if (isCurrentlySelected) {
+          return withoutWheels;
+        }
+        // Jeśli zaznaczamy, dodaj wybraną felgę
         return [...withoutWheels, clickedAccessory];
       });
     } 
-    // Logika dla innych akcesoriów - jeden na typ
+    // Logika dla innych akcesoriów - jeden na typ lub żaden
     else {
       setAccessories(prev => 
         prev.map(acc => {
           if (acc.type === clickedAccessory.type) {
+            // Jeśli klikamy na już wybrane akcesorium, odznacz je
+            if (acc.id === accessoryId && isCurrentlySelected) {
+              return { ...acc, selected: false };
+            }
+            // W przeciwnym razie zaznacz tylko kliknięte akcesorium
             return { ...acc, selected: acc.id === accessoryId };
           }
           return acc;
@@ -571,8 +632,12 @@ const CarConfigurator = () => {
       );
       
       setSelectedAccessories(prev => {
-        // Usuń wszystkie akcesoria tego samego typu i dodaj wybrane
         const withoutSameType = prev.filter(acc => acc.type !== clickedAccessory.type);
+        // Jeśli odznaczamy, zwróć listę bez akcesoriów tego typu
+        if (isCurrentlySelected) {
+          return withoutSameType;
+        }
+        // Jeśli zaznaczamy, dodaj wybrane akcesorium
         return [...withoutSameType, clickedAccessory];
       });
     }
@@ -583,10 +648,17 @@ const CarConfigurator = () => {
     const clickedEquipment = interiorEquipment.find(eq => eq.id === equipmentId);
     if (!clickedEquipment) return;
 
-    // Logika - tylko jedna opcja na typ wyposażenia
+    const isCurrentlySelected = clickedEquipment.selected;
+
+    // Logika - tylko jedna opcja na typ wyposażenia lub żadna
     setInteriorEquipment(prev => 
       prev.map(eq => {
         if (eq.type === clickedEquipment.type) {
+          // Jeśli klikamy na już wybrane wyposażenie, odznacz je
+          if (eq.id === equipmentId && isCurrentlySelected) {
+            return { ...eq, selected: false };
+          }
+          // W przeciwnym razie zaznacz tylko kliknięte wyposażenie
           return { ...eq, selected: eq.id === equipmentId };
         }
         return eq;
@@ -594,8 +666,12 @@ const CarConfigurator = () => {
     );
     
     setSelectedInteriorEquipment(prev => {
-      // Usuń wszystkie wyposażenia tego samego typu i dodaj wybrane
       const withoutSameType = prev.filter(eq => eq.type !== clickedEquipment.type);
+      // Jeśli odznaczamy, zwróć listę bez wyposażenia tego typu
+      if (isCurrentlySelected) {
+        return withoutSameType;
+      }
+      // Jeśli zaznaczamy, dodaj wybrane wyposażenie
       return [...withoutSameType, clickedEquipment];
     });
   };
@@ -713,30 +789,34 @@ const CarConfigurator = () => {
       // Przywróć akcesoria
       if (originalConfiguration.selectedAccessories) {
         const selectedAcc = [];
-        setAccessories(prev => prev.map(acc => {
-          const isSelected = originalConfiguration.selectedAccessories.some(savedAcc => 
-            savedAcc.id === acc.id || savedAcc === acc.id
-          );
+        const updatedAccessories = accessories.map(acc => {
+          const isSelected = originalConfiguration.selectedAccessories.some(savedAcc => {
+            const savedId = savedAcc.Id || savedAcc.id || savedAcc;
+            return savedId?.toString() === acc.id?.toString();
+          });
           if (isSelected) {
             selectedAcc.push(acc);
           }
           return { ...acc, selected: isSelected };
-        }));
+        });
+        setAccessories(updatedAccessories);
         setSelectedAccessories(selectedAcc);
       }
       
       // Przywróć wyposażenie wnętrza
       if (originalConfiguration.selectedInteriorEquipment) {
         const selectedEq = [];
-        setInteriorEquipment(prev => prev.map(eq => {
-          const isSelected = originalConfiguration.selectedInteriorEquipment.some(savedEq => 
-            savedEq.id === eq.id || savedEq === eq.id
-          );
+        const updatedInteriorEquipment = interiorEquipment.map(eq => {
+          const isSelected = originalConfiguration.selectedInteriorEquipment.some(savedEq => {
+            const savedId = savedEq.Id || savedEq.id || savedEq;
+            return savedId?.toString() === eq.id?.toString();
+          });
           if (isSelected) {
             selectedEq.push(eq);
           }
           return { ...eq, selected: isSelected };
-        }));
+        });
+        setInteriorEquipment(updatedInteriorEquipment);
         setSelectedInteriorEquipment(selectedEq);
       }
     }
