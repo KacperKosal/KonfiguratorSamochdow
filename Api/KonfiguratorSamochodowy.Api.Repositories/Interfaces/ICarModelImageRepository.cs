@@ -14,5 +14,6 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Interfaces
         Task<Result<int>> GetImageCountByCarModelIdAsync(string carModelId);
         Task<Result<int>> GetImageCountByCarModelIdAndColorAsync(string carModelId, string color);
         Task<Result<List<string>>> GetAvailableColorsForModelAsync(string carModelId);
+        Task<Result<bool>> DeleteImagesByCarModelIdAsync(string carModelId);
     }
 }

@@ -455,19 +455,8 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
         {
             try
             {
-                // Check if there are related records in other tables
-                var checkRelatedQuery = @"
-                    SELECT COUNT(*) 
-                    FROM modelsilnik ms 
-                    WHERE ms.modelid = @Id::integer";
-
-                var relatedCount = await _connection.ExecuteScalarAsync<int>(checkRelatedQuery, new { Id = id });
-
-                if (relatedCount > 0)
-                {
-                    return Result<bool>.Failure(new Error("ReferenceConstraint", $"Cannot delete car model with id {id} because it has related records in modelsilnik table"));
-                }
-
+                // Usunięto wewnętrzne sprawdzanie kluczy obcych. 
+                // Transakcja DeleteCarModelWithRelatedDataAsync jest odpowiedzialna za obsługę zależności.
                 var query = "DELETE FROM pojazd WHERE id = @Id::integer";
                 var rowsAffected = await _connection.ExecuteAsync(query, new { Id = id });
 

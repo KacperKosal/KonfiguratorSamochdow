@@ -348,8 +348,20 @@ public class EngineRepository : IEngineRepository
         {
             if (!int.TryParse(id, out _))
                 return Result<bool>.Failure(new Error("InvalidId", $"ID '{id}' nie jest poprawnym numerem"));
-                
-            const string sql = @"DELETE FROM ""Silnik"" WHERE ""ID"" = @Id";
+
+            var checkRelatedQuery = @"
+                SELECT COUNT(*) 
+                FROM modelsilnik ms 
+                WHERE ms.silnikid = CAST(@Id AS INTEGER)";
+
+            var relatedCount = await _connection.ExecuteScalarAsync<int>(checkRelatedQuery, new { Id = id });
+
+            if (relatedCount > 0)
+            {
+                return Result<bool>.Failure(new Error("ReferenceConstraint", $"Cannot delete engine with id {id} because it has related records in modelsilnik table"));
+            }
+
+            const string sql = "DELETE FROM \"Silnik\" WHERE \"ID\" = @Id";
             var rowsAffected = await _connection.ExecuteAsync(sql, new { Id = int.Parse(id) });
 
             if (rowsAffected == 0)
@@ -360,6 +372,29 @@ public class EngineRepository : IEngineRepository
         catch (Exception ex)
         {
             return Result<bool>.Failure(new Error("DatabaseError", ex.Message));
+        }
+    }
+
+    public async Task<Result<bool>> DeleteByVehicleIdAsync(string vehicleId)
+    {
+        try
+        {
+            if (!int.TryParse(vehicleId, out _))
+                return Result<bool>.Failure(new Error("InvalidId", $"Vehicle ID '{vehicleId}' nie jest poprawnym numerem"));
+            
+            // Najpierw usuń powiązania z modelsilnik, aby uniknąć problemów z kluczem obcym
+            const string deleteModelSilnikSql = "DELETE FROM modelsilnik WHERE silnikid IN (SELECT \"ID\" FROM \"Silnik\" WHERE \"PojazdID\" = @VehicleId)";
+            await _connection.ExecuteAsync(deleteModelSilnikSql, new { VehicleId = int.Parse(vehicleId) });
+
+            // Teraz usuń same silniki
+            const string sql = "DELETE FROM \"Silnik\" WHERE \"PojazdID\" = @VehicleId";
+            var rowsAffected = await _connection.ExecuteAsync(sql, new { VehicleId = int.Parse(vehicleId) });
+
+            return Result<bool>.Success(rowsAffected > 0);
+        }
+        catch (Exception ex)
+        {
+            return Result<bool>.Failure(new Error("DatabaseError", $"Failed to delete engines by vehicle ID {vehicleId}: {ex.Message}"));
         }
     }
 

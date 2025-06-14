@@ -6,6 +6,7 @@ using KonfiguratorSamochodowy.Api.Validators;
 using FluentValidation;
 using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
 using KonfiguratorSamochodowy.Api.Repositories.Models;
+using KonfiguratorSamochodowy.Api.Repositories.Services;
 
 namespace KonfiguratorSamochodowy.Api.Services
 {
@@ -14,15 +15,27 @@ namespace KonfiguratorSamochodowy.Api.Services
         private readonly ICarModelRepository _repository;
         private readonly CreateCarModelValidator _createValidator;
         private readonly UpdateCarModelValidator _updateValidator;
+        private readonly TransactionExamples _transactionExamples;
+        private readonly ICarModelEngineRepository _carModelEngineRepository;
+        private readonly IEngineRepository _engineRepository;
+        private readonly ICarModelImageRepository _carModelImageRepository;
         
         public CarModelService(
             ICarModelRepository repository,
             CreateCarModelValidator createValidator,
-            UpdateCarModelValidator updateValidator)
+            UpdateCarModelValidator updateValidator,
+            TransactionExamples transactionExamples,
+            ICarModelEngineRepository carModelEngineRepository,
+            IEngineRepository engineRepository,
+            ICarModelImageRepository carModelImageRepository)
         {
             _repository = repository;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
+            _transactionExamples = transactionExamples;
+            _carModelEngineRepository = carModelEngineRepository;
+            _engineRepository = engineRepository;
+            _carModelImageRepository = carModelImageRepository;
         }
         
         public async Task<Result<IEnumerable<CarModelDto>>> GetAllAsync()
@@ -116,7 +129,27 @@ namespace KonfiguratorSamochodowy.Api.Services
                 
             var existingCarModel = getResult.Value;
             
-            // Aktualizacja tylko tych pól, które są podane w zapytaniu
+            // If base price is being updated, use the transaction
+            if (request.BasePrice.HasValue && request.BasePrice.Value != existingCarModel.BasePrice)
+            {
+                var transactionResult = await _transactionExamples.UpdateCarModelPriceWithConfigurationsAsync(
+                    _repository,
+                    id,
+                    request.BasePrice.Value
+                );
+
+                if (!transactionResult.IsSuccess)
+                    return Result<CarModelDto>.Failure(transactionResult.Error);
+
+                // Get the updated model after transaction
+                var updatedModelResult = await _repository.GetByIdAsync(id);
+                if (!updatedModelResult.IsSuccess)
+                    return Result<CarModelDto>.Failure(updatedModelResult.Error);
+
+                return Result<CarModelDto>.Success(MapToDto(updatedModelResult.Value));
+            }
+            
+            // For other updates, proceed with normal update
             if (!string.IsNullOrEmpty(request.Name))
                 existingCarModel.Name = request.Name;
                 
@@ -131,9 +164,6 @@ namespace KonfiguratorSamochodowy.Api.Services
                 
             if (!string.IsNullOrEmpty(request.Segment))
                 existingCarModel.Segment = request.Segment;
-                
-            if (request.BasePrice.HasValue)
-                existingCarModel.BasePrice = request.BasePrice.Value;
                 
             if (!string.IsNullOrEmpty(request.Description))
                 existingCarModel.Description = request.Description;
@@ -159,7 +189,14 @@ namespace KonfiguratorSamochodowy.Api.Services
 
         public async Task<Result<bool>> DeleteAsync(string id)
         {
-            return await _repository.DeleteAsync(id);
+            var result = await _transactionExamples.DeleteCarModelWithRelatedDataAsync(
+                _repository,
+                _carModelEngineRepository,
+                _engineRepository,
+                _carModelImageRepository,
+                id
+            );
+            return result;
         }
         
         private CarModelDto MapToDto(CarModel carModel)

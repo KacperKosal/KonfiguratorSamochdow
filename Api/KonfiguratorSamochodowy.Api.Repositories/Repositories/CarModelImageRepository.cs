@@ -255,7 +255,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
             {
                 Console.WriteLine($"Database error in GetImageCountByCarModelIdAndColorAsync: {ex}");
                 return Result<int>.Failure(
-                    new Error("DATABASE_ERROR", $"Error getting image count by color: {ex.Message}")
+                    new Error("DATABASE_ERROR", $"Error getting image count by model and color: {ex.Message}")
                 );
             }
         }
@@ -264,39 +264,36 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
         {
             try
             {
-                Console.WriteLine($"GetAvailableColorsForModelAsync called with carModelId: '{carModelId}'");
-                
                 using var connection = new NpgsqlConnection(_connectionString);
                 await connection.OpenAsync();
-                
-                // First check if there are any images for this model
-                const string countSql = @"
-                    SELECT COUNT(*) 
-                    FROM pojazd_zdjecie 
-                    WHERE ""CarModelId"" = @CarModelId";
-                
-                var totalCount = await connection.QuerySingleAsync<int>(countSql, new { CarModelId = carModelId });
-                Console.WriteLine($"Total images for model {carModelId}: {totalCount}");
-                
-                const string sql = @"
-                    SELECT DISTINCT ""Color"" 
-                    FROM pojazd_zdjecie 
-                    WHERE ""CarModelId"" = @CarModelId 
-                    AND ""Color"" IS NOT NULL 
-                    AND ""Color"" != ''
-                    ORDER BY ""Color""";
-
+                const string sql = "SELECT DISTINCT \"Color\" FROM pojazd_zdjecie WHERE \"CarModelId\" = @CarModelId";
                 var colors = await connection.QueryAsync<string>(sql, new { CarModelId = carModelId });
-                var colorsList = colors.ToList();
-                Console.WriteLine($"Available colors for model {carModelId}: [{string.Join(", ", colorsList)}]");
-                
-                return Result<List<string>>.Success(colorsList);
+                return Result<List<string>>.Success(colors.ToList());
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Database error in GetAvailableColorsForModelAsync: {ex}");
                 return Result<List<string>>.Failure(
-                    new Error("DATABASE_ERROR", $"Error getting available colors: {ex.Message}")
+                    new Error("DATABASE_ERROR", $"Error getting available colors for model {carModelId}: {ex.Message}")
+                );
+            }
+        }
+
+        public async Task<Result<bool>> DeleteImagesByCarModelIdAsync(string carModelId)
+        {
+            try
+            {
+                using var connection = new NpgsqlConnection(_connectionString);
+                await connection.OpenAsync();
+                const string sql = "DELETE FROM pojazd_zdjecie WHERE \"CarModelId\" = @CarModelId";
+
+                var rowsAffected = await connection.ExecuteAsync(sql, new { CarModelId = carModelId });
+                return Result<bool>.Success(rowsAffected > 0);
+            }
+            catch (Exception ex)
+            {
+                return Result<bool>.Failure(
+                    new Error("DATABASE_ERROR", $"Error deleting images for car model {carModelId}: {ex.Message}")
                 );
             }
         }

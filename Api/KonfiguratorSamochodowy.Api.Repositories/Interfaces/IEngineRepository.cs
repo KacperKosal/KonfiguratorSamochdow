@@ -13,5 +13,6 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Interfaces
         Task<Result<Engine>> UpdateAsync(string id, Engine engine);
         Task<Result<bool>> DeleteAsync(string id);
         Task<IEnumerable<Engine>> GetAllByVechicleIdAsync(int vehicleId);
+        Task<Result<bool>> DeleteByVehicleIdAsync(string vehicleId);
     }
 }

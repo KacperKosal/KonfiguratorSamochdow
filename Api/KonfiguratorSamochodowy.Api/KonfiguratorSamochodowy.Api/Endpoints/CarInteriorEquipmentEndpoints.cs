@@ -19,7 +19,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 var result = await service.GetAllAsync();
                 return result.IsSuccess 
                     ? Results.Ok(result.Value) 
-                    : Results.Problem(result.Error.Message, statusCode: 500);
+                    : Results.Problem(result.Error?.Message ?? "Wystąpił nieznany błąd serwera.", statusCode: 500);
             })
             .WithName("GetAllCarInteriorEquipment")
             .WithDisplayName("Pobierz wszystkie elementy wyposażenia wnętrza")
@@ -32,7 +32,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 var result = await service.GetByIdAsync(id);
                 return result.IsSuccess 
                     ? Results.Ok(result.Value) 
-                    : Results.NotFound(result.Error.Message);
+                    : Results.NotFound(result.Error?.Message ?? "Wystąpił nieznany błąd serwera.");
             })
             .WithName("GetCarInteriorEquipmentById")
             .WithDisplayName("Pobierz element wyposażenia wnętrza po ID")
@@ -45,7 +45,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 var result = await service.GetByCarIdAsync(carId);
                 return result.IsSuccess 
                     ? Results.Ok(result.Value) 
-                    : Results.Problem(result.Error.Message, statusCode: 500);
+                    : Results.Problem(result.Error?.Message ?? "Wystąpił nieznany błąd serwera.", statusCode: 500);
             })
             .WithName("GetCarInteriorEquipmentByCarId")
             .WithDisplayName("Pobierz wyposażenie wnętrza dla danego samochodu")
@@ -58,7 +58,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 var result = await service.GetByCarModelAsync(carModel);
                 return result.IsSuccess 
                     ? Results.Ok(result.Value) 
-                    : Results.Problem(result.Error.Message, statusCode: 500);
+                    : Results.Problem(result.Error?.Message ?? "Wystąpił nieznany błąd serwera.", statusCode: 500);
             })
             .WithName("GetCarInteriorEquipmentByCarModel")
             .WithDisplayName("Pobierz wyposażenie wnętrza dla danego modelu samochodu")
@@ -76,7 +76,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 var result = await service.GetByTypeAsync(type);
                 return result.IsSuccess 
                     ? Results.Ok(result.Value) 
-                    : Results.Problem(result.Error.Message, statusCode: 500);
+                    : Results.Problem(result.Error?.Message ?? "Wystąpił nieznany błąd serwera.", statusCode: 500);
             })
             .WithName("GetCarInteriorEquipmentByType")
             .WithDisplayName("Pobierz wyposażenie wnętrza według typu")
@@ -90,7 +90,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 var result = await service.GetFilteredAsync(request);
                 return result.IsSuccess 
                     ? Results.Ok(result.Value) 
-                    : Results.Problem(result.Error.Message, statusCode: 500);
+                    : Results.Problem(result.Error?.Message ?? "Wystąpił nieznany błąd serwera.", statusCode: 500);
             })
             .WithName("GetFilteredCarInteriorEquipment")
             .WithDisplayName("Pobierz wyposażenie wnętrza z filtrowaniem")
@@ -103,7 +103,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 var result = await service.GetFullCarConfigurationAsync(carId);
                 return result.IsSuccess 
                     ? Results.Ok(result.Value) 
-                    : Results.Problem(result.Error.Message, statusCode: 500);
+                    : Results.Problem(result.Error?.Message ?? "Wystąpił nieznany błąd serwera.", statusCode: 500);
             })
             .WithName("GetFullCarInteriorConfiguration")
             .WithDisplayName("Pobierz pełną konfigurację wyposażenia wnętrza samochodu")
@@ -116,7 +116,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 var result = await service.CreateAsync(request);
                 return result.IsSuccess 
                     ? Results.Created($"/api/car-interior-equipment/{result.Value.Id}", result.Value) 
-                    : Results.BadRequest(result.Error.Message);
+                    : Results.BadRequest(result.Error?.Message ?? "Wystąpił nieznany błąd serwera.");
             })
             .WithName("CreateCarInteriorEquipment")
             .WithDisplayName("Utwórz nowy element wyposażenia wnętrza")
@@ -131,9 +131,9 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 var result = await service.UpdateAsync(id, request);
                 return result.IsSuccess 
                     ? Results.Ok(result.Value) 
-                    : result.Error.Code == "NotFound" 
-                        ? Results.NotFound(result.Error.Message) 
-                        : Results.BadRequest(result.Error.Message);
+                    : result.Error?.Code == "NotFound" 
+                        ? Results.NotFound(result.Error?.Message ?? "Wystąpił nieznany błąd serwera.") 
+                        : Results.BadRequest(result.Error?.Message ?? "Wystąpił nieznany błąd serwera.");
             })
             .WithName("UpdateCarInteriorEquipment")
             .WithDisplayName("Zaktualizuj element wyposażenia wnętrza")
@@ -147,7 +147,7 @@ namespace KonfiguratorSamochodowy.Api.Endpoints
                 var result = await service.DeleteAsync(id);
                 return result.IsSuccess 
                     ? Results.NoContent() 
-                    : Results.NotFound(result.Error.Message);
+                    : Results.NotFound(result.Error?.Message ?? "Wystąpił nieznany błąd serwera.");
             })
             .WithName("DeleteCarInteriorEquipment")
             .WithDisplayName("Usuń element wyposażenia wnętrza")

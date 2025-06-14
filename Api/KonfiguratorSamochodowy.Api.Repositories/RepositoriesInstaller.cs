@@ -1,5 +1,6 @@
 using KonfiguratorSamochodowy.Api.Repositories.Interfaces;
 using KonfiguratorSamochodowy.Api.Repositories.Repositories;
+using KonfiguratorSamochodowy.Api.Repositories.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +39,14 @@ public static class RepositoriesInstaller
 
         // Register IDbConnection for Dapper (main data access)
         services.AddTransient<IDbConnection>(_ => new NpgsqlConnection(connectionString));
+        
+        // Register transaction service
+        services.AddScoped<ITransactionService, TransactionService>();
+        services.AddScoped<TransactionExamples>(sp => 
+            new TransactionExamples(
+                sp.GetRequiredService<ITransactionService>(),
+                connectionString
+            ));
         
         // Register existing repositories
         services.AddTransient<IUserRepository, UserRepository>();
