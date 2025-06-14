@@ -49,19 +49,19 @@ public static class RepositoriesInstaller
             ));
         
         // Register existing repositories
-        services.AddTransient<IUserRepository, UserRepository>();
-        services.AddTransient<IVehicleRepository, VehicleRepository>();
-        services.AddTransient<IConfigurationRepository, ConfigurationRepository>();
-        services.AddTransient<IVechicleFeaturesRepository, VechicleFeaturesRepository>();
+        services.AddTransient<IUserRepository, SqlUserRepository>();
+        services.AddTransient<IVehicleRepository, SqlVehicleRepository>();
+        services.AddTransient<IConfigurationRepository, SqlConfigurationRepository>();
+        services.AddTransient<IVechicleFeaturesRepository, SqlVechicleFeaturesRepository>();
         
         // Register our pure SQL implementations using Dapper
         services.AddTransient<ICarModelRepository, SqlCarModelRepository>();
         services.AddTransient<ICarModelEngineRepository, SqlCarModelEngineRepository>();
-        services.AddTransient<IEngineRepository, EngineRepository>();
-        services.AddTransient<ICarAccessoryRepository, CarAccessoryRepository>();
-        services.AddTransient<ICarInteriorEquipmentRepository, CarInteriorEquipmentRepository>();
-        services.AddTransient<IUserConfigurationRepository, UserConfigurationRepository>();
-        services.AddTransient<ICarModelImageRepository, CarModelImageRepository>();
+        services.AddTransient<IEngineRepository, SqlEngineRepository>();
+        services.AddTransient<ICarAccessoryRepository, SqlCarAccessoryRepository>();
+        services.AddTransient<ICarInteriorEquipmentRepository, SqlCarInteriorEquipmentRepository>();
+        services.AddTransient<IUserConfigurationRepository, SqlUserConfigurationRepository>();
+        services.AddTransient<ICarModelImageRepository, SqlCarModelImageRepository>();
         services.AddTransient<ICarModelColorRepository, CarModelColorRepository>();
         
         return services;

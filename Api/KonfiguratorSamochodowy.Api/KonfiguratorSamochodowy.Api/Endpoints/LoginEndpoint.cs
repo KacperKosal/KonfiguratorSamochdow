@@ -10,9 +10,11 @@ internal static class LoginEndpoint
     {
         builder.MapPost("/login", async (HttpContext context, LoginRequest request, ILoginUserService loginUserService, IConfiguration configuration) =>
         {
+            var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+
             try
             {
-                var result = await loginUserService.LoginUserAsync(request);
+                var result = await loginUserService.LoginUserAsync(request, ipAddress);
 
                 int refreshTokenExpiration = configuration.GetValue<int>("JwtInformations:RefreshTokenExpirationSeconds");
 

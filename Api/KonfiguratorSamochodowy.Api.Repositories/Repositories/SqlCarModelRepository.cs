@@ -14,7 +14,7 @@ using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 
 namespace KonfiguratorSamochodowy.Api.Repositories.Repositories
 {
-    public class SqlCarModelRepository : ICarModelRepository
+    public sealed class SqlCarModelRepository : ICarModelRepository
     {
         private readonly IDbConnection _connection;
 

@@ -7,11 +7,11 @@ using KonfiguratorSamochodowy.Api.Repositories.Models;
 
 namespace KonfiguratorSamochodowy.Api.Repositories.Repositories;
 
-public class EngineRepository : IEngineRepository
+public sealed class SqlEngineRepository : IEngineRepository
 {
     private readonly IDbConnection _connection;
 
-    public EngineRepository(IDbConnection connection)
+    public SqlEngineRepository(IDbConnection connection)
     {
         _connection = connection;
     }

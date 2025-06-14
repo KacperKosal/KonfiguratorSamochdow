@@ -11,7 +11,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories;
 /// <summary>
 /// Implementacja repozytorium pojazdów
 /// </summary>
-internal sealed class VehicleRepository(IDbConnection connection, IVechicleFeaturesRepository vechicleFeaturesRepository, IEngineRepository engineRepository) : IVehicleRepository
+public sealed class SqlVehicleRepository(IDbConnection connection, IVechicleFeaturesRepository vechicleFeaturesRepository, IEngineRepository engineRepository) : IVehicleRepository
 {
     /// <summary>
     /// Pobiera listę pojazdów na podstawie parametrów wyszukiwania

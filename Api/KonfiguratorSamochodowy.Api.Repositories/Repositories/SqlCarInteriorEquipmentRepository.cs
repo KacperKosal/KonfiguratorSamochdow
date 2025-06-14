@@ -6,11 +6,11 @@ using KonfiguratorSamochodowy.Api.Repositories.Models;
 
 namespace KonfiguratorSamochodowy.Api.Repositories.Repositories;
 
-public class CarInteriorEquipmentRepository : ICarInteriorEquipmentRepository
+public class SqlCarInteriorEquipmentRepository : ICarInteriorEquipmentRepository
 {
     private readonly IDbConnection _connection;
 
-    public CarInteriorEquipmentRepository(IDbConnection connection)
+    public SqlCarInteriorEquipmentRepository(IDbConnection connection)
     {
         _connection = connection;
     }
@@ -69,11 +69,9 @@ public class CarInteriorEquipmentRepository : ICarInteriorEquipmentRepository
                 WHERE id = @Id";
 
             var equipment = await _connection.QueryFirstOrDefaultAsync<CarInteriorEquipment>(sql, new { Id = id });
-            
-            if (equipment == null)
-                return Result<CarInteriorEquipment>.Failure(new Error("NotFound", $"Wyposażenie wnętrza o ID {id} nie zostało znalezione"));
-                
-            return Result<CarInteriorEquipment>.Success(equipment);
+            return equipment != null
+                ? Result<CarInteriorEquipment>.Success(equipment)
+                : Result<CarInteriorEquipment>.Failure(new Error("NotFound", $"Wyposażenie wnętrza o ID {id} nie zostało znalezione"));
         }
         catch (Exception ex)
         {
@@ -83,14 +81,68 @@ public class CarInteriorEquipmentRepository : ICarInteriorEquipmentRepository
 
     public async Task<Result<IEnumerable<CarInteriorEquipment>>> GetByCarIdAsync(string carId)
     {
-        // Tabela nie ma pola car_id, więc zwróć wszystkie
-        return await GetAllAsync();
+        try
+        {
+            const string sql = @"
+                SELECT
+                    cie.id AS Id,
+                    p.id AS CarId,
+                    p.model AS CarModel,
+                    cie.type AS Type,
+                    cie.value AS Value,
+                    cie.additional_price AS AdditionalPrice,
+                    cie.description AS Description,
+                    FALSE AS IsDefault,
+                    '' AS ColorCode,
+                    NULL AS Intensity,
+                    cie.has_navigation AS HasNavigation,
+                    cie.has_premium_sound AS HasPremiumSound,
+                    cie.control_type AS ControlType
+                FROM car_interior_equipment cie
+                JOIN pojazd p ON cie.id = ANY(STRING_TO_ARRAY(p.wyposazeniewnetrza, ',')) -- Assuming comma-separated IDs
+                WHERE p.id = CAST(@CarId AS INTEGER)
+                ORDER BY cie.type, cie.value";
+
+            var equipment = await _connection.QueryAsync<CarInteriorEquipment>(sql, new { CarId = carId });
+            return Result<IEnumerable<CarInteriorEquipment>>.Success(equipment);
+        }
+        catch (Exception ex)
+        {
+            return Result<IEnumerable<CarInteriorEquipment>>.Failure(new Error("DatabaseError", ex.Message));
+        }
     }
 
     public async Task<Result<IEnumerable<CarInteriorEquipment>>> GetByCarModelAsync(string carModel)
     {
-        // Tabela nie ma pola car_model, więc zwróć wszystkie
-        return await GetAllAsync();
+        try
+        {
+            const string sql = @"
+                SELECT
+                    cie.id AS Id,
+                    p.id AS CarId,
+                    p.model AS CarModel,
+                    cie.type AS Type,
+                    cie.value AS Value,
+                    cie.additional_price AS AdditionalPrice,
+                    cie.description AS Description,
+                    FALSE AS IsDefault,
+                    '' AS ColorCode,
+                    NULL AS Intensity,
+                    cie.has_navigation AS HasNavigation,
+                    cie.has_premium_sound AS HasPremiumSound,
+                    cie.control_type AS ControlType
+                FROM car_interior_equipment cie
+                JOIN pojazd p ON cie.id = ANY(STRING_TO_ARRAY(p.wyposazeniewnetrza, ',')) -- Assuming comma-separated IDs
+                WHERE p.model = @CarModel
+                ORDER BY cie.type, cie.value";
+
+            var equipment = await _connection.QueryAsync<CarInteriorEquipment>(sql, new { CarModel = carModel });
+            return Result<IEnumerable<CarInteriorEquipment>>.Success(equipment);
+        }
+        catch (Exception ex)
+        {
+            return Result<IEnumerable<CarInteriorEquipment>>.Failure(new Error("DatabaseError", ex.Message));
+        }
     }
 
     public async Task<Result<IEnumerable<CarInteriorEquipment>>> GetByTypeAsync(string type)
@@ -132,21 +184,7 @@ public class CarInteriorEquipmentRepository : ICarInteriorEquipmentRepository
             var conditions = new List<string>();
             var parameters = new DynamicParameters();
 
-            if (!string.IsNullOrEmpty(type))
-            {
-                conditions.Add("type = @Type");
-                parameters.Add("@Type", type);
-            }
-
-            if (maxPrice.HasValue)
-            {
-                conditions.Add("additional_price <= @MaxPrice");
-                parameters.Add("@MaxPrice", maxPrice.Value);
-            }
-
-            var whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : string.Empty;
-            
-            var sql = $@"
+            string sql = @"
                 SELECT
                     id AS Id,
                     '' AS CarId,
@@ -161,9 +199,38 @@ public class CarInteriorEquipmentRepository : ICarInteriorEquipmentRepository
                     has_navigation AS HasNavigation,
                     has_premium_sound AS HasPremiumSound,
                     control_type AS ControlType
-                FROM car_interior_equipment
-                {whereClause}
-                ORDER BY type, value";
+                FROM car_interior_equipment";
+
+            if (!string.IsNullOrEmpty(carId))
+            {
+                conditions.Add("id IN (SELECT UNNEST(STRING_TO_ARRAY(wyposazeniewnetrza, ',')) FROM pojazd WHERE id = CAST(@CarId AS INTEGER))");
+                parameters.Add("@CarId", carId);
+            }
+
+            if (!string.IsNullOrEmpty(carModel))
+            {
+                conditions.Add("id IN (SELECT UNNEST(STRING_TO_ARRAY(wyposazeniewnetrza, ',')) FROM pojazd WHERE model = @CarModel)");
+                parameters.Add("@CarModel", carModel);
+            }
+
+            if (!string.IsNullOrEmpty(type))
+            {
+                conditions.Add("type = @Type");
+                parameters.Add("@Type", type);
+            }
+
+            if (maxPrice.HasValue)
+            {
+                conditions.Add("additional_price <= @MaxPrice");
+                parameters.Add("@MaxPrice", maxPrice.Value);
+            }
+
+            if (conditions.Any())
+            {
+                sql += " WHERE " + string.Join(" AND ", conditions);
+            }
+
+            sql += " ORDER BY type, value";
 
             var equipment = await _connection.QueryAsync<CarInteriorEquipment>(sql, parameters);
             return Result<IEnumerable<CarInteriorEquipment>>.Success(equipment);
@@ -178,23 +245,19 @@ public class CarInteriorEquipmentRepository : ICarInteriorEquipmentRepository
     {
         try
         {
-            equipment.Id = Guid.NewGuid().ToString();
-            
             const string sql = @"
-                INSERT INTO car_interior_equipment (id, type, value, description, additional_price, has_navigation, has_premium_sound, control_type)
-                VALUES (@Id, @Type, @Value, @Description, @AdditionalPrice, @HasNavigation, @HasPremiumSound, @ControlType)";
+                INSERT INTO car_interior_equipment (
+                    id, type, value, description, additional_price, has_navigation, has_premium_sound, control_type
+                )
+                VALUES (
+                    @Id, @Type, @Value, @Description, @AdditionalPrice, @HasNavigation, @HasPremiumSound, @ControlType
+                )";
 
-            var parameters = new DynamicParameters();
-            parameters.Add("@Id", equipment.Id);
-            parameters.Add("@Type", equipment.Type);
-            parameters.Add("@Value", equipment.Value);
-            parameters.Add("@Description", equipment.Description);
-            parameters.Add("@AdditionalPrice", equipment.AdditionalPrice);
-            parameters.Add("@HasNavigation", equipment.HasNavigation ?? false);
-            parameters.Add("@HasPremiumSound", equipment.HasPremiumSound ?? false);
-            parameters.Add("@ControlType", equipment.ControlType);
-
-            await _connection.ExecuteAsync(sql, parameters);
+            var rowsAffected = await _connection.ExecuteAsync(sql, equipment);
+            if (rowsAffected == 0)
+            {
+                return Result<CarInteriorEquipment>.Failure(new Error("CreateFailed", "Nie udało się utworzyć wyposażenia wnętrza."));
+            }
             return Result<CarInteriorEquipment>.Success(equipment);
         }
         catch (Exception ex)
@@ -209,7 +272,8 @@ public class CarInteriorEquipmentRepository : ICarInteriorEquipmentRepository
         {
             const string sql = @"
                 UPDATE car_interior_equipment
-                SET type = @Type,
+                SET
+                    type = @Type,
                     value = @Value,
                     description = @Description,
                     additional_price = @AdditionalPrice,
@@ -218,21 +282,11 @@ public class CarInteriorEquipmentRepository : ICarInteriorEquipmentRepository
                     control_type = @ControlType
                 WHERE id = @Id";
 
-            var parameters = new DynamicParameters();
-            parameters.Add("@Id", id);
-            parameters.Add("@Type", equipment.Type);
-            parameters.Add("@Value", equipment.Value);
-            parameters.Add("@Description", equipment.Description);
-            parameters.Add("@AdditionalPrice", equipment.AdditionalPrice);
-            parameters.Add("@HasNavigation", equipment.HasNavigation ?? false);
-            parameters.Add("@HasPremiumSound", equipment.HasPremiumSound ?? false);
-            parameters.Add("@ControlType", equipment.ControlType);
-
-            var rowsAffected = await _connection.ExecuteAsync(sql, parameters);
+            var rowsAffected = await _connection.ExecuteAsync(sql, equipment);
             if (rowsAffected == 0)
-                return Result<CarInteriorEquipment>.Failure(new Error("NotFound", $"Wyposażenie wnętrza o ID {id} nie zostało znalezione"));
-
-            equipment.Id = id;
+            {
+                return Result<CarInteriorEquipment>.Failure(new Error("UpdateFailed", $"Nie znaleziono wyposażenia wnętrza o ID {id}."));
+            }
             return Result<CarInteriorEquipment>.Success(equipment);
         }
         catch (Exception ex)
@@ -247,11 +301,7 @@ public class CarInteriorEquipmentRepository : ICarInteriorEquipmentRepository
         {
             const string sql = "DELETE FROM car_interior_equipment WHERE id = @Id";
             var rowsAffected = await _connection.ExecuteAsync(sql, new { Id = id });
-
-            if (rowsAffected == 0)
-                return Result<bool>.Failure(new Error("NotFound", $"Wyposażenie wnętrza o ID {id} nie zostało znalezione"));
-
-            return Result<bool>.Success(true);
+            return Result<bool>.Success(rowsAffected > 0);
         }
         catch (Exception ex)
         {

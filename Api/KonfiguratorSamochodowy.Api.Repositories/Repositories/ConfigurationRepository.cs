@@ -9,7 +9,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories;
 /// <summary>
 /// Implementacja repozytorium konfiguracji pojazdów
 /// </summary>
-internal sealed class ConfigurationRepository : IConfigurationRepository
+public sealed class SqlConfigurationRepository : IConfigurationRepository
 {
     private readonly IDbConnection _connection;
 
@@ -17,7 +17,7 @@ internal sealed class ConfigurationRepository : IConfigurationRepository
     /// Inicjalizuje nową instancję klasy ConfigurationRepository
     /// </summary>
     /// <param name="connection">Połączenie do bazy danych</param>
-    public ConfigurationRepository(IDbConnection connection)
+    public SqlConfigurationRepository(IDbConnection connection)
     {
         _connection = connection;
     }

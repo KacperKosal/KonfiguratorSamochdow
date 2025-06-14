@@ -11,15 +11,18 @@ namespace KonfiguratorSamochodowy.Api.Services
     public class CarAccessoryService : ICarAccessoryService
     {
         private readonly ICarAccessoryRepository _repository;
+        private readonly ICarModelRepository _carModelRepository;
         private readonly CreateCarAccessoryValidator _createValidator;
         private readonly UpdateCarAccessoryValidator _updateValidator;
 
         public CarAccessoryService(
             ICarAccessoryRepository repository,
+            ICarModelRepository carModelRepository,
             CreateCarAccessoryValidator createValidator,
             UpdateCarAccessoryValidator updateValidator)
         {
             _repository = repository;
+            _carModelRepository = carModelRepository;
             _createValidator = createValidator;
             _updateValidator = updateValidator;
         }
@@ -136,19 +139,22 @@ namespace KonfiguratorSamochodowy.Api.Services
                     new Error("ValidationError", errorMessage));
             }
 
-            // Pobierz model samochodu na podstawie CarId
-            var carResult = await _repository.GetByCarIdAsync(request.CarId);
-            var carModel = "Unknown";
+            var carModelResult = await _carModelRepository.GetByIdAsync(request.CarId);
+            string carModelName = null;
 
-            if (carResult.IsSuccess && carResult.Value.Any())
+            if (carModelResult.IsSuccess)
             {
-                carModel = carResult.Value.First().CarModel;
+                carModelName = carModelResult.Value.Name;
+            } else {
+                return Result<CarAccessoryDto>.Failure(
+                    new Error("NotFoundError", $"Nie znaleziono modelu samochodu o ID: {request.CarId}"));
             }
 
             var accessory = new CarAccessory
             {
+                Id = Guid.NewGuid().ToString(),
                 CarId = request.CarId,
-                CarModel = carModel,
+                CarModel = carModelName,
                 Category = request.Category,
                 Type = request.Type,
                 Name = request.Name,

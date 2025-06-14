@@ -8,7 +8,7 @@ namespace KonfiguratorSamochodowy.Api.Repositories.Repositories;
 /// <summary>
 /// Implementacja repozytorium użytkowników
 /// </summary>
-internal sealed class UserRepository : IUserRepository
+public sealed class SqlUserRepository : IUserRepository
 {
     private readonly IDbConnection _connection;
 
@@ -16,7 +16,7 @@ internal sealed class UserRepository : IUserRepository
     /// Inicjalizuje nową instancję klasy UserRepository
     /// </summary>
     /// <param name="connection">Połączenie do bazy danych</param>
-    public UserRepository(IDbConnection connection)
+    public SqlUserRepository(IDbConnection connection)
     {
         _connection = connection;
     }

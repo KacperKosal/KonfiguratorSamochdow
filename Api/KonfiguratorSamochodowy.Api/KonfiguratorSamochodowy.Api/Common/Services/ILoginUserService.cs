@@ -8,6 +8,7 @@ internal interface ILoginUserService
     /// Loguje użytkownika
     /// </summary>
     /// <param name="request">Żądanie logowania użytkownika</param>
+    /// <param name="ipAddress">Adres IP użytkownika</param>
     /// <returns>Identyfikator zalogowanego użytkownika</returns>
-    Task<LoginResult> LoginUserAsync(LoginRequest request);
+    Task<LoginResult> LoginUserAsync(LoginRequest request, string ipAddress);
 }

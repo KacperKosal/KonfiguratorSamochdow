@@ -5,7 +5,7 @@ using KonfiguratorSamochodowy.Api.Repositories.Models;
 
 namespace KonfiguratorSamochodowy.Api.Repositories.Repositories;
 
-internal class VechicleFeaturesRepository(IDbConnection connection) : IVechicleFeaturesRepository
+public class SqlVechicleFeaturesRepository(IDbConnection connection) : IVechicleFeaturesRepository
 {
     public Task<int> CreateAsync(VehicleFeatures vehicleFeatures)
     {

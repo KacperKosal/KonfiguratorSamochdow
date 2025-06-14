@@ -7,6 +7,7 @@ using KonfiguratorSamochodowy.Api.Validators;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 using Dapper;
+using KonfiguratorSamochodowy.Api.Repositories.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +46,17 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUserConfigurationService, UserConfigurationService>();
 builder.Services.AddScoped<ICarModelImageService, CarModelImageService>();
 builder.Services.AddScoped<ICarModelColorService, CarModelColorService>();
+
+// Repositories
+builder.Services.AddScoped<IUserRepository, SqlUserRepository>();
+builder.Services.AddScoped<ICarModelRepository, SqlCarModelRepository>();
+builder.Services.AddScoped<ICarModelEngineRepository, SqlCarModelEngineRepository>();
+builder.Services.AddScoped<IEngineRepository, SqlEngineRepository>();
+builder.Services.AddScoped<ICarModelImageRepository, SqlCarModelImageRepository>();
+builder.Services.AddScoped<ICarAccessoryRepository, SqlCarAccessoryRepository>();
+builder.Services.AddScoped<ICarInteriorEquipmentRepository, SqlCarInteriorEquipmentRepository>();
+builder.Services.AddScoped<IUserConfigurationRepository, SqlUserConfigurationRepository>();
+builder.Services.AddScoped<ILoggingRepository, LoggingRepository>();
 
 builder.Services.AddCors();
 
